@@ -78,7 +78,7 @@ const ReceitasModule = (() => {
 
   async function load() {
     const lbl=document.getElementById('rec-month-lbl'); if(lbl) lbl.textContent=Utils.monthName(fMonth,fYear)
-    const{data}=await db.from('receitas').select('*').eq('user_id',App.user.id).gte('data',Utils.monthStart(fYear,fMonth)).lte('data',Utils.monthEnd(fYear,fMonth)).order('data',{ascending:false})
+    const{data}=await window.db.from('receitas').select('*').eq('user_id',App.user.id).gte('data',Utils.monthStart(fYear,fMonth)).lte('data',Utils.monthEnd(fYear,fMonth)).order('data',{ascending:false})
     todos=data||[]
     const total=todos.reduce((s,t)=>s+Number(t.valor||0),0)
     const el=document.getElementById('rec-total'); if(el) el.textContent='— Total: '+Utils.fmt(total)
@@ -128,7 +128,7 @@ const ReceitasModule = (() => {
     if(!valor||valor<=0){Toast.err('Informe um valor válido.');return}
     if(!data){Toast.err('Informe a data.');return}
     setLoading(btn,true,'Salvando...')
-    const{error}=await db.from('receitas').insert({user_id:App.user.id,descricao:desc,valor,data,categoria:cat||null,observacao:obs||null})
+    const{error}=await window.db.from('receitas').insert({user_id:App.user.id,descricao:desc,valor,data,categoria:cat||null,observacao:obs||null})
     setLoading(btn,false,'Salvar')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Receita salva! ✓');cancelarForm();await load()}
@@ -142,7 +142,7 @@ const ReceitasModule = (() => {
     const btn=document.getElementById('me-save-btn')
     if(!desc||!valor||!data){Toast.err('Preencha os campos obrigatórios.');return}
     setLoading(btn,true,'Salvando...')
-    const{error}=await db.from('receitas').update({descricao:desc,valor,data,categoria:cat||null,observacao:obs||null}).eq('id',editandoId).eq('user_id',App.user.id)
+    const{error}=await window.db.from('receitas').update({descricao:desc,valor,data,categoria:cat||null,observacao:obs||null}).eq('id',editandoId).eq('user_id',App.user.id)
     setLoading(btn,false,'Salvar alterações')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Atualizado! ✓');Modal.close('modal-rec-edit');editandoId=null;await load()}
@@ -150,7 +150,7 @@ const ReceitasModule = (() => {
 
   function abrirDel(id){const t=todos.find(x=>x.id===id);if(!t)return;deletandoId=id;const el=document.getElementById('del-rec-desc');if(el)el.textContent='"'+t.descricao+'" — '+Utils.fmt(t.valor);Modal.open('modal-rec-del')}
 
-  async function confirmarDel(){if(!deletandoId)return;const btn=document.getElementById('del-rec-btn');setLoading(btn,true,'Excluindo...');const{error}=await db.from('receitas').delete().eq('id',deletandoId).eq('user_id',App.user.id);setLoading(btn,false,'Excluir');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Excluído.');Modal.close('modal-rec-del');deletandoId=null;await load()}}
+  async function confirmarDel(){if(!deletandoId)return;const btn=document.getElementById('del-rec-btn');setLoading(btn,true,'Excluindo...');const{error}=await window.db.from('receitas').delete().eq('id',deletandoId).eq('user_id',App.user.id);setLoading(btn,false,'Excluir');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Excluído.');Modal.close('modal-rec-del');deletandoId=null;await load()}}
 
   function toggleForm(){const c=document.getElementById('rec-form'),lbl=document.getElementById('rec-form-lbl');if(c.classList.contains('hidden')){c.classList.remove('hidden');lbl.textContent='Fechar';document.getElementById('rf-desc').focus()}else cancelarForm()}
   function cancelarForm(){document.getElementById('rec-form')?.classList.add('hidden');const lbl=document.getElementById('rec-form-lbl');if(lbl)lbl.textContent='Nova receita';['rf-desc','rf-valor','rf-cat','rf-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});document.getElementById('rf-data').value=Utils.today()}

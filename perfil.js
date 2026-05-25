@@ -60,10 +60,10 @@ const PerfilModule = (() => {
   async function carregar() {
     document.getElementById('pf-email').value = App.user.email||''
     const[pRes,rRes,dRes,iRes]=await Promise.all([
-      db.from('profiles').select('*').eq('id',App.user.id).maybeSingle(),
-      db.from('receitas').select('valor').eq('user_id',App.user.id),
-      db.from('despesas').select('valor').eq('user_id',App.user.id),
-      db.from('investimentos').select('valor_atual').eq('user_id',App.user.id),
+      window.db.from('profiles').select('*').eq('id',App.user.id).maybeSingle(),
+      window.db.from('receitas').select('valor').eq('user_id',App.user.id),
+      window.db.from('despesas').select('valor').eq('user_id',App.user.id),
+      window.db.from('investimentos').select('valor_atual').eq('user_id',App.user.id),
     ])
     const p=pRes.data
     if(p){
@@ -95,7 +95,7 @@ const PerfilModule = (() => {
   async function salvarPerfil(){
     const nome=document.getElementById('pf-nome')?.value.trim(), barbearia=document.getElementById('pf-barbearia')?.value.trim(), tel=document.getElementById('pf-tel')?.value.trim(), btn=document.getElementById('pf-save-btn')
     Utils.setLoading(btn,true,'Salvando...')
-    const{error}=await db.from('profiles').upsert({id:App.user.id,full_name:nome||null,barbershop_name:barbearia||null,phone:tel||null,updated_at:new Date().toISOString()})
+    const{error}=await window.db.from('profiles').upsert({id:App.user.id,full_name:nome||null,barbershop_name:barbearia||null,phone:tel||null,updated_at:new Date().toISOString()})
     Utils.setLoading(btn,false,iconSave()+' Salvar dados')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Perfil salvo! ✓');await carregar()}
@@ -106,7 +106,7 @@ const PerfilModule = (() => {
     if(!nova||nova.length<6){Toast.err('Senha mínimo 6 caracteres.');return}
     if(nova!==conf){Toast.err('Senhas não coincidem.');return}
     Utils.setLoading(btn,true,'Salvando...')
-    const{error}=await db.auth.updateUser({password:nova})
+    const{error}=await window.db.auth.updateUser({password:nova})
     Utils.setLoading(btn,false,'Salvar senha')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Senha alterada! ✓');toggleSenha();document.getElementById('nova-senha').value='';document.getElementById('conf-senha').value=''}

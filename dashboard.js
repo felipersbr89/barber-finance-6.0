@@ -95,14 +95,14 @@ const DashboardModule = (() => {
     if (sub) sub.textContent = nome
 
     const [rInc, rExp, rRecent, rGoals, rInvest] = await Promise.all([
-      db.from('receitas').select('valor').eq('user_id', uid).gte('data', start).lte('data', end),
-      db.from('despesas').select('valor,categoria').eq('user_id', uid).gte('data', start).lte('data', end),
+      window.db.from('receitas').select('valor').eq('user_id', uid).gte('data', start).lte('data', end),
+      window.db.from('despesas').select('valor,categoria').eq('user_id', uid).gte('data', start).lte('data', end),
       Promise.all([
-        db.from('receitas').select('descricao,valor,data,categoria').eq('user_id', uid).order('data',{ascending:false}).limit(4),
-        db.from('despesas').select('descricao,valor,data,categoria').eq('user_id', uid).order('data',{ascending:false}).limit(4),
+        window.db.from('receitas').select('descricao,valor,data,categoria').eq('user_id', uid).order('data',{ascending:false}).limit(4),
+        window.db.from('despesas').select('descricao,valor,data,categoria').eq('user_id', uid).order('data',{ascending:false}).limit(4),
       ]),
-      db.from('metas').select('nome,valor_alvo,valor_atual').eq('user_id', uid).order('created_at',{ascending:false}).limit(3),
-      db.from('investimentos').select('valor_atual').eq('user_id', uid),
+      window.db.from('metas').select('nome,valor_alvo,valor_atual').eq('user_id', uid).order('created_at',{ascending:false}).limit(3),
+      window.db.from('investimentos').select('valor_atual').eq('user_id', uid),
     ])
 
     const totalInc = (rInc.data||[]).reduce((s,r) => s + Number(r.valor||0), 0)
@@ -145,8 +145,8 @@ const DashboardModule = (() => {
 
   async function loadChart(uid, start, end) {
     const [rR, rD] = await Promise.all([
-      db.from('receitas').select('data,valor').eq('user_id',uid).gte('data',start).lte('data',end),
-      db.from('despesas').select('data,valor').eq('user_id',uid).gte('data',start).lte('data',end),
+      window.db.from('receitas').select('data,valor').eq('user_id',uid).gte('data',start).lte('data',end),
+      window.db.from('despesas').select('data,valor').eq('user_id',uid).gte('data',start).lte('data',end),
     ])
     const map = {}
     ;(rR.data||[]).forEach(r => { if(!map[r.data]) map[r.data]={i:0,e:0}; map[r.data].i+=Number(r.valor||0) })

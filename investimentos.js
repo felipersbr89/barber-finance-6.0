@@ -86,7 +86,7 @@ const InvestimentosModule = (() => {
   }
 
   async function carregar() {
-    const{data}=await db.from('investimentos').select('*').eq('user_id',App.user.id).order('data_aporte',{ascending:false})
+    const{data}=await window.db.from('investimentos').select('*').eq('user_id',App.user.id).order('data_aporte',{ascending:false})
     todos=data||[]
     atualizarKPIs(); renderLista()
     if(todos.length) document.getElementById('inv-tabs')?.classList.remove('hidden')
@@ -170,7 +170,7 @@ const InvestimentosModule = (() => {
     const btn=document.getElementById('inv-save-btn')
     if(!nome||!tipo||!inst||!vi||!va||!data){Toast.err('Preencha todos os campos obrigatórios.');return}
     Utils.setLoading(btn,true,'Salvando...')
-    const{error}=await db.from('investimentos').insert({user_id:App.user.id,nome_investimento:nome,tipo_investimento:tipo,instituição:inst,valor_investido:vi,valor_atual:va,data_aporte:data,rentabilidade:rent||null,objetivo:obj||null})
+    const{error}=await window.db.from('investimentos').insert({user_id:App.user.id,nome_investimento:nome,tipo_investimento:tipo,instituição:inst,valor_investido:vi,valor_atual:va,data_aporte:data,rentabilidade:rent||null,objetivo:obj||null})
     Utils.setLoading(btn,false,'Salvar')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Investimento salvo! ✓');cancelarForm();await carregar()}
@@ -197,14 +197,14 @@ const InvestimentosModule = (() => {
     const btn=document.getElementById('ime-save-btn')
     if(!nome||!tipo||!inst||!vi||!va||!data){Toast.err('Preencha os campos.');return}
     Utils.setLoading(btn,true,'Salvando...')
-    const{error}=await db.from('investimentos').update({nome_investimento:nome,tipo_investimento:tipo,instituição:inst,valor_investido:vi,valor_atual:va,data_aporte:data,rentabilidade:rent||null,objetivo:obj||null}).eq('id',editandoId).eq('user_id',App.user.id)
+    const{error}=await window.db.from('investimentos').update({nome_investimento:nome,tipo_investimento:tipo,instituição:inst,valor_investido:vi,valor_atual:va,data_aporte:data,rentabilidade:rent||null,objetivo:obj||null}).eq('id',editandoId).eq('user_id',App.user.id)
     Utils.setLoading(btn,false,'Salvar')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Atualizado! ✓');Modal.close('modal-inv-edit');editandoId=null;await carregar()}
   }
 
   function abrirDel(id){const i=todos.find(x=>x.id===id);if(!i)return;deletandoId=id;const el=document.getElementById('del-inv-desc');if(el)el.textContent='"'+i.nome_investimento+'" — '+Utils.fmt(i.valor_atual);Modal.open('modal-inv-del')}
-  async function confirmarDel(){if(!deletandoId)return;const btn=document.getElementById('del-inv-btn');Utils.setLoading(btn,true,'Excluindo...');const{error}=await db.from('investimentos').delete().eq('id',deletandoId).eq('user_id',App.user.id);Utils.setLoading(btn,false,'Excluir');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Excluído.');Modal.close('modal-inv-del');deletandoId=null;await carregar()}}
+  async function confirmarDel(){if(!deletandoId)return;const btn=document.getElementById('del-inv-btn');Utils.setLoading(btn,true,'Excluindo...');const{error}=await window.db.from('investimentos').delete().eq('id',deletandoId).eq('user_id',App.user.id);Utils.setLoading(btn,false,'Excluir');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Excluído.');Modal.close('modal-inv-del');deletandoId=null;await carregar()}}
 
   function setTab(tab,btn){tabAtiva=tab;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('inv-view-lista').style.display=tab==='lista'?'block':'none';document.getElementById('inv-view-analise').style.display=tab==='analise'?'block':'none';if(tab==='analise')renderAnalise()}
   function toggleForm(){const c=document.getElementById('inv-form'),lbl=document.getElementById('inv-form-lbl');if(c.classList.contains('hidden')){c.classList.remove('hidden');lbl.textContent='Fechar';document.getElementById('if-data').value=Utils.today();document.getElementById('if-nome').focus()}else cancelarForm()}

@@ -93,7 +93,7 @@ const DespesasModule = (() => {
 
   async function load(){
     const lbl=document.getElementById('desp-month-lbl');if(lbl)lbl.textContent=Utils.monthName(fMonth,fYear)
-    const{data}=await db.from('despesas').select('*').eq('user_id',App.user.id).gte('data',Utils.monthStart(fYear,fMonth)).lte('data',Utils.monthEnd(fYear,fMonth)).order('data',{ascending:false})
+    const{data}=await window.db.from('despesas').select('*').eq('user_id',App.user.id).gte('data',Utils.monthStart(fYear,fMonth)).lte('data',Utils.monthEnd(fYear,fMonth)).order('data',{ascending:false})
     todos=data||[]
     const total=todos.reduce((s,t)=>s+Number(t.valor||0),0)
     const el=document.getElementById('desp-total');if(el)el.textContent='— Total: '+Utils.fmt(total)
@@ -148,16 +148,16 @@ const DespesasModule = (() => {
     if(!valor||valor<=0){Toast.err('Informe um valor válido.');return}
     if(!data){Toast.err('Informe a data.');return}
     setLoading(btn,true,'Salvando...')
-    const{error}=await db.from('despesas').insert({user_id:App.user.id,descricao:desc,valor,data,categoria:cat||null,status:statusForm,observacao:obs||null})
+    const{error}=await window.db.from('despesas').insert({user_id:App.user.id,descricao:desc,valor,data,categoria:cat||null,status:statusForm,observacao:obs||null})
     setLoading(btn,false,'Salvar')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Despesa salva! ✓');cancelarForm();await load()}
   }
 
   function abrirEdicao(id){const d=todos.find(x=>x.id===id);if(!d)return;editandoId=id;document.getElementById('dme-desc').value=d.descricao||'';document.getElementById('dme-valor').value=d.valor||'';document.getElementById('dme-data').value=d.data||'';document.getElementById('dme-cat').value=d.categoria||'';document.getElementById('dme-obs').value=d.observacao||'';statusModal=d.status||'pago';updStatusModal();Modal.open('modal-desp-edit')}
-  async function salvarEdicao(){const desc=document.getElementById('dme-desc')?.value.trim(),valor=parseFloat(document.getElementById('dme-valor')?.value),data=document.getElementById('dme-data')?.value,cat=document.getElementById('dme-cat')?.value,obs=document.getElementById('dme-obs')?.value.trim(),btn=document.getElementById('dme-save-btn');if(!desc||!valor||!data){Toast.err('Preencha os campos obrigatórios.');return}setLoading(btn,true,'Salvando...');const{error}=await db.from('despesas').update({descricao:desc,valor,data,categoria:cat||null,status:statusModal,observacao:obs||null}).eq('id',editandoId).eq('user_id',App.user.id);setLoading(btn,false,'Salvar alterações');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Atualizado! ✓');Modal.close('modal-desp-edit');editandoId=null;await load()}}
+  async function salvarEdicao(){const desc=document.getElementById('dme-desc')?.value.trim(),valor=parseFloat(document.getElementById('dme-valor')?.value),data=document.getElementById('dme-data')?.value,cat=document.getElementById('dme-cat')?.value,obs=document.getElementById('dme-obs')?.value.trim(),btn=document.getElementById('dme-save-btn');if(!desc||!valor||!data){Toast.err('Preencha os campos obrigatórios.');return}setLoading(btn,true,'Salvando...');const{error}=await window.db.from('despesas').update({descricao:desc,valor,data,categoria:cat||null,status:statusModal,observacao:obs||null}).eq('id',editandoId).eq('user_id',App.user.id);setLoading(btn,false,'Salvar alterações');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Atualizado! ✓');Modal.close('modal-desp-edit');editandoId=null;await load()}}
   function abrirDel(id){const d=todos.find(x=>x.id===id);if(!d)return;deletandoId=id;const el=document.getElementById('del-desp-desc');if(el)el.textContent='"'+d.descricao+'" — '+Utils.fmt(d.valor);Modal.open('modal-desp-del')}
-  async function confirmarDel(){if(!deletandoId)return;const btn=document.getElementById('del-desp-btn');setLoading(btn,true,'Excluindo...');const{error}=await db.from('despesas').delete().eq('id',deletandoId).eq('user_id',App.user.id);setLoading(btn,false,'Excluir');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Excluído.');Modal.close('modal-desp-del');deletandoId=null;await load()}}
+  async function confirmarDel(){if(!deletandoId)return;const btn=document.getElementById('del-desp-btn');setLoading(btn,true,'Excluindo...');const{error}=await window.db.from('despesas').delete().eq('id',deletandoId).eq('user_id',App.user.id);setLoading(btn,false,'Excluir');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Excluído.');Modal.close('modal-desp-del');deletandoId=null;await load()}}
 
   function setStatus(s){statusForm=s;document.getElementById('df-st-pago').className='status-opt'+(s==='pago'?' status-pago':'');document.getElementById('df-st-pend').className='status-opt'+(s==='pendente'?' status-pendente':'')}
   function setStatusModal(s){statusModal=s;updStatusModal()}
