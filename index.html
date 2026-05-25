@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Gorilaz Barber Finance — Login">
+  <title>Login — Gorilaz Barber Finance</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="main.css">
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- App core (auth, utils, layout, icons) -->
+  <script src="app.js"></script>
+</head>
+<body>
+<div id="toast"></div>
+
+<div id="root">
+
+  <!-- ── LOGIN ── -->
+  <div id="page-login" class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <div style="font-size:32px;margin-bottom:6px">✂</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:-0.5px">GORILAZ</div>
+        <div style="font-size:10px;color:var(--lime);letter-spacing:3px;text-transform:uppercase;margin-top:3px">Barber Finance</div>
+      </div>
+      <div class="auth-title">Entrar na conta</div>
+      <div class="auth-sub">Controle financeiro para barbeiros</div>
+
+      <div id="login-err" class="auth-err hidden"></div>
+
+      <div class="field">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="login-pass">Senha</label>
+        <div style="position:relative">
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" style="padding-right:44px">
+          <button onclick="togglePw('login-pass',this)" aria-label="Mostrar senha"
+            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">👁</button>
+        </div>
+      </div>
+
+      <button class="btn btn-lime btn-full" id="login-btn" onclick="doLogin()">Entrar</button>
+
+      <div class="auth-switch">
+        Não tem conta? <a onclick="showSection('register')">Criar conta grátis</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CADASTRO ── -->
+  <div id="page-register" class="auth-wrap hidden">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <div style="font-size:32px;margin-bottom:6px">✂</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:-0.5px">GORILAZ</div>
+        <div style="font-size:10px;color:var(--lime);letter-spacing:3px;text-transform:uppercase;margin-top:3px">Barber Finance</div>
+      </div>
+      <div class="auth-title">Criar conta</div>
+      <div class="auth-sub">Comece a controlar suas finanças</div>
+
+      <div id="register-err" class="auth-err hidden"></div>
+
+      <div class="field">
+        <label for="reg-email">Email</label>
+        <input type="email" id="reg-email" placeholder="seu@email.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="reg-pass">Senha</label>
+        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="reg-pass2">Confirmar senha</label>
+        <input type="password" id="reg-pass2" placeholder="Repita a senha">
+      </div>
+
+      <button class="btn btn-lime btn-full" id="register-btn" onclick="doRegister()">Criar conta</button>
+
+      <div class="auth-switch">
+        Já tem conta? <a onclick="showSection('login')">Entrar</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #root -->
+
+<script>
+// Se já autenticado, vai direto para o dashboard
+(async () => {
+  await Auth.redirectIfAuth('dashboard.html')
+})()
+
+function showSection(s) {
+  document.getElementById('page-login').classList.add('hidden')
+  document.getElementById('page-register').classList.add('hidden')
+  document.getElementById('page-' + s).classList.remove('hidden')
+  document.getElementById('login-err')?.classList.add('hidden')
+  document.getElementById('register-err')?.classList.add('hidden')
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim()
+  const pass  = document.getElementById('login-pass').value
+  const errEl = document.getElementById('login-err')
+  const btn   = document.getElementById('login-btn')
+  errEl.classList.add('hidden')
+  if (!email || !pass) { Utils.showError(errEl, 'Preencha email e senha.'); return }
+  Utils.setLoading(btn, true, 'Entrando...')
+  const { error } = await Auth.signIn(email, pass)
+  Utils.setLoading(btn, false, 'Entrar')
+  if (error) Utils.showError(errEl, 'Email ou senha incorretos.')
+  else window.location.href = 'dashboard.html'
+}
+
+async function doRegister() {
+  const email = document.getElementById('reg-email').value.trim()
+  const pass  = document.getElementById('reg-pass').value
+  const pass2 = document.getElementById('reg-pass2').value
+  const errEl = document.getElementById('register-err')
+  const btn   = document.getElementById('register-btn')
+  errEl.classList.add('hidden')
+  if (!email || !pass) { Utils.showError(errEl, 'Preencha todos os campos.'); return }
+  if (pass.length < 6) { Utils.showError(errEl, 'Senha mínimo 6 caracteres.'); return }
+  if (pass !== pass2)  { Utils.showError(errEl, 'Senhas não coincidem.'); return }
+  Utils.setLoading(btn, true, 'Criando conta...')
+  const { error } = await Auth.signUp(email, pass)
+  Utils.setLoading(btn, false, 'Criar conta')
+  if (error) Utils.showError(errEl, error.message)
+  else { Toast.ok('Conta criada! Faça login.'); showSection('login') }
+}
+
+function togglePw(id, btn) {
+  const inp = document.getElementById(id)
+  inp.type = inp.type === 'password' ? 'text' : 'password'
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈'
+}
+
+document.getElementById('login-email').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin() })
+document.getElementById('login-pass').addEventListener('keydown',  e => { if (e.key === 'Enter') doLogin() })
+</script>
+</body>
+</html>
