@@ -35,7 +35,7 @@ const Auth = {
   },
   async resetPassword(email) {
     try {
-      const redirectTo = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'reset-password.html'
+      const redirectTo = 'https://felipersbr89.github.io/barber-finance-6.0/reset-password.html'
       const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo })
       return { error }
     } catch (e) { return { error: { message: 'Erro de conexão. Tente novamente.' } } }
