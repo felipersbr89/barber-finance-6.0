@@ -35,10 +35,16 @@ const Auth = {
   },
   async resetPassword(email) {
     try {
+      // IMPORTANTE: esta URL deve estar na whitelist do Supabase
+      // Authentication → URL Configuration → Redirect URLs
       const redirectTo = 'https://felipersbr89.github.io/barber-finance-6.0/reset-password.html'
       const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo })
+      if (error) console.error('[Auth.resetPassword] erro Supabase:', error.message, '| status:', error.status)
       return { error }
-    } catch (e) { return { error: { message: 'Erro de conexão. Tente novamente.' } } }
+    } catch (e) {
+      console.error('[Auth.resetPassword] exception:', e.message)
+      return { error: { message: 'Erro de conexão. Verifique sua internet.' } }
+    }
   },
   async updatePassword(newPassword) {
     try { const { error } = await db.auth.updateUser({ password: newPassword }); return { error } }

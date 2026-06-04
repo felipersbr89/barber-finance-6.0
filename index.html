@@ -265,10 +265,13 @@ async function doForgot() {
 
   if (error) {
     const msg = error.message || ''
+    console.error('[doForgot] erro:', msg)
     if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed'))
       Utils.showError(errEl, 'Erro de conexão. Verifique sua internet.')
+    else if (msg.includes('redirect') || msg.includes('URL') || msg.includes('not allowed'))
+      Utils.showError(errEl, 'Erro de configuração. Entre em contato com o suporte.')
     else
-      Utils.showError(errEl, 'Não foi possível enviar o email. Verifique o endereço informado.')
+      Utils.showError(errEl, msg || 'Erro ao enviar. Verifique o email informado.')
   } else {
     okEl.textContent = '✓ Link enviado! Verifique sua caixa de entrada (e o spam).'
     okEl.classList.remove('hidden')
