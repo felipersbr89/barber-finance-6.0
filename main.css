@@ -690,3 +690,32 @@ textarea { resize: vertical; min-height: 80px; }
 .deposit-input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; min-width: 0; }
 .deposit-input:focus { border-color: var(--lime); }
 .flex { display: flex; }
+
+/* ── LOGO IMAGEM ─────────────────────────── */
+.sidebar-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 6px;
+  flex-shrink: 0;
+  /* Remove fundo preto da logo com mix-blend-mode */
+  filter: drop-shadow(0 0 4px rgba(132,204,22,0.3));
+}
+
+.topbar-logo-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  vertical-align: middle;
+  filter: drop-shadow(0 0 3px rgba(132,204,22,0.3));
+}
+
+.auth-logo-img {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 8px;
+  /* Remove fundo preto usando mix-blend-mode no contexto dark */
+  filter: drop-shadow(0 2px 12px rgba(132,204,22,0.4));
+}

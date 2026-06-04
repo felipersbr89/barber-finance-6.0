@@ -3,31 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Gorilaz Barber Finance — Metas">
-  <title>Metas — Gorilaz</title>
-
-  <!-- Styles -->
+  <meta name="description" content="Gorilaz Barber Finance — Relatórios">
+  <title>Relatórios — Gorilaz</title>
   <link rel="stylesheet" href="main.css">
-
-  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- App core (auth, utils, layout, icons) -->
   <script src="app.js"></script>
-
-  <!-- Page module -->
-  <script src="metas.js"></script>
+  <script src="relatorios.js"></script>
 </head>
 <body>
 <div id="toast"></div>
 <div id="shell" class="app-shell"></div>
-
 <script>
 (async () => {
   const user = await Auth.requireAuth()
   if (!user) return
   Layout.render(document.getElementById('shell'))
-  MetasModule.init(document.getElementById('page-content'))
+  RelatoriosModule.init(document.getElementById('page-content'))
 })()
 </script>
 </body>
