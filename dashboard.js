@@ -21,11 +21,7 @@ const DashboardModule = (() => {
           <div class="page-title">Dashboard</div>
           <div class="page-sub" id="dash-sub">Carregando...</div>
         </div>
-        <div class="month-nav">
-          <button class="month-nav-btn" onclick="DashboardModule.changeMonth(-1)">${iconChevLeft()}</button>
-          <span class="month-nav-label" id="month-lbl">—</span>
-          <button class="month-nav-btn" onclick="DashboardModule.changeMonth(1)">${iconChevRight()}</button>
-        </div>
+        <div id="dash-mpicker"></div>
       </div>
       <div id="dash-savings" class="hidden" style="background:var(--lime-bg);border:1px solid var(--lime-border);border-radius:var(--radius-lg);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
         <div>
@@ -88,11 +84,14 @@ const DashboardModule = (() => {
 
     // Atualiza label do mês
     const nome = Utils.monthName(viewMonth, viewYear)
-    const lbl  = document.getElementById('month-lbl')
-    if (lbl) lbl.textContent = nome
 
     const sub = document.getElementById('dash-sub')
     if (sub) sub.textContent = nome
+
+    // Renderiza / atualiza o picker
+    MonthPicker.render('dash-mpicker', viewYear, viewMonth, (y, m) => {
+      viewYear = y; viewMonth = m; load()
+    })
 
     const [rInc, rExp, rRecent, rGoals, rInvest] = await Promise.all([
       window.db.from('receitas').select('valor').eq('user_id', uid).gte('data', start).lte('data', end),
@@ -267,6 +266,8 @@ const DashboardModule = (() => {
       viewMonth += delta
       if (viewMonth > 11) { viewMonth = 0; viewYear++ }
       if (viewMonth < 0)  { viewMonth = 11; viewYear-- }
+      // Fecha dropdown se estiver aberto
+      MonthPicker.closeAll()
       load()
     }
   }

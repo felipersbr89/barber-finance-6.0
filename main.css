@@ -1014,3 +1014,111 @@ textarea { resize: vertical; min-height: 80px; }
   transition: color var(--trans);
 }
 .forgot-link:hover { color: var(--lime); }
+
+/* ══════════════════════════════════════════
+   MONTH PICKER — seletor rápido de mês/ano
+══════════════════════════════════════════ */
+.mpicker-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 8px;
+  user-select: none;
+}
+
+.mpicker-btn {
+  background: none; border: none;
+  color: var(--muted); cursor: pointer;
+  width: 26px; height: 26px;
+  border-radius: var(--radius-xs);
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--trans);
+  font-size: 14px; flex-shrink: 0;
+}
+.mpicker-btn:hover { background: var(--surface2); color: var(--text); }
+
+.mpicker-label {
+  font-size: 13px; font-weight: 600;
+  min-width: 140px; text-align: center;
+  color: var(--text);
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: var(--radius-xs);
+  transition: background var(--trans);
+  text-transform: capitalize;
+}
+.mpicker-label:hover { background: var(--surface2); }
+
+/* Dropdown do picker */
+.mpicker-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 300;
+  width: 280px;
+  padding: 14px;
+  animation: fadeIn 0.12s ease;
+  display: none;
+}
+.mpicker-dropdown.open { display: block; }
+
+/* Cabeçalho do dropdown — seletor de ano */
+.mpicker-year-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.mpicker-year-label {
+  font-size: 15px; font-weight: 700;
+  color: var(--text);
+}
+.mpicker-year-btn {
+  background: var(--surface2); border: none;
+  color: var(--muted); cursor: pointer;
+  width: 28px; height: 28px;
+  border-radius: var(--radius-xs);
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--trans); font-size: 14px;
+}
+.mpicker-year-btn:hover { background: var(--border2); color: var(--text); }
+
+/* Grid de meses */
+.mpicker-months {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+.mpicker-month {
+  padding: 7px 4px;
+  border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: var(--muted);
+  transition: all var(--trans);
+  background: none;
+  font-family: inherit;
+  text-transform: capitalize;
+}
+.mpicker-month:hover { background: var(--surface2); color: var(--text); }
+.mpicker-month.active {
+  background: var(--lime-bg);
+  color: var(--lime);
+  border-color: var(--lime-border);
+  font-weight: 700;
+}
+.mpicker-month.current-month {
+  border-color: var(--border2);
+  color: var(--text2);
+}

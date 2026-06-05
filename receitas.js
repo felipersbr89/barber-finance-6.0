@@ -28,11 +28,7 @@ const ReceitasModule = (() => {
         <button class="btn btn-ghost" onclick="ReceitasModule.cancelarForm()">Cancelar</button>
       </div>
     </div>
-    <div class="month-nav">
-      <button class="mnav-btn" onclick="ReceitasModule.changeMonth(-1)">‹</button>
-      <span class="mnav-label" id="rec-month-lbl">—</span>
-      <button class="mnav-btn" onclick="ReceitasModule.changeMonth(1)">›</button>
-    </div>
+    <div id="rec-mpicker" style="margin-bottom:14px"></div>
     <div class="search-wrap">${svgSearch()}<input type="text" id="rec-search" placeholder="Buscar movimentacao..." oninput="ReceitasModule.render()"></div>
     <div class="filter-bar">
       <button class="filter-btn active" data-f="todos"           onclick="ReceitasModule.setFilter(this)">Todos</button>
@@ -77,7 +73,9 @@ const ReceitasModule = (() => {
   }
 
   async function load() {
-    const lbl=document.getElementById('rec-month-lbl'); if(lbl) lbl.textContent=Utils.monthName(fMonth,fYear)
+    MonthPicker.render('rec-mpicker', fYear, fMonth, (y, m) => {
+      fYear = y; fMonth = m; load()
+    })
     const{data}=await window.db.from('receitas').select('*').eq('user_id',App.user.id).gte('data',Utils.monthStart(fYear,fMonth)).lte('data',Utils.monthEnd(fYear,fMonth)).order('data',{ascending:false})
     todos=data||[]
     const total=todos.reduce((s,t)=>s+Number(t.valor||0),0)
@@ -134,7 +132,7 @@ const ReceitasModule = (() => {
     else{Toast.ok('Receita salva! ✓');cancelarForm();await load()}
   }
 
-  function abrirEdicao(id){const t=todos.find(x=>Number(x.id)===Number(id));if(!t)return;editandoId=id;document.getElementById('me-desc').value=t.descricao||'';document.getElementById('me-valor').value=t.valor||'';document.getElementById('me-data').value=t.data||'';document.getElementById('me-cat').value=t.categoria||'';document.getElementById('me-obs').value=t.observacao||'';Modal.open('modal-rec-edit')}
+  function abrirEdicao(id){const t=todos.find(x=>x.id===id);if(!t)return;editandoId=id;document.getElementById('me-desc').value=t.descricao||'';document.getElementById('me-valor').value=t.valor||'';document.getElementById('me-data').value=t.data||'';document.getElementById('me-cat').value=t.categoria||'';document.getElementById('me-obs').value=t.observacao||'';Modal.open('modal-rec-edit')}
 
   async function salvarEdicao(){
     const desc=document.getElementById('me-desc')?.value.trim(), valor=parseFloat(document.getElementById('me-valor')?.value)
@@ -148,7 +146,7 @@ const ReceitasModule = (() => {
     else{Toast.ok('Atualizado! ✓');Modal.close('modal-rec-edit');editandoId=null;await load()}
   }
 
-  function abrirDel(id){const t=todos.find(x=>Number(x.id)===Number(id));if(!t)return;deletandoId=id;const el=document.getElementById('del-rec-desc');if(el)el.textContent='"'+t.descricao+'" — '+Utils.fmt(t.valor);Modal.open('modal-rec-del')}
+  function abrirDel(id){const t=todos.find(x=>x.id===id);if(!t)return;deletandoId=id;const el=document.getElementById('del-rec-desc');if(el)el.textContent='"'+t.descricao+'" — '+Utils.fmt(t.valor);Modal.open('modal-rec-del')}
 
   async function confirmarDel(){if(!deletandoId)return;const btn=document.getElementById('del-rec-btn');setLoading(btn,true,'Excluindo...');const{error}=await window.db.from('receitas').delete().eq('id',deletandoId).eq('user_id',App.user.id);setLoading(btn,false,'Excluir');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Excluído.');Modal.close('modal-rec-del');deletandoId=null;await load()}}
 
@@ -163,5 +161,5 @@ const ReceitasModule = (() => {
   function svgArrowUp(){return`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--green)"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>`}
 
   return{init,toggleForm,cancelarForm,salvar,abrirEdicao,salvarEdicao,abrirDel,confirmarDel,setFilter,render,
-    changeMonth(d){fMonth+=d;if(fMonth>11){fMonth=0;fYear++}if(fMonth<0){fMonth=11;fYear--}load()}}
+    changeMonth(d){fMonth+=d;if(fMonth>11){fMonth=0;fYear++}if(fMonth<0){fMonth=11;fYear--}MonthPicker.closeAll();load()}}
 })()

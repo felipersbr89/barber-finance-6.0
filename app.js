@@ -196,7 +196,7 @@ const Utils = {
   today()    { return new Date().toISOString().split('T')[0] },
   monthStr(y,m)   { return `${y}-${String(m+1).padStart(2,'0')}` },
   monthStart(y,m) { return `${y}-${String(m+1).padStart(2,'0')}-01` },
-  monthEnd(y,m)   { const d = new Date(y, m+1, 0); return `${y}-${String(m+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` },
+  monthEnd(y,m)   { return `${y}-${String(m+1).padStart(2,'0')}-31` },
   monthName(m,y)  { return new Date(y,m).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}) },
   esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') },
   initials(name, email) {
@@ -255,8 +255,122 @@ function iconBulb()       { return `<svg viewBox="0 0 24 24" fill="none" stroke=
 function iconTag()        { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>` }
 
 // ── 8. EXPÕE GLOBALMENTE ─────────────────────
+
+// ── 9. MONTH PICKER ──────────────────────────────────────────
+// Seletor rápido de mês/ano com dropdown de meses e setas de ano.
+// Uso: MonthPicker.render('id-do-container', ano, mes, callback(ano, mes))
+const MonthPicker = {
+  _instances: {},   // armazena { year, month, cb } por containerId
+
+  // Nomes curtos dos meses em pt-BR
+  _meses: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
+  _mesesFull: ['janeiro','fevereiro','março','abril','maio','junho',
+               'julho','agosto','setembro','outubro','novembro','dezembro'],
+
+  render(containerId, year, month, callback) {
+    const wrap = document.getElementById(containerId)
+    if (!wrap) return
+
+    // Guarda estado
+    this._instances[containerId] = { year, month, cb: callback }
+
+    const hoje = new Date()
+    const labelText = this._mesesFull[month] + ' de ' + year
+
+    wrap.innerHTML = `
+      <div class="mpicker-wrap" id="mpw-${containerId}">
+        <button class="mpicker-btn" onclick="MonthPicker._step('${containerId}',-1)" title="Mês anterior">&#8249;</button>
+        <span class="mpicker-label" onclick="MonthPicker._toggle('${containerId}')" title="Selecionar mês/ano">${labelText}</span>
+        <button class="mpicker-btn" onclick="MonthPicker._step('${containerId}',1)" title="Próximo mês">&#8250;</button>
+        <div class="mpicker-dropdown" id="mpd-${containerId}">
+          <div class="mpicker-year-row">
+            <button class="mpicker-year-btn" onclick="MonthPicker._stepYear('${containerId}',-1)">&#8249;</button>
+            <span class="mpicker-year-label" id="mpy-${containerId}">${year}</span>
+            <button class="mpicker-year-btn" onclick="MonthPicker._stepYear('${containerId}',1)">&#8250;</button>
+          </div>
+          <div class="mpicker-months" id="mpm-${containerId}">
+            ${this._meses.map((m, i) => {
+              const isActive  = i === month
+              const isCurrent = i === hoje.getMonth() && year === hoje.getFullYear()
+              const cls = isActive ? 'mpicker-month active' : isCurrent ? 'mpicker-month current-month' : 'mpicker-month'
+              return `<button class="${cls}" onclick="MonthPicker._pick('${containerId}',${i})">${m}</button>`
+            }).join('')}
+          </div>
+        </div>
+      </div>`
+
+    // Fecha ao clicar fora
+    this._bindOutsideClick(containerId)
+  },
+
+  _step(id, delta) {
+    const s = this._instances[id]
+    if (!s) return
+    s.month += delta
+    if (s.month > 11) { s.month = 0; s.year++ }
+    if (s.month < 0)  { s.month = 11; s.year-- }
+    s.cb(s.year, s.month)
+  },
+
+  _stepYear(id, delta) {
+    const s = this._instances[id]
+    if (!s) return
+    s.year += delta
+    // Atualiza label do ano e grid de meses sem fechar
+    const yLbl = document.getElementById('mpy-' + id)
+    if (yLbl) yLbl.textContent = s.year
+    const grid = document.getElementById('mpm-' + id)
+    if (grid) {
+      const hoje = new Date()
+      grid.innerHTML = this._meses.map((m, i) => {
+        const isActive  = i === s.month
+        const isCurrent = i === hoje.getMonth() && s.year === hoje.getFullYear()
+        const cls = isActive ? 'mpicker-month active' : isCurrent ? 'mpicker-month current-month' : 'mpicker-month'
+        return `<button class="${cls}" onclick="MonthPicker._pick('${id}',${i})">${m}</button>`
+      }).join('')
+    }
+  },
+
+  _pick(id, month) {
+    const s = this._instances[id]
+    if (!s) return
+    s.month = month
+    this._close(id)
+    s.cb(s.year, s.month)
+  },
+
+  _toggle(id) {
+    const dd = document.getElementById('mpd-' + id)
+    if (!dd) return
+    const isOpen = dd.classList.contains('open')
+    this.closeAll()
+    if (!isOpen) dd.classList.add('open')
+  },
+
+  _close(id) {
+    document.getElementById('mpd-' + id)?.classList.remove('open')
+  },
+
+  closeAll() {
+    document.querySelectorAll('.mpicker-dropdown.open').forEach(el => el.classList.remove('open'))
+  },
+
+  _bindOutsideClick(id) {
+    // Remove listener anterior se houver
+    const key = '_mpOutside_' + id
+    if (this[key]) document.removeEventListener('click', this[key])
+    this[key] = (e) => {
+      const wrap = document.getElementById('mpw-' + id)
+      if (wrap && !wrap.contains(e.target)) this._close(id)
+    }
+    // Adiciona com pequeno delay para não fechar imediatamente no click de abertura
+    setTimeout(() => document.addEventListener('click', this[key]), 50)
+  }
+}
+
 window.Auth   = Auth
 window.Layout = Layout
 window.Toast  = Toast
 window.Modal  = Modal
 window.Utils  = Utils
+window.MonthPicker = MonthPicker

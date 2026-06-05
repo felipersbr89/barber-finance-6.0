@@ -36,11 +36,7 @@ const DespesasModule = (() => {
         <button class="btn btn-ghost" onclick="DespesasModule.cancelarForm()">Cancelar</button>
       </div>
     </div>
-    <div class="month-nav">
-      <button class="mnav-btn" onclick="DespesasModule.changeMonth(-1)">‹</button>
-      <span class="mnav-label" id="desp-month-lbl">—</span>
-      <button class="mnav-btn" onclick="DespesasModule.changeMonth(1)">›</button>
-    </div>
+    <div id="desp-mpicker" style="margin-bottom:14px"></div>
     <div class="search-wrap">${svgSearch()}<input type="text" id="desp-search" placeholder="Buscar movimentacao..." oninput="DespesasModule.render()"></div>
     <div class="filter-bar">
       <button class="filter-btn active" data-f="todos"      onclick="DespesasModule.setFilter(this)">Todos</button>
@@ -92,7 +88,9 @@ const DespesasModule = (() => {
   }
 
   async function load(){
-    const lbl=document.getElementById('desp-month-lbl');if(lbl)lbl.textContent=Utils.monthName(fMonth,fYear)
+    MonthPicker.render('desp-mpicker', fYear, fMonth, (y, m) => {
+      fYear = y; fMonth = m; load()
+    })
     const{data}=await window.db.from('despesas').select('*').eq('user_id',App.user.id).gte('data',Utils.monthStart(fYear,fMonth)).lte('data',Utils.monthEnd(fYear,fMonth)).order('data',{ascending:false})
     todos=data||[]
     const total=todos.reduce((s,t)=>s+Number(t.valor||0),0)
@@ -154,9 +152,9 @@ const DespesasModule = (() => {
     else{Toast.ok('Despesa salva! ✓');cancelarForm();await load()}
   }
 
-  function abrirEdicao(id){const d=todos.find(x=>Number(x.id)===Number(id));if(!d)return;editandoId=id;document.getElementById('dme-desc').value=d.descricao||'';document.getElementById('dme-valor').value=d.valor||'';document.getElementById('dme-data').value=d.data||'';document.getElementById('dme-cat').value=d.categoria||'';document.getElementById('dme-obs').value=d.observacao||'';statusModal=d.status||'pago';updStatusModal();Modal.open('modal-desp-edit')}
+  function abrirEdicao(id){const d=todos.find(x=>x.id===id);if(!d)return;editandoId=id;document.getElementById('dme-desc').value=d.descricao||'';document.getElementById('dme-valor').value=d.valor||'';document.getElementById('dme-data').value=d.data||'';document.getElementById('dme-cat').value=d.categoria||'';document.getElementById('dme-obs').value=d.observacao||'';statusModal=d.status||'pago';updStatusModal();Modal.open('modal-desp-edit')}
   async function salvarEdicao(){const desc=document.getElementById('dme-desc')?.value.trim(),valor=parseFloat(document.getElementById('dme-valor')?.value),data=document.getElementById('dme-data')?.value,cat=document.getElementById('dme-cat')?.value,obs=document.getElementById('dme-obs')?.value.trim(),btn=document.getElementById('dme-save-btn');if(!desc||!valor||!data){Toast.err('Preencha os campos obrigatórios.');return}setLoading(btn,true,'Salvando...');const{error}=await window.db.from('despesas').update({descricao:desc,valor,data,categoria:cat||null,status:statusModal,observacao:obs||null}).eq('id',editandoId).eq('user_id',App.user.id);setLoading(btn,false,'Salvar alterações');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Atualizado! ✓');Modal.close('modal-desp-edit');editandoId=null;await load()}}
-  function abrirDel(id){const d=todos.find(x=>Number(x.id)===Number(id));if(!d)return;deletandoId=id;const el=document.getElementById('del-desp-desc');if(el)el.textContent='"'+d.descricao+'" — '+Utils.fmt(d.valor);Modal.open('modal-desp-del')}
+  function abrirDel(id){const d=todos.find(x=>x.id===id);if(!d)return;deletandoId=id;const el=document.getElementById('del-desp-desc');if(el)el.textContent='"'+d.descricao+'" — '+Utils.fmt(d.valor);Modal.open('modal-desp-del')}
   async function confirmarDel(){if(!deletandoId)return;const btn=document.getElementById('del-desp-btn');setLoading(btn,true,'Excluindo...');const{error}=await window.db.from('despesas').delete().eq('id',deletandoId).eq('user_id',App.user.id);setLoading(btn,false,'Excluir');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Excluído.');Modal.close('modal-desp-del');deletandoId=null;await load()}}
 
   function setStatus(s){statusForm=s;document.getElementById('df-st-pago').className='status-opt'+(s==='pago'?' status-pago':'');document.getElementById('df-st-pend').className='status-opt'+(s==='pendente'?' status-pendente':'')}
@@ -170,5 +168,5 @@ const DespesasModule = (() => {
   function svgSearch(){return`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`}
 
   return{init,toggleForm,cancelarForm,salvar,abrirEdicao,salvarEdicao,abrirDel,confirmarDel,setFilter,setStatus,setStatusModal,render,
-    changeMonth(d){fMonth+=d;if(fMonth>11){fMonth=0;fYear++}if(fMonth<0){fMonth=11;fYear--}load()}}
+    changeMonth(d){fMonth+=d;if(fMonth>11){fMonth=0;fYear++}if(fMonth<0){fMonth=11;fYear--}MonthPicker.closeAll();load()}}
 })()
