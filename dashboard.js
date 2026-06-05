@@ -98,8 +98,8 @@ const DashboardModule = (() => {
       window.db.from('receitas').select('valor').eq('user_id', uid).gte('data', start).lte('data', end),
       window.db.from('despesas').select('valor,categoria').eq('user_id', uid).gte('data', start).lte('data', end),
       Promise.all([
-        window.db.from('receitas').select('descricao,valor,data,categoria').eq('user_id', uid).order('data',{ascending:false}).limit(4),
-        window.db.from('despesas').select('descricao,valor,data,categoria').eq('user_id', uid).order('data',{ascending:false}).limit(4),
+        window.db.from('receitas').select('descricao,valor,data,categoria').eq('user_id', uid).gte('data', start).lte('data', end).order('data',{ascending:false}).limit(5),
+        window.db.from('despesas').select('descricao,valor,data,categoria').eq('user_id', uid).gte('data', start).lte('data', end).order('data',{ascending:false}).limit(5),
       ]),
       window.db.from('metas').select('nome,valor_alvo,valor_atual').eq('user_id', uid).order('created_at',{ascending:false}).limit(3),
       window.db.from('investimentos').select('valor_atual').eq('user_id', uid),
@@ -199,13 +199,13 @@ const DashboardModule = (() => {
       const pct  = g.valor_alvo>0 ? Math.min((Number(g.valor_atual||0)/Number(g.valor_alvo))*100, 100) : 0
       const done = pct >= 100
       return `<div style="margin-bottom:16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500">
-            ${iconMetas()}
-            <span>${Utils.esc(g.nome)}</span>
-            ${done ? '<span class="badge badge-lime">✓</span>' : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;min-width:0;flex:1">
+            <div style="width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--lime)">${iconMetas()}</div>
+            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">${Utils.esc(g.nome)}</span>
+            ${done ? '<span class="badge badge-lime" style="flex-shrink:0">✓</span>' : ''}
           </div>
-          <span style="font-size:12px;color:var(--muted)">${Math.round(pct)}%</span>
+          <span style="font-size:12px;color:var(--muted);flex-shrink:0">${Math.round(pct)}%</span>
         </div>
         <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${done?'var(--lime2)':'var(--lime)'}"></div></div>
         <div style="display:flex;justify-content:space-between;margin-top:4px">
