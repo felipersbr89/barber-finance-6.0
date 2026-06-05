@@ -4,13 +4,13 @@ const InvestimentosModule = (() => {
   const TIPOS=['CDB','Tesouro Direto','Poupança','Fundos','Ações','FIIs','Criptomoedas','Previdência','Outros']
   const COLORS={'CDB':'#3b82f6','Tesouro Direto':'#1d4ed8','Poupança':'#10b981','Fundos':'#f59e0b','Ações':'#ef4444','FIIs':'#8b5cf6','Criptomoedas':'#f97316','Previdência':'#06b6d4','Outros':'#6b7280'}
   const tipoOpts = TIPOS.map(t=>`<option value="${t}">${t}</option>`).join('')
-
+ 
   async function init(container) {
     container.innerHTML = renderUI()
     Modal.init()
     await carregar()
   }
-
+ 
   function renderUI() {
     return `
       <div class="page-header">
@@ -84,14 +84,14 @@ const InvestimentosModule = (() => {
         </div>
       </div>`
   }
-
+ 
   async function carregar() {
     const{data}=await window.db.from('investimentos').select('*').eq('user_id',App.user.id).order('data_aporte',{ascending:false})
     todos=data||[]
     atualizarKPIs(); renderLista()
     if(todos.length) document.getElementById('inv-tabs')?.classList.remove('hidden')
   }
-
+ 
   function atualizarKPIs() {
     const ti=todos.reduce((s,i)=>s+Number(i.valor_investido||0),0)
     const ta=todos.reduce((s,i)=>s+Number(i.valor_atual||0),0)
@@ -103,7 +103,7 @@ const InvestimentosModule = (() => {
     setText('k-rent',(r>=0?'+':'')+r.toFixed(2)+'%')
     setStyle('k-rent','color',r>=0?'var(--lime)':'var(--red)')
   }
-
+ 
   function renderLista() {
     const el=document.getElementById('inv-list');if(!el)return
     if(!todos.length){el.innerHTML=`<div class="list-empty"><div class="list-empty-title">Nenhum investimento</div><div class="list-empty-sub">Clique em "+ Novo" para começar</div></div>`;return}
@@ -139,7 +139,7 @@ const InvestimentosModule = (() => {
       </div>`
     }).join('')
   }
-
+ 
   function renderAnalise() {
     const ta=todos.reduce((s,i)=>s+Number(i.valor_atual||0),0)
     const tipoMap={}, instMap={}
@@ -161,7 +161,7 @@ const InvestimentosModule = (() => {
     const elTipo=document.getElementById('inv-by-tipo');if(elTipo)elTipo.innerHTML=renderBars(tipoMap,k=>COLORS[k]||'#6b7280')
     const elInst=document.getElementById('inv-by-inst');if(elInst)elInst.innerHTML=renderBars(instMap,()=>null)
   }
-
+ 
   async function salvar() {
     const nome=document.getElementById('if-nome')?.value.trim(), tipo=document.getElementById('if-tipo')?.value
     const inst=document.getElementById('if-inst')?.value.trim(), vi=parseFloat(document.getElementById('if-vinv')?.value)
@@ -175,7 +175,7 @@ const InvestimentosModule = (() => {
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Investimento salvo! ✓');cancelarForm();await carregar()}
   }
-
+ 
   function abrirEdicao(id) {
     const i=todos.find(x=>Number(x.id)===Number(id));if(!i)return; editandoId=id
     document.getElementById('ime-nome').value=i.nome_investimento||''
@@ -188,7 +188,7 @@ const InvestimentosModule = (() => {
     document.getElementById('ime-obj').value=i.objetivo||''
     Modal.open('modal-inv-edit')
   }
-
+ 
   async function salvarEdicao() {
     const nome=document.getElementById('ime-nome')?.value.trim(), tipo=document.getElementById('ime-tipo')?.value
     const inst=document.getElementById('ime-inst')?.value.trim(), vi=parseFloat(document.getElementById('ime-vinv')?.value)
@@ -202,15 +202,15 @@ const InvestimentosModule = (() => {
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Atualizado! ✓');Modal.close('modal-inv-edit');editandoId=null;await carregar()}
   }
-
+ 
   function abrirDel(id){const i=todos.find(x=>Number(x.id)===Number(id));if(!i)return;deletandoId=id;const el=document.getElementById('del-inv-desc');if(el)el.textContent='"'+i.nome_investimento+'" — '+Utils.fmt(i.valor_atual);Modal.open('modal-inv-del')}
   async function confirmarDel(){if(!deletandoId)return;const btn=document.getElementById('del-inv-btn');Utils.setLoading(btn,true,'Excluindo...');const{error}=await window.db.from('investimentos').delete().eq('id',deletandoId).eq('user_id',App.user.id);Utils.setLoading(btn,false,'Excluir');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Excluído.');Modal.close('modal-inv-del');deletandoId=null;await carregar()}}
-
+ 
   function setTab(tab,btn){tabAtiva=tab;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('inv-view-lista').style.display=tab==='lista'?'block':'none';document.getElementById('inv-view-analise').style.display=tab==='analise'?'block':'none';if(tab==='analise')renderAnalise()}
   function toggleForm(){const c=document.getElementById('inv-form'),lbl=document.getElementById('inv-form-lbl');if(c.classList.contains('hidden')){c.classList.remove('hidden');lbl.textContent='Fechar';document.getElementById('if-data').value=Utils.today();document.getElementById('if-nome').focus()}else cancelarForm()}
   function cancelarForm(){document.getElementById('inv-form')?.classList.add('hidden');const lbl=document.getElementById('inv-form-lbl');if(lbl)lbl.textContent='Novo';['if-nome','if-inst','if-vinv','if-vatu','if-rent','if-obj'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});document.getElementById('if-tipo').value='';document.getElementById('if-data').value=Utils.today()}
   function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v}
   function setStyle(id,prop,val){const el=document.getElementById(id);if(el)el.style[prop]=val}
-
+ 
   return{init,toggleForm,cancelarForm,salvar,abrirEdicao,salvarEdicao,abrirDel,confirmarDel,setTab}
 })()
