@@ -2,7 +2,7 @@
 const ReceitasModule = (() => {
   let todos=[], filterAtivo='todos', editandoId=null, deletandoId=null
   let fMonth=new Date().getMonth(), fYear=new Date().getFullYear()
-  const CATS=['Corte de Cabelo','Barba','Pigmentação','Sobrancelha','Hidratação','Comissão','Bônus','Dividendos','Outros']
+  const CATS=['Bônus','Comissão','Dividendos','Salário','Ticket Alimentação','Outros']
   const catOpts=CATS.map(c=>`<option value="${c}">${c}</option>`).join('')
 
   async function init(container) { container.innerHTML=ui(); Modal.init(); document.getElementById('rf-data').value=Utils.today(); await load() }
@@ -14,7 +14,7 @@ const ReceitasModule = (() => {
     </div>
     <div id="rec-form" class="form-card hidden">
       <div class="form-card-title">Nova receita</div>
-      <div class="field"><label>Descrição *</label><input type="text" id="rf-desc" placeholder="Ex: Corte + barba VIP"></div>
+      <div class="field"><label>Descrição *</label><input type="text" id="rf-desc" placeholder="Ex: Salário de maio"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="field"><label>Valor (R$) *</label><input type="number" id="rf-valor" step="0.01" min="0" placeholder="0,00"></div>
         <div class="field"><label>Data *</label><input type="date" id="rf-data"></div>
@@ -33,9 +33,9 @@ const ReceitasModule = (() => {
     <div class="filter-bar">
       <button class="filter-btn active" data-f="todos"           onclick="ReceitasModule.setFilter(this)">Todos</button>
       <button class="filter-btn"        data-f="mes"             onclick="ReceitasModule.setFilter(this)">Este mês</button>
-      <button class="filter-btn"        data-f="Corte de Cabelo" onclick="ReceitasModule.setFilter(this)">Corte</button>
-      <button class="filter-btn"        data-f="Barba"           onclick="ReceitasModule.setFilter(this)">Barba</button>
-      <button class="filter-btn"        data-f="Comissão"        onclick="ReceitasModule.setFilter(this)">Comissão</button>
+      <button class="filter-btn"        data-f="Salário"   onclick="ReceitasModule.setFilter(this)">Salário</button>
+      <button class="filter-btn"        data-f="Comissão"  onclick="ReceitasModule.setFilter(this)">Comissão</button>
+      <button class="filter-btn"        data-f="Bônus"     onclick="ReceitasModule.setFilter(this)">Bônus</button>
     </div>
     <div id="rec-list"></div>
     <!-- Modal edição -->
@@ -120,33 +120,33 @@ const ReceitasModule = (() => {
 
   async function salvar(){
     const desc=document.getElementById('rf-desc')?.value.trim(), valor=parseFloat(document.getElementById('rf-valor')?.value)
-    const data=document.getElementById('rf-data')?.value, cat=document.getElementById('rf-cat')?.value, obs=document.getElementById('rf-obs')?.value.trim()
+    const dataVal=document.getElementById('rf-data')?.value, cat=document.getElementById('rf-cat')?.value, obs=document.getElementById('rf-obs')?.value.trim()
     const btn=document.getElementById('rec-save-btn')
     if(!desc){Toast.err('Informe a descrição.');return}
     if(!valor||valor<=0){Toast.err('Informe um valor válido.');return}
-    if(!data){Toast.err('Informe a data.');return}
+    if(!dataVal){Toast.err('Informe a data.');return}
     setLoading(btn,true,'Salvando...')
-    const{error}=await window.db.from('receitas').insert({user_id:App.user.id,descricao:desc,valor,data,categoria:cat||null,observacao:obs||null})
+    const{error}=await window.db.from('receitas').insert({user_id:App.user.id,descricao:desc,valor,data:dataVal,categoria:cat||null,observacao:obs||null})
     setLoading(btn,false,'Salvar')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Receita salva! ✓');cancelarForm();await load()}
   }
 
-  function abrirEdicao(id){const t=todos.find(x=>x.id===id);if(!t)return;editandoId=id;document.getElementById('me-desc').value=t.descricao||'';document.getElementById('me-valor').value=t.valor||'';document.getElementById('me-data').value=t.data||'';document.getElementById('me-cat').value=t.categoria||'';document.getElementById('me-obs').value=t.observacao||'';Modal.open('modal-rec-edit')}
+  function abrirEdicao(id){const t=todos.find(x=>Number(x.id)===Number(id));if(!t)return;editandoId=id;document.getElementById('me-desc').value=t.descricao||'';document.getElementById('me-valor').value=t.valor||'';document.getElementById('me-data').value=t.data||'';document.getElementById('me-cat').value=t.categoria||'';document.getElementById('me-obs').value=t.observacao||'';Modal.open('modal-rec-edit')}
 
   async function salvarEdicao(){
     const desc=document.getElementById('me-desc')?.value.trim(), valor=parseFloat(document.getElementById('me-valor')?.value)
-    const data=document.getElementById('me-data')?.value, cat=document.getElementById('me-cat')?.value, obs=document.getElementById('me-obs')?.value.trim()
+    const dataVal=document.getElementById('me-data')?.value, cat=document.getElementById('me-cat')?.value, obs=document.getElementById('me-obs')?.value.trim()
     const btn=document.getElementById('me-save-btn')
-    if(!desc||!valor||!data){Toast.err('Preencha os campos obrigatórios.');return}
+    if(!desc||!valor||!dataVal){Toast.err('Preencha os campos obrigatórios.');return}
     setLoading(btn,true,'Salvando...')
-    const{error}=await window.db.from('receitas').update({descricao:desc,valor,data,categoria:cat||null,observacao:obs||null}).eq('id',editandoId).eq('user_id',App.user.id)
+    const{error}=await window.db.from('receitas').update({descricao:desc,valor,data:dataVal,categoria:cat||null,observacao:obs||null}).eq('id',editandoId).eq('user_id',App.user.id)
     setLoading(btn,false,'Salvar alterações')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Atualizado! ✓');Modal.close('modal-rec-edit');editandoId=null;await load()}
   }
 
-  function abrirDel(id){const t=todos.find(x=>x.id===id);if(!t)return;deletandoId=id;const el=document.getElementById('del-rec-desc');if(el)el.textContent='"'+t.descricao+'" — '+Utils.fmt(t.valor);Modal.open('modal-rec-del')}
+  function abrirDel(id){const t=todos.find(x=>Number(x.id)===Number(id));if(!t)return;deletandoId=id;const el=document.getElementById('del-rec-desc');if(el)el.textContent='"'+t.descricao+'" — '+Utils.fmt(t.valor);Modal.open('modal-rec-del')}
 
   async function confirmarDel(){if(!deletandoId)return;const btn=document.getElementById('del-rec-btn');setLoading(btn,true,'Excluindo...');const{error}=await window.db.from('receitas').delete().eq('id',deletandoId).eq('user_id',App.user.id);setLoading(btn,false,'Excluir');if(error)Toast.err('Erro: '+error.message);else{Toast.ok('Excluído.');Modal.close('modal-rec-del');deletandoId=null;await load()}}
 
