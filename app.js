@@ -306,9 +306,100 @@ function iconDownload()   { return `<svg viewBox="0 0 24 24" fill="none" stroke=
 function iconBulb()       { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>` }
 function iconTag()        { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>` }
 
+
+// ── 9. MONTH PICKER ──────────────────────────────────────────
+const MonthPicker = {
+  _instances: {},
+  _meses:     ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
+  _mesesFull: ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'],
+
+  render(containerId, year, month, callback) {
+    const wrap = document.getElementById(containerId)
+    if (!wrap) return
+    this._instances[containerId] = { year, month, cb: callback }
+    const hoje = new Date()
+    const labelText = this._mesesFull[month].charAt(0).toUpperCase() + this._mesesFull[month].slice(1) + ' ' + year
+    wrap.innerHTML = `
+      <div class="mpicker-wrap" id="mpw-${containerId}">
+        <button class="mpicker-btn" onclick="MonthPicker._step('${containerId}',-1)">&#8249;</button>
+        <span class="mpicker-label" onclick="MonthPicker._toggle('${containerId}')">${labelText}</span>
+        <button class="mpicker-btn" onclick="MonthPicker._step('${containerId}',1)">&#8250;</button>
+        <div class="mpicker-dropdown" id="mpd-${containerId}">
+          <div class="mpicker-year-row">
+            <button class="mpicker-year-btn" onclick="MonthPicker._stepYear('${containerId}',-1)">&#8249;</button>
+            <span class="mpicker-year-label" id="mpy-${containerId}">${year}</span>
+            <button class="mpicker-year-btn" onclick="MonthPicker._stepYear('${containerId}',1)">&#8250;</button>
+          </div>
+          <div class="mpicker-months" id="mpm-${containerId}">
+            ${this._meses.map((m, i) => {
+              const isActive  = i === month
+              const isCurrent = i === hoje.getMonth() && year === hoje.getFullYear()
+              const cls = isActive ? 'mpicker-month active' : isCurrent ? 'mpicker-month current-month' : 'mpicker-month'
+              return `<button class="${cls}" onclick="MonthPicker._pick('${containerId}',${i})">${m}</button>`
+            }).join('')}
+          </div>
+        </div>
+      </div>`
+    this._bindOutsideClick(containerId)
+  },
+
+  _step(id, delta) {
+    const s = this._instances[id]; if (!s) return
+    s.month += delta
+    if (s.month > 11) { s.month = 0; s.year++ }
+    if (s.month < 0)  { s.month = 11; s.year-- }
+    s.cb(s.year, s.month)
+  },
+
+  _stepYear(id, delta) {
+    const s = this._instances[id]; if (!s) return
+    s.year += delta
+    const yLbl = document.getElementById('mpy-' + id)
+    if (yLbl) yLbl.textContent = s.year
+    const grid = document.getElementById('mpm-' + id)
+    if (grid) {
+      const hoje = new Date()
+      grid.innerHTML = this._meses.map((m, i) => {
+        const isActive  = i === s.month
+        const isCurrent = i === hoje.getMonth() && s.year === hoje.getFullYear()
+        const cls = isActive ? 'mpicker-month active' : isCurrent ? 'mpicker-month current-month' : 'mpicker-month'
+        return `<button class="${cls}" onclick="MonthPicker._pick('${id}',${i})">${m}</button>`
+      }).join('')
+    }
+  },
+
+  _pick(id, month) {
+    const s = this._instances[id]; if (!s) return
+    s.month = month
+    this._close(id)
+    s.cb(s.year, s.month)
+  },
+
+  _toggle(id) {
+    const dd = document.getElementById('mpd-' + id); if (!dd) return
+    const isOpen = dd.classList.contains('open')
+    this.closeAll()
+    if (!isOpen) dd.classList.add('open')
+  },
+
+  _close(id)  { document.getElementById('mpd-' + id)?.classList.remove('open') },
+  closeAll()  { document.querySelectorAll('.mpicker-dropdown.open').forEach(el => el.classList.remove('open')) },
+
+  _bindOutsideClick(id) {
+    const key = '_mpOutside_' + id
+    if (this[key]) document.removeEventListener('click', this[key])
+    this[key] = (e) => {
+      const wrap = document.getElementById('mpw-' + id)
+      if (wrap && !wrap.contains(e.target)) this._close(id)
+    }
+    setTimeout(() => document.addEventListener('click', this[key]), 50)
+  }
+}
+
 // ── 8. EXPÕE GLOBALMENTE ─────────────────────
 window.Auth   = Auth
 window.Layout = Layout
 window.Toast  = Toast
 window.Modal  = Modal
-window.Utils  = Utils
+window.Utils       = Utils
+window.MonthPicker = MonthPicker

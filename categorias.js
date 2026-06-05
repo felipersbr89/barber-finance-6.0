@@ -176,20 +176,20 @@ const CategoriasModule = (() => {
       .sort((a,b) => b.valor - a.valor)
 
     if (!sorted.length) {
-      listEl.innerHTML = `<div style="text-align:center;padding:32px;color:var(--hint);font-size:13px">Nenhuma movimentação neste mês</div>`
+      listEl.innerHTML = `<div style="text-align:center;padding:32px;color:var(--t4);font-size:13px">Nenhuma movimentação neste mês</div>`
     } else {
       const max = sorted[0].valor
       listEl.innerHTML = sorted.map(c => {
         const pct = total > 0 ? ((c.valor / total) * 100).toFixed(1) : 0
         const barW = max > 0 ? (c.valor / max * 100) : 0
         return `
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-            <div style="width:36px;height:36px;border-radius:10px;background:${c.cor}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${c.icon}</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--b1)">
+            <div style="width:36px;height:36px;border-radius:var(--r2);background:${c.cor}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${c.icon}</div>
             <div style="flex:1;min-width:0">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
                 <span style="font-size:13px;font-weight:500">${Utils.esc(c.nome)}</span>
                 <div style="display:flex;align-items:center;gap:10px">
-                  <span style="font-size:11px;color:var(--muted)">${pct}%</span>
+                  <span style="font-size:11px;color:var(--t3)">${pct}%</span>
                   <span style="font-size:13px;font-weight:700;color:${c.cor}">${Utils.fmt(c.valor)}</span>
                 </div>
               </div>
@@ -209,7 +209,7 @@ const CategoriasModule = (() => {
       .slice(0, 5)
 
     if (!topCats.length) {
-      histEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--hint);font-size:13px">Sem histórico disponível</div>`
+      histEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--t4);font-size:13px">Sem histórico disponível</div>`
       return
     }
 
@@ -224,20 +224,20 @@ const CategoriasModule = (() => {
         <table style="width:100%;border-collapse:collapse;font-size:12px">
           <thead>
             <tr>
-              <th style="text-align:left;padding:8px 12px;color:var(--muted);font-weight:500;white-space:nowrap">Categoria</th>
-              ${mesesLabel.map(m => `<th style="text-align:right;padding:8px 12px;color:var(--muted);font-weight:500;white-space:nowrap">${m}</th>`).join('')}
+              <th style="text-align:left;padding:8px 12px;color:var(--t3);font-weight:500;white-space:nowrap">Categoria</th>
+              ${mesesLabel.map(m => `<th style="text-align:right;padding:8px 12px;color:var(--t3);font-weight:500;white-space:nowrap">${m}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
             ${topCats.map((cat, i) => `
-              <tr style="border-top:1px solid var(--border)">
+              <tr style="border-top:1px solid var(--b1)">
                 <td style="padding:10px 12px;font-weight:500;display:flex;align-items:center;gap:7px">
                   <div style="width:8px;height:8px;border-radius:50%;background:${COLORS[i%COLORS.length]};flex-shrink:0"></div>
                   ${Utils.esc(cat)}
                 </td>
                 ${meses.map(m => {
                   const v = hist[cat]?.[m] || 0
-                  return `<td style="text-align:right;padding:10px 12px;color:${v > 0 ? 'var(--text)' : 'var(--hint)'}">${v > 0 ? Utils.fmt(v) : '—'}</td>`
+                  return `<td style="text-align:right;padding:10px 12px;color:${v > 0 ? 'var(--tx)' : 'var(--t4)'}">${v > 0 ? Utils.fmt(v) : '—'}</td>`
                 }).join('')}
               </tr>`).join('')}
           </tbody>

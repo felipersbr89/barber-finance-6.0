@@ -10,17 +10,17 @@ const PerfilModule = (() => {
       <div class="page-title" style="margin-bottom:4px">Perfil</div>
       <div class="page-sub" style="margin-bottom:20px">Gerencie suas informações</div>
       <div class="card" style="text-align:center;padding:28px;margin-bottom:16px">
-        <div id="av-big" style="width:68px;height:68px;border-radius:18px;background:var(--lime-bg);border:1px solid var(--lime-border);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;font-weight:900;color:var(--lime)">?</div>
+        <div id="av-big" style="width:68px;height:68px;border-radius:18px;background:var(--ac-dim);border:1px solid var(--ac-bdr);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;font-weight:900;color:var(--ac)">?</div>
         <div id="av-name" style="font-size:17px;font-weight:700">—</div>
-        <div id="av-shop" style="font-size:13px;color:var(--muted);margin-top:3px">—</div>
-        <div id="av-email" style="font-size:12px;color:var(--hint);margin-top:2px">—</div>
-        <div id="av-since" style="font-size:11px;color:var(--hint);margin-top:6px;display:none">—</div>
+        <div id="av-shop" style="font-size:13px;color:var(--t3);margin-top:3px">—</div>
+        <div id="av-email" style="font-size:12px;color:var(--t4);margin-top:2px">—</div>
+        <div id="av-since" style="font-size:11px;color:var(--t4);margin-top:6px;display:none">—</div>
       </div>
       <div class="grid-4" style="margin-bottom:16px">
-        <div class="card card-sm"><div class="card-icon bg-green-soft" style="margin-bottom:8px">${iconReceitas()}</div><div id="s-rec" style="font-size:14px;font-weight:700;color:var(--green)">—</div><div style="font-size:10px;color:var(--hint);margin-top:2px">Total receitas</div></div>
-        <div class="card card-sm"><div class="card-icon bg-red-soft" style="margin-bottom:8px">${iconDespesas()}</div><div id="s-desp" style="font-size:14px;font-weight:700;color:var(--red)">—</div><div style="font-size:10px;color:var(--hint);margin-top:2px">Total despesas</div></div>
-        <div class="card card-sm"><div class="card-icon bg-lime-soft" style="margin-bottom:8px">${iconInvest()}</div><div id="s-saldo" style="font-size:14px;font-weight:700;color:var(--lime)">—</div><div style="font-size:10px;color:var(--hint);margin-top:2px">Saldo geral</div></div>
-        <div class="card card-sm"><div class="card-icon bg-blue-soft" style="margin-bottom:8px">${iconInvest()}</div><div id="s-inv" style="font-size:14px;font-weight:700;color:var(--blue)">—</div><div style="font-size:10px;color:var(--hint);margin-top:2px">Investimentos</div></div>
+        <div class="card card-sm"><div class="card-icon bg-green-soft" style="margin-bottom:8px">${iconReceitas()}</div><div id="s-rec" style="font-size:14px;font-weight:700;color:var(--gr)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Total receitas</div></div>
+        <div class="card card-sm"><div class="card-icon bg-red-soft" style="margin-bottom:8px">${iconDespesas()}</div><div id="s-desp" style="font-size:14px;font-weight:700;color:var(--rd)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Total despesas</div></div>
+        <div class="card card-sm"><div class="card-icon bg-lime-soft" style="margin-bottom:8px">${iconInvest()}</div><div id="s-saldo" style="font-size:14px;font-weight:700;color:var(--ac)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Saldo geral</div></div>
+        <div class="card card-sm"><div class="card-icon bg-blue-soft" style="margin-bottom:8px">${iconInvest()}</div><div id="s-inv" style="font-size:14px;font-weight:700;color:var(--bl)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Investimentos</div></div>
       </div>
       <div class="panel" style="margin-bottom:12px">
         <div class="panel-title">Editar dados</div>
@@ -35,14 +35,14 @@ const PerfilModule = (() => {
       <div class="panel" style="margin-bottom:12px">
         <div class="panel-title">Segurança</div>
         <button class="btn btn-ghost btn-sm" onclick="PerfilModule.toggleSenha()">${iconKey()} <span id="senha-lbl">Alterar senha</span></button>
-        <div id="senha-form" style="display:none;margin-top:16px;background:var(--surface2);border-radius:10px;padding:16px">
+        <div id="senha-form" style="display:none;margin-top:16px;background:var(--s2);border-radius:var(--r2);padding:16px">
           <div class="field"><label>Nova senha</label>
             <div style="position:relative"><input type="password" id="nova-senha" placeholder="Mínimo 6 caracteres" style="padding-right:44px">
-            <button onclick="PerfilModule.togglePw('nova-senha',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">👁</button></div>
+            <button onclick="PerfilModule.togglePw('nova-senha',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px">👁</button></div>
           </div>
           <div class="field"><label>Confirmar</label>
             <div style="position:relative"><input type="password" id="conf-senha" placeholder="Repita a senha" style="padding-right:44px">
-            <button onclick="PerfilModule.togglePw('conf-senha',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">👁</button></div>
+            <button onclick="PerfilModule.togglePw('conf-senha',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px">👁</button></div>
           </div>
           <div style="display:flex;gap:10px">
             <button class="btn btn-lime" id="senha-save-btn" onclick="PerfilModule.alterarSenha()"><span>Salvar senha</span></button>
@@ -89,7 +89,7 @@ const PerfilModule = (() => {
     setText('s-desp',Utils.fmtShort(td))
     setText('s-saldo',Utils.fmtShort(ts))
     setText('s-inv',Utils.fmtShort(ti))
-    document.getElementById('s-saldo').style.color=ts>=0?'var(--lime)':'var(--red)'
+    document.getElementById('s-saldo').style.color=ts>=0?'var(--ac)':'var(--rd)'
   }
 
   async function salvarPerfil(){

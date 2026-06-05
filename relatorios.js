@@ -27,7 +27,7 @@ const RelatoriosModule = (() => {
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
           <div>
             <div style="font-size:13px;font-weight:600;margin-bottom:4px">Período de análise</div>
-            <div style="font-size:12px;color:var(--muted)">Selecione o período para gerar os relatórios</div>
+            <div style="font-size:12px;color:var(--t3)">Selecione o período para gerar os relatórios</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="filter-btn on" id="per-1"  onclick="RelatoriosModule.setPeriodo(1)">1 mês</button>
@@ -41,7 +41,7 @@ const RelatoriosModule = (() => {
       <!-- Loading -->
       <div id="rel-loading" class="panel" style="text-align:center;padding:40px">
         <span class="spin" style="width:24px;height:24px;border-width:3px;display:inline-block"></span>
-        <div style="margin-top:12px;font-size:13px;color:var(--muted)">Analisando seus dados...</div>
+        <div style="margin-top:12px;font-size:13px;color:var(--t3)">Analisando seus dados...</div>
       </div>
 
       <!-- Conteúdo (oculto até carregar) -->
@@ -51,10 +51,10 @@ const RelatoriosModule = (() => {
         <div class="grid-4" id="rel-kpis" style="margin-bottom:14px"></div>
 
         <!-- 🧠 Insights do analista sênior -->
-        <div class="panel" style="margin-bottom:14px;border-color:var(--lime-border);background:linear-gradient(135deg,var(--lime-bg) 0%,var(--surface) 100%)">
+        <div class="panel" style="margin-bottom:14px;border-color:var(--ac-bdr);background:linear-gradient(135deg,var(--ac-dim) 0%,var(--s1) 100%)">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
             ${iconBulb()}
-            <div class="panel-title" style="margin:0;color:var(--lime)">Análise do seu negócio</div>
+            <div class="panel-title" style="margin:0;color:var(--ac)">Análise do seu negócio</div>
           </div>
           <div id="rel-insights"></div>
         </div>
@@ -64,8 +64,8 @@ const RelatoriosModule = (() => {
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
             <div class="panel-title" style="margin:0">Receitas vs Despesas</div>
             <div style="display:flex;gap:10px">
-              <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:#4ade8055"></div><span style="font-size:11px;color:var(--muted)">Receitas</span></div>
-              <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:#f8717155"></div><span style="font-size:11px;color:var(--muted)">Despesas</span></div>
+              <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:#4ade8055"></div><span style="font-size:11px;color:var(--t3)">Receitas</span></div>
+              <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:#f8717155"></div><span style="font-size:11px;color:var(--t3)">Despesas</span></div>
             </div>
           </div>
           <div id="rel-chart" style="overflow-x:auto"></div>
@@ -100,7 +100,7 @@ const RelatoriosModule = (() => {
               ${iconDownload()} Imprimir / Salvar PDF
             </button>
           </div>
-          <div style="font-size:11px;color:var(--hint);margin-top:10px">
+          <div style="font-size:11px;color:var(--t4);margin-top:10px">
             O arquivo CSV pode ser aberto diretamente no Excel, Google Planilhas ou qualquer editor de tabelas.<br>
             Para salvar como PDF, selecione "Salvar como PDF" na janela de impressão.
           </div>
@@ -298,20 +298,20 @@ const RelatoriosModule = (() => {
     }
 
     const cores = {
-      positivo: { bg: 'var(--green-bg)', border: 'var(--green-border)', txt: 'var(--green)' },
-      alerta:   { bg: 'var(--red-bg)',   border: 'var(--red-border)',   txt: 'var(--red)' },
-      neutro:   { bg: 'var(--surface2)', border: 'var(--border)',       txt: 'var(--text2)' },
+      positivo: { bg: 'var(--gr-dim)', border: 'var(--gr-bdr)', txt: 'var(--gr)' },
+      alerta:   { bg: 'var(--rd-dim)',   border: 'var(--rd-bdr)',   txt: 'var(--rd)' },
+      neutro:   { bg: 'var(--s2)', border: 'var(--b1)',       txt: 'var(--t2)' },
     }
 
     el.innerHTML = insights.map(ins => {
       const c = cores[ins.tipo]
       return `
-        <div style="background:${c.bg};border:1px solid ${c.border};border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
+        <div style="background:${c.bg};border:1px solid ${c.border};border-radius:var(--r2);padding:14px 16px;margin-bottom:10px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
             <span style="font-size:18px">${ins.icon}</span>
             <div style="font-size:13px;font-weight:600;color:${c.txt}">${ins.titulo}</div>
           </div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.6">${ins.texto}</div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.6">${ins.texto}</div>
         </div>`
     }).join('')
   }
@@ -336,7 +336,7 @@ const RelatoriosModule = (() => {
                 <div style="width:14px;height:${hR}px;border-radius:3px 3px 0 0;background:#4ade8070" title="Receita: ${Utils.fmt(r)}"></div>
                 <div style="width:14px;height:${hD}px;border-radius:3px 3px 0 0;background:#f8717170" title="Despesa: ${Utils.fmt(d)}"></div>
               </div>
-              <div style="font-size:9px;color:var(--hint);text-align:center;position:absolute;bottom:-16px;white-space:nowrap">${lbl}</div>
+              <div style="font-size:9px;color:var(--t4);text-align:center;position:absolute;bottom:-16px;white-space:nowrap">${lbl}</div>
             </div>`
         }).join('')}
       </div>
@@ -353,7 +353,7 @@ const RelatoriosModule = (() => {
     const total = todosDesp.reduce((s,d) => s+Number(d.valor||0), 0)
 
     if (!top5.length) {
-      el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--hint);font-size:13px">Sem despesas no período</div>`
+      el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--t4);font-size:13px">Sem despesas no período</div>`
       return
     }
 
@@ -368,7 +368,7 @@ const RelatoriosModule = (() => {
               <span style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">${Utils.esc(desc)}</span>
             </div>
             <div style="display:flex;align-items:center;gap:8px">
-              <span style="font-size:10px;color:var(--muted)">${pct}%</span>
+              <span style="font-size:10px;color:var(--t3)">${pct}%</span>
               <span style="font-size:12px;font-weight:600">${Utils.fmt(val)}</span>
             </div>
           </div>
@@ -387,11 +387,11 @@ const RelatoriosModule = (() => {
       const s = r - d
       const lbl = new Date(m+'-01').toLocaleDateString('pt-BR', { month:'long', year:'2-digit' })
       return `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--b1)">
           <span style="font-size:12px;text-transform:capitalize">${lbl}</span>
           <div style="display:flex;align-items:center;gap:8px">
-            <div style="font-size:10px;color:var(--muted)">${Utils.fmt(r)} - ${Utils.fmt(d)}</div>
-            <div style="font-size:13px;font-weight:700;color:${s >= 0 ? 'var(--lime)' : 'var(--red)'}">${s >= 0 ? '+' : ''}${Utils.fmt(s)}</div>
+            <div style="font-size:10px;color:var(--t3)">${Utils.fmt(r)} - ${Utils.fmt(d)}</div>
+            <div style="font-size:13px;font-weight:700;color:${s >= 0 ? 'var(--ac)' : 'var(--rd)'}">${s >= 0 ? '+' : ''}${Utils.fmt(s)}</div>
           </div>
         </div>`
     }).join('')
@@ -408,7 +408,7 @@ const RelatoriosModule = (() => {
     const COLORS = ['#4ade80','#84cc16','#22c55e','#34d399','#2dd4bf','#a3e635','#facc15','#fb923c','#71717a']
 
     if (!sorted.length) {
-      el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--hint);font-size:13px">Sem receitas no período</div>`
+      el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--t4);font-size:13px">Sem receitas no período</div>`
       return
     }
 
@@ -417,13 +417,13 @@ const RelatoriosModule = (() => {
         ${sorted.map(([cat, val], i) => {
           const pct = total > 0 ? ((val/total)*100).toFixed(1) : 0
           return `
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px">
+            <div style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r2);padding:12px">
               <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
                 <div style="width:8px;height:8px;border-radius:50%;background:${COLORS[i%COLORS.length]};flex-shrink:0"></div>
                 <span style="font-size:12px;font-weight:500">${Utils.esc(cat)}</span>
               </div>
               <div style="font-size:16px;font-weight:700;color:${COLORS[i%COLORS.length]}">${Utils.fmt(val)}</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:2px">${pct}% do total</div>
+              <div style="font-size:10px;color:var(--t3);margin-top:2px">${pct}% do total</div>
               <div class="progress" style="margin-top:8px"><div class="progress-bar" style="width:${pct}%;background:${COLORS[i%COLORS.length]}"></div></div>
             </div>`
         }).join('')}
