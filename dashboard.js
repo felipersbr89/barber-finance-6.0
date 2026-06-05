@@ -32,25 +32,49 @@ const DashboardModule = (() => {
           <button class="month-nav-btn" onclick="DashboardModule.changeMonth(1)">${iconChevRight()}</button>
         </div>
       </div>
-      <div id="dash-savings" class="hidden" style="background:var(--lime-bg);border:1px solid var(--lime-border);border-radius:var(--radius-lg);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-        <div>
-          <div style="font-size:12px;color:var(--muted)">Taxa de Poupança</div>
-          <div style="font-size:12px;color:var(--hint)" id="savings-hint"></div>
+      <!-- Hero Card (estilo DEMO) -->
+      <div class="hero-card" id="dash-hero" style="display:none">
+        <div class="hero-card-deco"></div>
+        <div class="hero-card-deco2"></div>
+        <div class="hero-card-label">Saldo do mês</div>
+        <div class="hero-card-value" id="hero-balance">—</div>
+        <div class="hero-card-sub" id="hero-sub">Receitas — Despesas</div>
+        <div class="hero-card-badge" id="hero-badge" style="display:none">
+          ${iconArrowUp()} <span id="hero-badge-txt"></span>
         </div>
-        <div style="font-size:24px;font-weight:700;color:var(--lime)" id="savings-val">—</div>
       </div>
-      <div class="grid-3" style="margin-bottom:16px">
-        ${kpiCard('kpi-income',  'Receitas',  'bg-green-soft', iconReceitas(), 'c-green')}
-        ${kpiCard('kpi-expense', 'Despesas',  'bg-red-soft',   iconDespesas(), 'c-red')}
-        ${kpiCard('kpi-balance', 'Saldo',     'bg-lime-soft',  iconInvest(),   'c-lime')}
+
+      <!-- KPI Cards com barra colorida na base (estilo DEMO) -->
+      <div class="grid-3" style="margin-bottom:14px">
+        <div class="card" style="padding:16px 18px">
+          <div class="card-icon bg-green-soft" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px">${iconReceitas()}</div>
+          <div class="card-label">RECEITAS</div>
+          <div class="card-value c-green" id="kpi-income">—</div>
+          <div class="card-hint" id="kpi-income-hint"></div>
+          <div class="card-kpi-bar green"></div>
+        </div>
+        <div class="card" style="padding:16px 18px">
+          <div class="card-icon bg-red-soft" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px">${iconDespesas()}</div>
+          <div class="card-label">DESPESAS</div>
+          <div class="card-value c-red" id="kpi-expense">—</div>
+          <div class="card-hint" id="kpi-expense-hint"></div>
+          <div class="card-kpi-bar red"></div>
+        </div>
+        <div class="card" style="padding:16px 18px">
+          <div class="card-icon bg-lime-soft" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px">${iconInvest()}</div>
+          <div class="card-label">SALDO</div>
+          <div class="card-value c-lime" id="kpi-balance">—</div>
+          <div class="card-hint" id="kpi-balance-hint"></div>
+          <div class="card-kpi-bar lime"></div>
+        </div>
       </div>
       <div class="grid-2" style="margin-bottom:16px">
         <div class="panel">
-          <div class="panel-title">Últimas movimentações</div>
+          <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">Últimas movimentações <a href="receitas.html" class="panel-link">Ver tudo</a></div>
           <div id="recent-list"><div class="loading-state"><span class="spin"></span> Carregando...</div></div>
         </div>
         <div class="panel">
-          <div class="panel-title">Metas financeiras</div>
+          <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">Metas financeiras <a href="metas.html" class="panel-link">Ver tudo</a></div>
           <div id="goals-list"><div class="loading-state"><span class="spin"></span> Carregando...</div></div>
         </div>
       </div>
@@ -152,22 +176,29 @@ const DashboardModule = (() => {
     const balance  = totalInc - totalExp
     const savings  = totalInc > 0 ? ((totalInc - totalExp) / totalInc) * 100 : 0
 
-    // KPIs
+    // Hero card
+    const heroEl = document.getElementById('dash-hero')
+    if (heroEl) { heroEl.style.display = ''; }
+    setText('hero-balance', Utils.fmt(balance))
+    const heroSub = document.getElementById('hero-sub')
+    if (heroSub) heroSub.textContent = 'Receitas — Despesas de ' + Utils.monthName(viewMonth, viewYear)
+    if (savings > 0) {
+      const heroBadge = document.getElementById('hero-badge')
+      if (heroBadge) heroBadge.style.display = 'flex'
+      setText('hero-badge-txt', savings.toFixed(1) + '% taxa de poupança')
+    }
+
+    // KPI cards
     setText('kpi-income',       Utils.fmt(totalInc))
     setText('kpi-expense',      Utils.fmt(totalExp))
     setText('kpi-balance',      Utils.fmt(balance))
-    setClass('kpi-balance',     'card-value ' + (balance >= 0 ? 'c-lime' : 'c-red'))
+    const kpiBalEl = document.getElementById('kpi-balance')
+    if (kpiBalEl) kpiBalEl.className = 'card-value ' + (balance >= 0 ? 'c-lime' : 'c-red')
+    const kpiBar = document.querySelector('.card-kpi-bar.lime, .card-kpi-bar.red')
+    if (kpiBar) { kpiBar.className = 'card-kpi-bar ' + (balance >= 0 ? 'lime' : 'red') }
     setText('kpi-balance-hint', balance >= 0 ? 'positivo ✓' : 'negativo ⚠')
+    if (totalInc > 0) setText('kpi-income-hint', Utils.fmt(totalInc))
     if (totalInc > 0) setText('kpi-expense-hint', ((totalExp/totalInc)*100).toFixed(1)+'% da receita')
-
-    // Savings badge
-    if (savings > 0) {
-      const badge = document.getElementById('dash-savings')
-      badge?.classList.remove('hidden')
-      badge?.style.setProperty('display', 'flex')
-      setText('savings-val',  savings.toFixed(1)+'%')
-      setText('savings-hint', 'Você poupou ' + Utils.fmt(balance) + ' este mês')
-    }
 
     // Últimas movimentações
     const receitas = (rRecent[0].data||[]).map(r => ({...r, _tipo:'receita'}))

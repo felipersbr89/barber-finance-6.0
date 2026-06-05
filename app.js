@@ -96,11 +96,18 @@ const Layout = {
       { id: 'perfil',        label: 'Perfil',         icon: iconPerfil() },
     ]
 
-    const navHTML = navItems.map(item => `
-      <a href="${item.id}.html" class="nav-item ${page === item.id ? 'active' : ''}" data-page="${item.id}">
-        <span class="nav-icon">${item.icon}</span>
-        ${item.label}
-      </a>`).join('')
+    // Grupos com labels (da DEMO)
+    const navGroups = [
+      { label: 'Principal', items: navItems.slice(0, 4) },
+      { label: 'Gestão',    items: navItems.slice(4) },
+    ]
+    const navHTML = navGroups.map(g => `
+      <div class="nav-section-label">${g.label}</div>
+      ${g.items.map(item => `
+        <a href="${item.id}.html" class="nav-item ${page === item.id ? 'active' : ''}" data-page="${item.id}">
+          <span class="nav-icon">${item.icon}</span>
+          ${item.label}
+        </a>`).join('')}`).join('')
 
     const bottomItems = navItems.filter(i => !['categorias','relatorios'].includes(i.id))
     const bottomNavHTML = bottomItems.map(item => `
@@ -117,6 +124,9 @@ const Layout = {
       <div id="sidebar-overlay" class="sidebar-overlay"></div>
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
+          <div class="logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
           <div class="logo-wordmark">
             <div class="logo-text">GORILAZ</div>
             <div class="logo-sub">BARBER FINANCE</div>
@@ -147,7 +157,12 @@ const Layout = {
           <button class="btn-hamburger" id="hamburger-btn" onclick="Layout.toggleSidebar()">
             ${iconMenu()}
           </button>
-          <div class="topbar-brand"><span class="topbar-brand-text">GORILAZ</span></div>
+          <div class="topbar-brand">
+            <div class="topbar-logo-mark">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <span class="topbar-brand-text">GORILAZ</span>
+          </div>
           <div class="user-avatar" style="cursor:default">${initials}</div>
         </header>
         <main class="page-content" id="page-content"></main>
