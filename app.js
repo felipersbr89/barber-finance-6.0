@@ -110,37 +110,30 @@ const Layout = {
         </a>`).join('')}`).join('')
 
     // ── Seção BARBER METAS (Em Breve) ──
+    const iconFaturamento = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>`
+    const iconServicos    = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+    const iconProdutos    = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`
+    const iconLock        = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+
     const barberMetasHTML = `
       <div class="nav-section-label nav-section-premium">
         BARBER METAS
         <span class="nav-section-badge">EM BREVE</span>
       </div>
-      <div class="nav-item-coming" onclick="ComingSoon.show('Meta de Faturamento', 'Acompanhe em tempo real o faturamento da sua barbearia e defina metas mensais para crescer de forma consistente.')">
-        <span class="nav-coming-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-        </span>
-        <span class="nav-coming-label">Meta de Faturamento</span>
-        <span class="nav-coming-lock">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </span>
+      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Meta de Faturamento', 'Acompanhe em tempo real o faturamento da sua barbearia e defina metas mensais para crescer de forma consistente.')">
+        <span class="nav-icon">${iconFaturamento()}</span>
+        Meta de Faturamento
+        <span class="nav-coming-lock">${iconLock()}</span>
       </div>
-      <div class="nav-item-coming" onclick="ComingSoon.show('Meta de Serviços', 'Defina metas de quantidade de serviços realizados por dia, semana ou mês e acompanhe sua produtividade.')">
-        <span class="nav-coming-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        </span>
-        <span class="nav-coming-label">Meta de Serviços</span>
-        <span class="nav-coming-lock">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </span>
+      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Meta de Serviços', 'Defina metas de quantidade de serviços realizados por dia, semana ou mês e acompanhe sua produtividade.')">
+        <span class="nav-icon">${iconServicos()}</span>
+        Meta de Serviços
+        <span class="nav-coming-lock">${iconLock()}</span>
       </div>
-      <div class="nav-item-coming" onclick="ComingSoon.show('Meta de Produtos', 'Monitore as vendas de produtos da sua barbearia e estabeleça metas para maximizar sua receita adicional.')">
-        <span class="nav-coming-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-        </span>
-        <span class="nav-coming-label">Meta de Produtos</span>
-        <span class="nav-coming-lock">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </span>
+      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Meta de Produtos', 'Monitore as vendas de produtos da sua barbearia e estabeleça metas para maximizar sua receita adicional.')">
+        <span class="nav-icon">${iconProdutos()}</span>
+        Meta de Produtos
+        <span class="nav-coming-lock">${iconLock()}</span>
       </div>`
 
     const bottomItems = navItems.filter(i => !['categorias','relatorios'].includes(i.id))
