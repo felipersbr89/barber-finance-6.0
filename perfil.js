@@ -27,9 +27,10 @@ const PerfilModule = (() => {
         <div class="grid-2">
           <div class="field"><label>Nome completo</label><div class="input-icon-wrap"><span class="input-prefix">👤</span><input type="text" id="pf-nome" placeholder="Seu nome completo"></div></div>
           <div class="field"><label>Nome da barbearia</label><div class="input-icon-wrap"><span class="input-prefix">✂</span><input type="text" id="pf-barbearia" placeholder="Nome da barbearia"></div></div>
-          <div class="field"><label>Telefone</label><div class="input-icon-wrap"><span class="input-prefix">📱</span><input type="tel" id="pf-tel" placeholder="(00) 00000-0000"></div></div>
-          <div class="field"><label>Email</label><div class="input-icon-wrap"><span class="input-prefix">📧</span><input type="email" id="pf-email" disabled></div></div>
+          <div class="field"><label>Telefone fixo</label><div class="input-icon-wrap"><span class="input-prefix">📞</span><input type="tel" id="pf-tel" placeholder="(00) 0000-0000"></div></div>
+          <div class="field"><label>Celular / WhatsApp</label><div class="input-icon-wrap"><span class="input-prefix">📱</span><input type="tel" id="pf-cel" placeholder="(00) 00000-0000"></div></div>
         </div>
+        <div class="field"><label>Email</label><div class="input-icon-wrap"><span class="input-prefix">📧</span><input type="email" id="pf-email" disabled></div></div>
         <button class="btn btn-lime" id="pf-save-btn" onclick="PerfilModule.salvarPerfil()">${iconSave()} <span id="pf-save-lbl">Salvar dados</span></button>
       </div>
       <div class="panel" style="margin-bottom:12px">
@@ -60,7 +61,7 @@ const PerfilModule = (() => {
   async function carregar() {
     document.getElementById('pf-email').value = App.user.email||''
     const[pRes,rRes,dRes,iRes]=await Promise.all([
-      window.db.from('profiles').select('*').eq('id',App.user.id).maybeSingle(),
+      window.db.from('profiles').select('*').eq('user_id',App.user.id).maybeSingle(),
       window.db.from('receitas').select('valor').eq('user_id',App.user.id),
       window.db.from('despesas').select('valor').eq('user_id',App.user.id),
       window.db.from('investimentos').select('valor_atual').eq('user_id',App.user.id),
@@ -70,6 +71,7 @@ const PerfilModule = (() => {
       document.getElementById('pf-nome').value=p.full_name||''
       document.getElementById('pf-barbearia').value=p.barbershop_name||''
       document.getElementById('pf-tel').value=p.phone||''
+      document.getElementById('pf-cel').value=p.celular||''
       const ini=Utils.initials(p.full_name, App.user.email)
       document.getElementById('av-big').textContent=ini
       document.getElementById('av-name').textContent=p.full_name||'Sem nome'
@@ -93,9 +95,9 @@ const PerfilModule = (() => {
   }
 
   async function salvarPerfil(){
-    const nome=document.getElementById('pf-nome')?.value.trim(), barbearia=document.getElementById('pf-barbearia')?.value.trim(), tel=document.getElementById('pf-tel')?.value.trim(), btn=document.getElementById('pf-save-btn')
+    const nome=document.getElementById('pf-nome')?.value.trim(), barbearia=document.getElementById('pf-barbearia')?.value.trim(), tel=document.getElementById('pf-tel')?.value.trim(), cel=document.getElementById('pf-cel')?.value.trim(), btn=document.getElementById('pf-save-btn')
     Utils.setLoading(btn,true,'Salvando...')
-    const{error}=await window.db.from('profiles').upsert({id:App.user.id,full_name:nome||null,barbershop_name:barbearia||null,phone:tel||null,updated_at:new Date().toISOString()})
+    const{error}=await window.db.from('profiles').upsert({user_id:App.user.id,full_name:nome||null,barbershop_name:barbearia||null,phone:tel||null,celular:cel||null,updated_at:new Date().toISOString()},{onConflict:'user_id'})
     Utils.setLoading(btn,false,iconSave()+' Salvar dados')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Perfil salvo! ✓');await carregar()}
