@@ -109,6 +109,40 @@ const Layout = {
           ${item.label}
         </a>`).join('')}`).join('')
 
+    // ── Seção BARBER METAS (Em Breve) ──
+    const barberMetasHTML = `
+      <div class="nav-section-label nav-section-premium">
+        BARBER METAS
+        <span class="nav-section-badge">EM BREVE</span>
+      </div>
+      <div class="nav-item-coming" onclick="ComingSoon.show('Meta de Faturamento', 'Acompanhe em tempo real o faturamento da sua barbearia e defina metas mensais para crescer de forma consistente.')">
+        <span class="nav-coming-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        </span>
+        <span class="nav-coming-label">Meta de Faturamento</span>
+        <span class="nav-coming-lock">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+      </div>
+      <div class="nav-item-coming" onclick="ComingSoon.show('Meta de Serviços', 'Defina metas de quantidade de serviços realizados por dia, semana ou mês e acompanhe sua produtividade.')">
+        <span class="nav-coming-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        <span class="nav-coming-label">Meta de Serviços</span>
+        <span class="nav-coming-lock">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+      </div>
+      <div class="nav-item-coming" onclick="ComingSoon.show('Meta de Produtos', 'Monitore as vendas de produtos da sua barbearia e estabeleça metas para maximizar sua receita adicional.')">
+        <span class="nav-coming-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </span>
+        <span class="nav-coming-label">Meta de Produtos</span>
+        <span class="nav-coming-lock">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+      </div>`
+
     const bottomItems = navItems.filter(i => !['categorias','relatorios'].includes(i.id))
     const bottomNavHTML = bottomItems.map(item => `
       <a href="${item.id}.html" class="bottom-nav-item ${page === item.id ? 'active' : ''}" data-page="${item.id}">
@@ -132,7 +166,7 @@ const Layout = {
             <div class="logo-sub">BARBER FINANCE</div>
           </div>
         </div>
-        <nav class="sidebar-nav">${navHTML}</nav>
+        <nav class="sidebar-nav">${navHTML}${barberMetasHTML}</nav>
         <div class="sidebar-footer">
           <div class="user-chip">
             <div class="user-avatar-wrap" id="sidebar-avatar-wrap" onclick="document.getElementById('gb-avatar-input').click()" title="Trocar foto de perfil" style="cursor:pointer">
@@ -430,10 +464,78 @@ const MonthPicker = {
   }
 }
 
+
+// ── COMING SOON MODAL ────────────────────────────────────────
+// Reutilizável: ComingSoon.show('Nome', 'Descrição específica')
+const ComingSoon = {
+  show(featureName, featureDesc) {
+    // Remove modal existente se houver
+    document.getElementById('coming-soon-modal')?.remove()
+
+    const modal = document.createElement('div')
+    modal.id = 'coming-soon-modal'
+    modal.className = 'modal-overlay'
+    modal.style.cssText = 'z-index:9000'
+    modal.innerHTML = `
+      <div class="modal-box cs-modal-box" role="dialog" aria-modal="true" aria-label="Funcionalidade em breve">
+        <div class="cs-header">
+          <div class="cs-rocket-wrap">
+            <div class="cs-rocket-glow"></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="cs-rocket-icon" aria-hidden="true">
+              <path d="M4.5 16.5c-1.5 1.5-2 4-2 4s2.5-.5 4-2l8-8c.5-.5.5-1.5 0-2l-2-2c-.5-.5-1.5-.5-2 0l-8 8z"/>
+              <path d="M15 5s2 0 4 2-2 4-2 4"/>
+              <path d="M9 11l4 4"/>
+              <circle cx="18" cy="6" r="1" fill="currentColor"/>
+            </svg>
+          </div>
+          <button class="btn btn-ghost btn-icon cs-close-btn" onclick="ComingSoon.close()" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="cs-body">
+          <div class="cs-badge-em-breve">🚀 EM BREVE</div>
+          <div class="cs-title">${featureName}</div>
+          <div class="cs-desc">${featureDesc}</div>
+          <div class="cs-divider"></div>
+          <div class="cs-promo">
+            <div class="cs-promo-icon">🔥</div>
+            <div>
+              <div class="cs-promo-title">Em breve no Barber Finance</div>
+              <div class="cs-promo-text">Acompanhe metas de faturamento, quantidade de serviços realizados e vendas de produtos em tempo real.</div>
+              <div class="cs-promo-launch">Lançamento previsto para as próximas versões.</div>
+            </div>
+          </div>
+        </div>
+        <div class="cs-footer">
+          <button class="btn btn-lime btn-full" onclick="ComingSoon.close()">Entendido</button>
+        </div>
+      </div>`
+
+    document.body.appendChild(modal)
+    // Fecha ao clicar fora
+    modal.addEventListener('click', (e) => { if (e.target === modal) ComingSoon.close() })
+    // Fecha com Esc
+    modal._escHandler = (e) => { if (e.key === 'Escape') ComingSoon.close() }
+    document.addEventListener('keydown', modal._escHandler)
+    // Foco no modal
+    requestAnimationFrame(() => modal.querySelector('.cs-close-btn')?.focus())
+  },
+
+  close() {
+    const modal = document.getElementById('coming-soon-modal')
+    if (!modal) return
+    document.removeEventListener('keydown', modal._escHandler)
+    modal.style.opacity = '0'
+    modal.style.transition = 'opacity 0.15s'
+    setTimeout(() => modal.remove(), 150)
+  }
+}
+
 // ── 8. EXPÕE GLOBALMENTE ─────────────────────
 window.Auth   = Auth
 window.Layout = Layout
 window.Toast  = Toast
 window.Modal  = Modal
 window.Utils       = Utils
-window.MonthPicker = MonthPicker
+window.MonthPicker  = MonthPicker
+window.ComingSoon   = ComingSoon
