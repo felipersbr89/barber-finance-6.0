@@ -76,10 +76,20 @@ const ReceitasModule = (() => {
     MonthPicker.render('rec-mpicker', fYear, fMonth, (y, m) => {
       fYear = y; fMonth = m; load()
     })
-    const{data}=await window.db.from('receitas').select('*').eq('user_id',App.user.id).gte('data',Utils.monthStart(fYear,fMonth)).lte('data',Utils.monthEnd(fYear,fMonth)).order('data',{ascending:false})
-    todos=data||[]
-    const total=todos.reduce((s,t)=>s+Number(t.valor||0),0)
-    const el=document.getElementById('rec-total'); if(el) el.textContent='— Total: '+Utils.fmt(total)
+    const start = Utils.monthStart(fYear, fMonth)
+    const end   = Utils.monthEnd(fYear, fMonth)
+    const { data, error } = await window.db
+      .from('receitas')
+      .select('*')
+      .eq('user_id', App.user.id)
+      .gte('data', start)
+      .lte('data', end)
+      .order('data', { ascending: false })
+    if (error) { Toast.err('Erro ao carregar receitas: ' + error.message); return }
+    todos = data || []
+    const total = todos.reduce((s,t) => s + Number(t.valor||0), 0)
+    const el = document.getElementById('rec-total')
+    if (el) el.textContent = '— Total: ' + Utils.fmt(total)
     render()
   }
 
