@@ -159,6 +159,8 @@ const Layout = {
     document.getElementById('sidebar-overlay').addEventListener('click', () => Layout.closeSidebar())
     // Carrega avatar salvo
     setTimeout(() => Layout.loadSavedAvatar(), 50)
+    // Carrega nome do perfil na sidebar
+    setTimeout(() => Layout.loadProfileName(), 80)
     // Injeta saudação na page-content via evento
     window._greetInjected = false
   },
@@ -196,6 +198,23 @@ const Layout = {
           av.style.padding = '0'
           av.style.fontSize = '0'
         }
+      }
+    } catch(e) {}
+  },
+  async loadProfileName() {
+    try {
+      const nameEl = document.getElementById('sidebar-name')
+      if (!nameEl || !App.user) return
+      const { data: prof } = await window.db
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', App.user.id)
+        .maybeSingle()
+      const fullName = prof?.full_name?.trim()
+      if (fullName) {
+        const firstName = fullName.split(' ')[0]
+        nameEl.textContent = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()
+        window._firstName = firstName
       }
     } catch(e) {}
   }

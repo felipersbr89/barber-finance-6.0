@@ -100,16 +100,41 @@ const DashboardModule = (() => {
     if (sub) sub.textContent = nome
 
     // Saudação
+    // Busca nome do perfil no Supabase
     if (window._greet) {
       const gp = document.getElementById('dash-greet-period')
-      const gn = document.getElementById('dash-greet-name')
       const gm = document.getElementById('dash-greet-msg')
-      const profile = App.user?.email?.split('@')[0] || ''
-      const firstName = profile.charAt(0).toUpperCase() + profile.slice(1)
       if (gp) gp.textContent = window._greet.period + ','
-      if (gn) gn.textContent = 'Olá, ' + firstName + '!'
       if (gm) gm.textContent = window._greet.msg
     }
+    // Carrega primeiro nome do perfil cadastrado
+    ;(async () => {
+      const gn = document.getElementById('dash-greet-name')
+      if (!gn) return
+      try {
+        const { data: prof } = await window.db
+          .from('profiles')
+          .select('full_name')
+          .eq('user_id', App.user.id)
+          .maybeSingle()
+        const fullName = prof?.full_name?.trim()
+        let firstName
+        if (fullName) {
+          firstName = fullName.split(' ')[0]
+          firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()
+        } else {
+          // fallback: parte do email antes do @
+          const emailPart = App.user?.email?.split('@')[0] || 'usuário'
+          firstName = emailPart.charAt(0).toUpperCase() + emailPart.slice(1)
+        }
+        gn.textContent = 'Olá, ' + firstName + '!'
+        // Guarda para reusar em outros lugares
+        window._firstName = firstName
+      } catch(e) {
+        const emailPart = App.user?.email?.split('@')[0] || 'usuário'
+        gn.textContent = 'Olá, ' + emailPart.charAt(0).toUpperCase() + emailPart.slice(1) + '!'
+      }
+    })()
 
     const [rInc, rExp, rRecent, rGoals, rInvest] = await Promise.all([
       window.db.from('receitas').select('valor').eq('user_id', uid).gte('data', start).lte('data', end),
