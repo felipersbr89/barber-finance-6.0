@@ -196,7 +196,7 @@ const Utils = {
   today()    { return new Date().toISOString().split('T')[0] },
   monthStr(y,m)   { return `${y}-${String(m+1).padStart(2,'0')}` },
   monthStart(y,m) { return `${y}-${String(m+1).padStart(2,'0')}-01` },
-  monthEnd(y,m)   { return `${y}-${String(m+1).padStart(2,'0')}-31` },
+  monthEnd(y,m)   { const d=new Date(y,m+1,0); return `${y}-${String(m+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` },
   monthName(m,y)  { const d=new Date(y,m); const mes=d.toLocaleDateString('pt-BR',{month:'long'}); return mes.charAt(0).toUpperCase()+mes.slice(1)+' '+y },
   esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') },
   initials(name, email) {
