@@ -165,12 +165,12 @@ const InvestimentosModule = (() => {
   async function salvar() {
     const nome=document.getElementById('if-nome')?.value.trim(), tipo=document.getElementById('if-tipo')?.value
     const inst=document.getElementById('if-inst')?.value.trim(), vi=parseFloat(document.getElementById('if-vinv')?.value)
-    const va=parseFloat(document.getElementById('if-vatu')?.value), data=document.getElementById('if-data')?.value
+    const va=parseFloat(document.getElementById('if-vatu')?.value), dataVal=document.getElementById('if-data')?.value
     const rent=parseFloat(document.getElementById('if-rent')?.value||'0'), obj=document.getElementById('if-obj')?.value.trim()
     const btn=document.getElementById('inv-save-btn')
     if(!nome||!tipo||!inst||!vi||!va||!data){Toast.err('Preencha todos os campos obrigatórios.');return}
     Utils.setLoading(btn,true,'Salvando...')
-    const{error}=await window.db.from('investimentos').insert({user_id:App.user.id,nome_investimento:nome,tipo_investimento:tipo,instituição:inst,valor_investido:vi,valor_atual:va,data_aporte:data,rentabilidade:rent||null,objetivo:obj||null})
+    const{error}=await window.db.from('investimentos').insert({user_id:App.user.id,nome_investimento:nome,tipo_investimento:tipo,instituição:inst,valor_investido:vi,valor_atual:va,data_aporte:dataVal,rentabilidade:rent||null,objetivo:obj||null})
     Utils.setLoading(btn,false,'Salvar')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Investimento salvo! ✓');cancelarForm();await carregar()}
@@ -192,12 +192,12 @@ const InvestimentosModule = (() => {
   async function salvarEdicao() {
     const nome=document.getElementById('ime-nome')?.value.trim(), tipo=document.getElementById('ime-tipo')?.value
     const inst=document.getElementById('ime-inst')?.value.trim(), vi=parseFloat(document.getElementById('ime-vinv')?.value)
-    const va=parseFloat(document.getElementById('ime-vatu')?.value), data=document.getElementById('ime-data')?.value
+    const va=parseFloat(document.getElementById('ime-vatu')?.value), dataVal=document.getElementById('ime-data')?.value
     const rent=parseFloat(document.getElementById('ime-rent')?.value||'0'), obj=document.getElementById('ime-obj')?.value.trim()
     const btn=document.getElementById('ime-save-btn')
     if(!nome||!tipo||!inst||!vi||!va||!data){Toast.err('Preencha os campos.');return}
     Utils.setLoading(btn,true,'Salvando...')
-    const{error}=await window.db.from('investimentos').update({nome_investimento:nome,tipo_investimento:tipo,instituição:inst,valor_investido:vi,valor_atual:va,data_aporte:data,rentabilidade:rent||null,objetivo:obj||null}).eq('id',editandoId).eq('user_id',App.user.id)
+    const{error}=await window.db.from('investimentos').update({nome_investimento:nome,tipo_investimento:tipo,instituição:inst,valor_investido:vi,valor_atual:va,data_aporte:dataVal,rentabilidade:rent||null,objetivo:obj||null}).eq('id',editandoId).eq('user_id',App.user.id)
     Utils.setLoading(btn,false,'Salvar')
     if(error)Toast.err('Erro: '+error.message)
     else{Toast.ok('Atualizado! ✓');Modal.close('modal-inv-edit');editandoId=null;await carregar()}
