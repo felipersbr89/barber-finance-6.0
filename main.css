@@ -460,7 +460,10 @@ textarea { resize:vertical; min-height:80px; }
 .card-kpi-bar {
   position: absolute; bottom:0; left:0; right:0; height:3px;
   border-radius: 0 0 var(--r-lg) var(--r-lg);
+  pointer-events: none;
 }
+/* Garante que .card pai tem overflow:hidden para conter a barra */
+.card { overflow: hidden; }
 .card-kpi-bar.green { background: linear-gradient(90deg, transparent, rgba(74,222,128,0.5)); }
 .card-kpi-bar.red   { background: linear-gradient(90deg, transparent, rgba(248,113,113,0.5)); }
 .card-kpi-bar.lime  { background: linear-gradient(90deg, transparent, rgba(198,241,53,0.5)); }
@@ -483,6 +486,14 @@ textarea { resize:vertical; min-height:80px; }
   margin-bottom: 14px;
   position: relative; overflow: hidden;
   animation: cardIn 0.25s var(--ease);
+}
+/* Quando hero está oculto, garante que não gera linhas/espaço */
+.hero-card[style*="display:none"],
+.hero-card[style*="display: none"] {
+  animation: none !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+  border: none !important;
 }
 .hero-card-label { font-size:12px; font-weight:600; color:rgba(0,0,0,0.5); letter-spacing:0.5px; text-transform:uppercase; margin-bottom:8px; }
 .hero-card-value { font-family:var(--fd); font-size:36px; font-weight:700; color:#000; letter-spacing:-1.5px; line-height:1; }

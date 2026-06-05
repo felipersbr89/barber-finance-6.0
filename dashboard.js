@@ -26,14 +26,10 @@ const DashboardModule = (() => {
           <div class="page-title">Dashboard</div>
           <div class="page-sub" id="dash-sub">Carregando...</div>
         </div>
-        <div class="month-nav">
-          <button class="month-nav-btn" onclick="DashboardModule.changeMonth(-1)">${iconChevLeft()}</button>
-          <span class="month-nav-label" id="month-lbl">—</span>
-          <button class="month-nav-btn" onclick="DashboardModule.changeMonth(1)">${iconChevRight()}</button>
-        </div>
+        <div id="dash-mpicker"></div>
       </div>
       <!-- Hero Card (estilo DEMO) -->
-      <div class="hero-card" id="dash-hero" style="display:none">
+      <div class="hero-card" id="dash-hero" style="display:none;animation:none">
         <div class="hero-card-deco"></div>
         <div class="hero-card-deco2"></div>
         <div class="hero-card-label">Saldo do mês</div>
@@ -117,11 +113,16 @@ const DashboardModule = (() => {
 
     // Atualiza label do mês
     const nome = Utils.monthName(viewMonth, viewYear)
-    const lbl  = document.getElementById('month-lbl')
-    if (lbl) lbl.textContent = nome
 
     const sub = document.getElementById('dash-sub')
     if (sub) sub.textContent = nome
+
+    // Renderiza MonthPicker com dropdown de mês+ano
+    MonthPicker.render('dash-mpicker', viewYear, viewMonth, (y, m) => {
+      viewYear = y; viewMonth = m
+      MonthPicker.closeAll()
+      load()
+    })
 
     // Saudação
     // Busca nome do perfil no Supabase
@@ -340,6 +341,7 @@ const DashboardModule = (() => {
       viewMonth += delta
       if (viewMonth > 11) { viewMonth = 0; viewYear++ }
       if (viewMonth < 0)  { viewMonth = 11; viewYear-- }
+      MonthPicker.closeAll()
       load()
     }
   }
