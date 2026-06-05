@@ -11,7 +11,7 @@ const DespesasModule = (() => {
 
   function ui(){return`
     <div class="sec-header">
-      <div class="sec-title">Despesas <span id="desp-total" style="font-size:13px;font-weight:400;color:var(--muted)">— Total: R$ 0,00</span></div>
+      <div class="sec-title">Despesas <span id="desp-total" style="font-size:13px;font-weight:400;color:var(--t2)">— Total: R$ 0,00</span></div>
       <button class="btn btn-red btn-sm" onclick="DespesasModule.toggleForm()">${svgPlus()} <span id="desp-form-lbl">Nova despesa</span></button>
     </div>
     <div id="desp-form" class="form-card hidden">
@@ -78,7 +78,7 @@ const DespesasModule = (() => {
     <div id="modal-desp-del" class="modal-overlay hidden">
       <div class="modal-box modal-box-sm">
         <div class="modal-header"><h3>Excluir despesa</h3><button class="btn btn-ghost btn-icon" onclick="Modal.close('modal-desp-del')">✕</button></div>
-        <div class="modal-body"><p style="font-size:13px;color:#d4d4d4;margin-bottom:6px">Tem certeza que deseja excluir esta despesa?</p><p style="font-size:12px;color:var(--hint)" id="del-desp-desc"></p></div>
+        <div class="modal-body"><p style="font-size:13px;color:var(--t2);margin-bottom:6px">Tem certeza que deseja excluir esta despesa?</p><p style="font-size:12px;color:var(--t3)" id="del-desp-desc"></p></div>
         <div class="modal-footer">
           <button class="btn btn-danger" id="del-desp-btn" onclick="DespesasModule.confirmarDel()">Excluir</button>
           <button class="btn btn-ghost" onclick="Modal.close('modal-desp-del')">Cancelar</button>

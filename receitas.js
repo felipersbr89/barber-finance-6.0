@@ -9,7 +9,7 @@ const ReceitasModule = (() => {
 
   function ui() { return `
     <div class="sec-header">
-      <div class="sec-title">Receitas <span id="rec-total" style="font-size:13px;font-weight:400;color:var(--muted)">— Total: R$ 0,00</span></div>
+      <div class="sec-title">Receitas <span id="rec-total" style="font-size:13px;font-weight:400;color:var(--t2)">— Total: R$ 0,00</span></div>
       <button class="btn btn-lime btn-sm" onclick="ReceitasModule.toggleForm()">${svgPlus()} <span id="rec-form-lbl">Nova receita</span></button>
     </div>
     <div id="rec-form" class="form-card hidden">
@@ -63,7 +63,7 @@ const ReceitasModule = (() => {
     <div id="modal-rec-del" class="modal-overlay hidden">
       <div class="modal-box modal-box-sm">
         <div class="modal-header"><h3>Excluir receita</h3><button class="btn btn-ghost btn-icon" onclick="Modal.close('modal-rec-del')">✕</button></div>
-        <div class="modal-body"><p style="font-size:13px;color:#d4d4d4;margin-bottom:6px">Tem certeza que deseja excluir esta receita? Esta ação não pode ser desfeita.</p><p style="font-size:12px;color:var(--hint)" id="del-rec-desc"></p></div>
+        <div class="modal-body"><p style="font-size:13px;color:var(--t2);margin-bottom:6px">Tem certeza que deseja excluir esta receita? Esta ação não pode ser desfeita.</p><p style="font-size:12px;color:var(--t3)" id="del-rec-desc"></p></div>
         <div class="modal-footer">
           <button class="btn btn-danger" id="del-rec-btn" onclick="ReceitasModule.confirmarDel()">Excluir</button>
           <button class="btn btn-ghost" onclick="Modal.close('modal-rec-del')">Cancelar</button>
@@ -168,7 +168,7 @@ const ReceitasModule = (() => {
   // SVGs locais para não depender de funções globais
   function svgPlus(){return`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`}
   function svgSearch(){return`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`}
-  function svgArrowUp(){return`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--green)"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>`}
+  function svgArrowUp(){return`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--gr)"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>`}
 
   return{init,toggleForm,cancelarForm,salvar,abrirEdicao,salvarEdicao,abrirDel,confirmarDel,setFilter,render,
     changeMonth(d){fMonth+=d;if(fMonth>11){fMonth=0;fYear++}if(fMonth<0){fMonth=11;fYear--}MonthPicker.closeAll();load()}}

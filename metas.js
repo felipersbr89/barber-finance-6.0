@@ -11,9 +11,9 @@ const MetasModule = (() => {
         <button class="btn btn-lime btn-sm" onclick="MetasModule.toggleForm()">${iconPlus()} <span id="meta-form-lbl">Nova meta</span></button>
       </div>
       <div class="grid-3" style="margin-bottom:16px">
-        <div class="card card-sm"><div style="font-size:11px;color:var(--muted);margin-bottom:6px">Total de metas</div><div id="km-total" style="font-size:20px;font-weight:700;color:var(--muted)">0</div></div>
-        <div class="card card-sm"><div style="font-size:11px;color:var(--muted);margin-bottom:6px">Concluídas</div><div id="km-done" style="font-size:20px;font-weight:700;color:var(--green)">0</div></div>
-        <div class="card card-sm"><div style="font-size:11px;color:var(--muted);margin-bottom:6px">Total economizado</div><div id="km-saved" style="font-size:20px;font-weight:700;color:var(--lime)">R$ 0</div></div>
+        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Total de metas</div><div id="km-total" style="font-size:20px;font-weight:700;color:var(--t2)">0</div></div>
+        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Concluídas</div><div id="km-done" style="font-size:20px;font-weight:700;color:var(--gr)">0</div></div>
+        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Total economizado</div><div id="km-saved" style="font-size:20px;font-weight:700;color:var(--ac)">R$ 0</div></div>
       </div>
       <div id="meta-form" class="form-card hidden">
         <div class="form-title">Nova meta</div>
@@ -48,7 +48,7 @@ const MetasModule = (() => {
       <div id="modal-meta-del" class="modal-overlay hidden">
         <div class="modal-box modal-box-sm">
           <div class="modal-header"><h3>Excluir meta</h3><button class="btn btn-ghost btn-icon" onclick="Modal.close('modal-meta-del')">✕</button></div>
-          <div class="modal-body"><p style="font-size:13px;color:#d4d4d4;margin-bottom:6px">Tem certeza? Todo o progresso será perdido.</p><p style="font-size:12px;color:var(--hint)" id="del-meta-desc"></p></div>
+          <div class="modal-body"><p style="font-size:13px;color:var(--t2);margin-bottom:6px">Tem certeza? Todo o progresso será perdido.</p><p style="font-size:12px;color:var(--t3)" id="del-meta-desc"></p></div>
           <div class="modal-footer">
             <button class="btn btn-danger" id="del-meta-btn" onclick="MetasModule.confirmarDel()"><span>Excluir</span></button>
             <button class="btn btn-ghost" onclick="Modal.close('modal-meta-del')">Cancelar</button>
@@ -74,13 +74,13 @@ const MetasModule = (() => {
     el.innerHTML=todos.map(g=>{
       const atual=Number(g.valor_atual||0), alvo=Number(g.valor_alvo||1)
       const pct=Math.min((atual/alvo)*100,100), done=pct>=100, faltam=alvo-atual
-      return`<div class="card" style="${done?'border-color:var(--lime-border)':''}">
+      return`<div class="card" style="${done?'border-color:var(--ac-bdr)':''}">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
           <div style="display:flex;align-items:center;gap:10px;min-width:0">
-            <div style="width:36px;height:36px;border-radius:10px;background:${done?'var(--lime-bg)':'var(--surface2)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${done?'🏆':'🎯'}</div>
+            <div style="width:36px;height:36px;border-radius:10px;background:${done?'var(--ac-dim)':'var(--s2)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${done?'🏆':'🎯'}</div>
             <div style="min-width:0">
               <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${Utils.esc(g.nome)}</div>
-              ${g.prazo?`<div style="font-size:11px;color:var(--hint)">📅 ${Utils.fmtDate(g.prazo)}</div>`:''}
+              ${g.prazo?`<div style="font-size:11px;color:var(--t3)">📅 ${Utils.fmtDate(g.prazo)}</div>`:''}
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:8px">
@@ -90,18 +90,18 @@ const MetasModule = (() => {
           </div>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:12px;color:var(--muted)">${Utils.fmt(atual)}</span>
-          <span style="font-size:12px;font-weight:600;color:${done?'var(--lime)':'var(--muted)'}">${Math.round(pct)}%</span>
+          <span style="font-size:12px;color:var(--t2)">${Utils.fmt(atual)}</span>
+          <span style="font-size:12px;font-weight:600;color:${done?'var(--ac)':'var(--t2)'}">${Math.round(pct)}%</span>
         </div>
-        <div class="progress progress-lg"><div class="progress-bar" style="width:${pct}%;background:${done?'var(--lime2)':'var(--lime)'}"></div></div>
+        <div class="progress progress-lg"><div class="progress-bar" style="width:${pct}%;background:${done?'var(--ac2)':'var(--ac)'}"></div></div>
         <div style="display:flex;justify-content:space-between;margin-top:5px;margin-bottom:10px">
-          <span style="font-size:11px;color:var(--hint)">${!done?'Faltam '+Utils.fmt(faltam):''}</span>
-          <span style="font-size:11px;color:var(--hint)">Meta: ${Utils.fmt(alvo)}</span>
+          <span style="font-size:11px;color:var(--t3)">${!done?'Faltam '+Utils.fmt(faltam):''}</span>
+          <span style="font-size:11px;color:var(--t3)">Meta: ${Utils.fmt(alvo)}</span>
         </div>
         ${!done?`
         <div id="dep-row-${g.id}" style="display:none;gap:8px" class="flex">
           <input type="number" step="0.01" min="0" id="dep-val-${g.id}" placeholder="Valor a depositar"
-            style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;min-width:0"
+            style="flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;min-width:0"
             onkeydown="if(event.key==='Enter')MetasModule.depositar('${g.id}')">
           <button class="btn btn-lime btn-sm" onclick="MetasModule.depositar('${g.id}')">OK</button>
           <button class="btn btn-ghost btn-sm" onclick="MetasModule.fecharDeposito('${g.id}')">✕</button>

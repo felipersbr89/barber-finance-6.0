@@ -245,21 +245,21 @@ const DashboardModule = (() => {
   function renderRecent(all) {
     const el = document.getElementById('recent-list')
     if (!el) return
-    if (!all.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--hint);font-size:13px">Nenhuma movimentação este mês</div>'; return }
+    if (!all.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--t3);font-size:13px">Nenhuma movimentação este mês</div>'; return }
     el.innerHTML = all.map(t => {
       const isR = t._tipo === 'receita'
-      return `<div style="display:flex;align-items:center;gap:10px;padding:9px;border-radius:10px;cursor:default" onmouseover="this.style.background='#1c1c1e'" onmouseout="this.style.background=''">
-        <div style="width:34px;height:34px;border-radius:10px;background:${isR?'var(--green-bg)':'var(--red-bg)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      return `<div style="display:flex;align-items:center;gap:10px;padding:9px;border-radius:10px;cursor:default" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background=''">
+        <div style="width:34px;height:34px;border-radius:10px;background:${isR?'var(--gr-dim)':'var(--rd-dim)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
           ${isR ? iconArrowUp() : iconArrowDown()}
         </div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${Utils.esc(t.descricao)}</div>
-          <div style="font-size:11px;color:var(--hint);margin-top:2px;display:flex;align-items:center;gap:5px">
-            ${t.categoria ? `<span style="background:#1c1c1e;padding:1px 6px;border-radius:999px;font-size:10px">${Utils.esc(t.categoria)}</span>` : ''}
+          <div style="font-size:11px;color:var(--t3);margin-top:2px;display:flex;align-items:center;gap:5px">
+            ${t.categoria ? `<span style="background:var(--s2);padding:1px 6px;border-radius:999px;font-size:10px">${Utils.esc(t.categoria)}</span>` : ''}
             <span>${Utils.fmtDate(t.data)}</span>
           </div>
         </div>
-        <div style="font-size:13px;font-weight:600;color:${isR?'var(--green)':'var(--red)'};flex-shrink:0">${isR?'+':'-'}${Utils.fmt(t.valor)}</div>
+        <div style="font-size:13px;font-weight:600;color:${isR?'var(--gr)':'var(--rd)'};flex-shrink:0">${isR?'+':'-'}${Utils.fmt(t.valor)}</div>
       </div>`
     }).join('')
   }
@@ -267,23 +267,23 @@ const DashboardModule = (() => {
   function renderGoals(metas) {
     const el = document.getElementById('goals-list')
     if (!el) return
-    if (!metas.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--hint);font-size:13px">Nenhuma meta cadastrada</div>'; return }
+    if (!metas.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--t3);font-size:13px">Nenhuma meta cadastrada</div>'; return }
     el.innerHTML = metas.map(g => {
       const pct  = g.valor_alvo>0 ? Math.min((Number(g.valor_atual||0)/Number(g.valor_alvo))*100, 100) : 0
       const done = pct >= 100
       return `<div style="margin-bottom:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;gap:8px">
           <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;min-width:0;flex:1">
-            <div style="width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--lime)">${iconMetas()}</div>
+            <div style="width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--ac)">${iconMetas()}</div>
             <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">${Utils.esc(g.nome)}</span>
             ${done ? '<span class="badge badge-lime" style="flex-shrink:0">✓</span>' : ''}
           </div>
-          <span style="font-size:12px;color:var(--muted);flex-shrink:0">${Math.round(pct)}%</span>
+          <span style="font-size:12px;color:var(--t2);flex-shrink:0">${Math.round(pct)}%</span>
         </div>
-        <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${done?'var(--lime2)':'var(--lime)'}"></div></div>
+        <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${done?'var(--ac2)':'var(--ac)'}"></div></div>
         <div style="display:flex;justify-content:space-between;margin-top:4px">
-          <span style="font-size:11px;color:var(--hint)">${Utils.fmt(g.valor_atual||0)}</span>
-          <span style="font-size:11px;color:var(--hint)">${Utils.fmt(g.valor_alvo)}</span>
+          <span style="font-size:11px;color:var(--t3)">${Utils.fmt(g.valor_atual||0)}</span>
+          <span style="font-size:11px;color:var(--t3)">${Utils.fmt(g.valor_alvo)}</span>
         </div>
       </div>`
     }).join('')
@@ -306,11 +306,11 @@ const DashboardModule = (() => {
       const ix1=cx+ir*Math.cos(cumAngle-angle), iy1=cy+ir*Math.sin(cumAngle-angle)
       const ix2=cx+ir*Math.cos(cumAngle), iy2=cy+ir*Math.sin(cumAngle)
       const la = angle>Math.PI?1:0
-      return `<path d="M${x1} ${y1} A${r} ${r} 0 ${la} 1 ${x2} ${y2} L${ix2} ${iy2} A${ir} ${ir} 0 ${la} 0 ${ix1} ${iy1}Z" fill="${COLORS[i%COLORS.length]}" stroke="#111113" stroke-width="2"/>`
+      return `<path d="M${x1} ${y1} A${r} ${r} 0 ${la} 1 ${x2} ${y2} L${ix2} ${iy2} A${ir} ${ir} 0 ${la} 0 ${ix1} ${iy1}Z" fill="${COLORS[i%COLORS.length]}" stroke="var(--s1)" stroke-width="2"/>`
     })
 
     const psvg = document.getElementById('pie-svg')
-    if (psvg) psvg.innerHTML = paths.join('') + `<circle cx="${cx}" cy="${cy}" r="${ir}" fill="#111113"/>`
+    if (psvg) psvg.innerHTML = paths.join('') + `<circle cx="${cx}" cy="${cy}" r="${ir}" fill="var(--s1)"/>`
 
     const pleg = document.getElementById('pie-legend')
     if (pleg) pleg.innerHTML = cats.map(([name,val], i) => {
@@ -318,10 +318,10 @@ const DashboardModule = (() => {
       return `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="width:8px;height:8px;border-radius:50%;background:${COLORS[i%COLORS.length]};flex-shrink:0"></div>
-          <span style="font-size:12px;color:var(--text2)">${Utils.esc(name)}</span>
+          <span style="font-size:12px;color:var(--t2)">${Utils.esc(name)}</span>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:11px;color:var(--muted)">${pct}%</span>
+          <span style="font-size:11px;color:var(--t2)">${pct}%</span>
           <span style="font-size:12px;font-weight:600">${Utils.fmt(val)}</span>
         </div>
       </div>`

@@ -18,10 +18,10 @@ const InvestimentosModule = (() => {
         <button class="btn btn-blue btn-sm" onclick="InvestimentosModule.toggleForm()">${iconPlus()} <span id="inv-form-lbl">Novo</span></button>
       </div>
       <div class="grid-4" style="margin-bottom:16px">
-        <div class="card card-sm"><div style="font-size:11px;color:var(--muted);margin-bottom:6px">Total investido</div><div id="k-inv" style="font-size:18px;font-weight:700;color:var(--muted)">—</div></div>
-        <div class="card card-sm"><div style="font-size:11px;color:var(--muted);margin-bottom:6px">Valor atual</div><div id="k-atual" style="font-size:18px;font-weight:700;color:var(--blue)">—</div></div>
-        <div class="card card-sm"><div style="font-size:11px;color:var(--muted);margin-bottom:6px">Ganho/Perda</div><div id="k-ganho" style="font-size:18px;font-weight:700">—</div></div>
-        <div class="card card-sm"><div style="font-size:11px;color:var(--muted);margin-bottom:6px">Rentabilidade</div><div id="k-rent" style="font-size:18px;font-weight:700">—</div></div>
+        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Total investido</div><div id="k-inv" style="font-size:18px;font-weight:700;color:var(--t2)">—</div></div>
+        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Valor atual</div><div id="k-atual" style="font-size:18px;font-weight:700;color:var(--bl)">—</div></div>
+        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Ganho/Perda</div><div id="k-ganho" style="font-size:18px;font-weight:700">—</div></div>
+        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Rentabilidade</div><div id="k-rent" style="font-size:18px;font-weight:700">—</div></div>
       </div>
       <div id="inv-form" class="form-card hidden">
         <div class="form-title">Novo investimento</div>
@@ -76,7 +76,7 @@ const InvestimentosModule = (() => {
       <div id="modal-inv-del" class="modal-overlay hidden">
         <div class="modal-box modal-box-sm">
           <div class="modal-header"><h3>Excluir investimento</h3><button class="btn btn-ghost btn-icon" onclick="Modal.close('modal-inv-del')">✕</button></div>
-          <div class="modal-body"><p style="font-size:13px;color:#d4d4d4;margin-bottom:6px">Tem certeza?</p><p style="font-size:12px;color:var(--hint)" id="del-inv-desc"></p></div>
+          <div class="modal-body"><p style="font-size:13px;color:var(--t2);margin-bottom:6px">Tem certeza?</p><p style="font-size:12px;color:var(--t3)" id="del-inv-desc"></p></div>
           <div class="modal-footer">
             <button class="btn btn-danger" id="del-inv-btn" onclick="InvestimentosModule.confirmarDel()"><span>Excluir</span></button>
             <button class="btn btn-ghost" onclick="Modal.close('modal-inv-del')">Cancelar</button>
@@ -99,9 +99,9 @@ const InvestimentosModule = (() => {
     setText('k-inv',Utils.fmt(ti))
     setText('k-atual',Utils.fmt(ta))
     setText('k-ganho',(g>=0?'+':'')+Utils.fmt(g))
-    setStyle('k-ganho','color',g>=0?'var(--green)':'var(--red)')
+    setStyle('k-ganho','color',g>=0?'var(--gr)':'var(--rd)')
     setText('k-rent',(r>=0?'+':'')+r.toFixed(2)+'%')
-    setStyle('k-rent','color',r>=0?'var(--lime)':'var(--red)')
+    setStyle('k-rent','color',r>=0?'var(--ac)':'var(--rd)')
   }
 
   function renderLista() {
@@ -121,7 +121,7 @@ const InvestimentosModule = (() => {
             <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${Utils.esc(inv.nome_investimento)}</div>
             <div style="display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap">
               <span class="badge" style="background:${cor}20;color:${cor}">${Utils.esc(inv.tipo_investimento||'')}</span>
-              <span style="font-size:11px;color:var(--hint)">${Utils.esc(inv.instituição||'')} · ${Utils.fmtDate(inv.data_aporte)}</span>
+              <span style="font-size:11px;color:var(--t3)">${Utils.esc(inv.instituição||'')} · ${Utils.fmtDate(inv.data_aporte)}</span>
             </div>
           </div>
           <div style="display:flex;gap:4px;flex-shrink:0">
@@ -129,13 +129,13 @@ const InvestimentosModule = (() => {
             <button class="btn btn-danger btn-icon btn-sm" onclick="InvestimentosModule.abrirDel('${inv.id}')">${iconTrash()}</button>
           </div>
         </div>
-        <div class="grid-4" style="background:var(--surface2);border-radius:10px;padding:10px;gap:8px">
-          <div><div style="font-size:10px;color:var(--hint);margin-bottom:2px">Investido</div><div style="font-size:13px;font-weight:600;color:var(--muted)">${Utils.fmt(inv.valor_investido)}</div></div>
-          <div><div style="font-size:10px;color:var(--hint);margin-bottom:2px">Atual</div><div style="font-size:13px;font-weight:600">${Utils.fmt(inv.valor_atual)}</div></div>
-          <div><div style="font-size:10px;color:var(--hint);margin-bottom:2px">Ganho/Perda</div><div style="font-size:13px;font-weight:600;color:${g>=0?'var(--green)':'var(--red)'}">${g>=0?'+':''}${Utils.fmt(g)}</div></div>
-          <div><div style="font-size:10px;color:var(--hint);margin-bottom:2px">% Carteira</div><div style="font-size:13px;font-weight:600;color:var(--muted)">${pct.toFixed(1)}%</div></div>
+        <div class="grid-4" style="background:var(--s2);border-radius:10px;padding:10px;gap:8px">
+          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Investido</div><div style="font-size:13px;font-weight:600;color:var(--t2)">${Utils.fmt(inv.valor_investido)}</div></div>
+          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Atual</div><div style="font-size:13px;font-weight:600">${Utils.fmt(inv.valor_atual)}</div></div>
+          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Ganho/Perda</div><div style="font-size:13px;font-weight:600;color:${g>=0?'var(--gr)':'var(--rd)'}">${g>=0?'+':''}${Utils.fmt(g)}</div></div>
+          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">% Carteira</div><div style="font-size:13px;font-weight:600;color:var(--t2)">${pct.toFixed(1)}%</div></div>
         </div>
-        ${inv.objetivo?`<p style="font-size:11px;color:var(--hint);margin-top:8px">🎯 ${Utils.esc(inv.objetivo)}</p>`:''}
+        ${inv.objetivo?`<p style="font-size:11px;color:var(--t3);margin-top:8px">🎯 ${Utils.esc(inv.objetivo)}</p>`:''}
       </div>`
     }).join('')
   }
@@ -155,7 +155,7 @@ const InvestimentosModule = (() => {
           </div>
           <span style="font-size:13px;font-weight:600">${Utils.fmt(v)}</span>
         </div>
-        <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${cor||'var(--blue)'}"></div></div>
+        <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${cor||'var(--bl)'}"></div></div>
       </div>`
     }).join('')
     const elTipo=document.getElementById('inv-by-tipo');if(elTipo)elTipo.innerHTML=renderBars(tipoMap,k=>COLORS[k]||'#6b7280')
