@@ -16,6 +16,11 @@ const DashboardModule = (() => {
   // ── SKELETON ────────────────────────────
   function renderSkeleton() {
     return `
+      <div class="gb-greeting" id="dash-greeting">
+        <div class="gb-greeting-period" id="dash-greet-period">Carregando...</div>
+        <div class="gb-greeting-name" id="dash-greet-name">Olá!</div>
+        <div class="gb-greeting-msg"  id="dash-greet-msg"></div>
+      </div>
       <div class="page-header">
         <div>
           <div class="page-title">Dashboard</div>
@@ -93,6 +98,18 @@ const DashboardModule = (() => {
 
     const sub = document.getElementById('dash-sub')
     if (sub) sub.textContent = nome
+
+    // Saudação
+    if (window._greet) {
+      const gp = document.getElementById('dash-greet-period')
+      const gn = document.getElementById('dash-greet-name')
+      const gm = document.getElementById('dash-greet-msg')
+      const profile = App.user?.email?.split('@')[0] || ''
+      const firstName = profile.charAt(0).toUpperCase() + profile.slice(1)
+      if (gp) gp.textContent = window._greet.period + ','
+      if (gn) gn.textContent = 'Olá, ' + firstName + '!'
+      if (gm) gm.textContent = window._greet.msg
+    }
 
     const [rInc, rExp, rRecent, rGoals, rInvest] = await Promise.all([
       window.db.from('receitas').select('valor').eq('user_id', uid).gte('data', start).lte('data', end),
