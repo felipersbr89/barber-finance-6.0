@@ -445,6 +445,7 @@ textarea { resize:vertical; min-height:80px; }
   padding: 18px;
   transition: border-color var(--t) var(--ease);
   overflow: hidden;
+  position: relative; /* necessário para conter card-kpi-bar position:absolute */
 }
 .card:hover { border-color:var(--b2); }
 .card-sm { padding:14px; }
@@ -463,8 +464,7 @@ textarea { resize:vertical; min-height:80px; }
   border-radius: 0 0 var(--r-lg) var(--r-lg);
   pointer-events: none;
 }
-/* Garante que .card pai tem overflow:hidden para conter a barra */
-.card { overflow: hidden; }
+/* .card já tem overflow:hidden e position:relative — card-kpi-bar contido */
 .card-kpi-bar.green { background: linear-gradient(90deg, transparent, rgba(74,222,128,0.5)); }
 .card-kpi-bar.red   { background: linear-gradient(90deg, transparent, rgba(248,113,113,0.5)); }
 .card-kpi-bar.lime  { background: linear-gradient(90deg, transparent, rgba(198,241,53,0.5)); }
