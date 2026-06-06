@@ -179,6 +179,7 @@ a { text-decoration: none; color: inherit; }
   display: flex; flex-direction: column;
   position: fixed; left:0; top:0; height:100vh; z-index:100;
   transition: transform var(--t) var(--ease);
+  overflow: hidden; /* impede que ::before do nav-item vaze para fora */
 }
 
 /* LOGO — mark quadrado + wordmark (da DEMO) */
@@ -226,7 +227,7 @@ a { text-decoration: none; color: inherit; }
   border-color: var(--ac-bdr); font-weight: 600;
 }
 .nav-item.active::before {
-  content: ''; position: absolute; left: -1px; top: 50%;
+  content: ''; position: absolute; left: 0; top: 50%;
   transform: translateY(-50%);
   width: 3px; height: 54%; border-radius: 0 2px 2px 0;
   background: var(--ac);
