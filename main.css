@@ -866,3 +866,92 @@ textarea { resize:vertical; min-height:80px; }
   padding: 14px 20px;
   border-top: 1px solid var(--b1);
 }
+
+/* ══════════════════════════════════════════════
+   PARCELAMENTO — Despesas parceladas
+══════════════════════════════════════════════ */
+
+/* Badge parcela na listagem */
+.badge-parcel {
+  background: rgba(96,165,250,0.12);
+  color: var(--bl);
+  border: 1px solid rgba(96,165,250,0.25);
+  display: inline-flex; gap: 3px;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 10px; font-weight: 600;
+}
+
+/* Borda sutil azul no card parcelado */
+.desp-item-parcel {
+  border-left: 2px solid rgba(96,165,250,0.3) !important;
+}
+
+/* Toggle parcelamento */
+.parcel-toggle {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: var(--s2); border: 1px solid var(--b1);
+  border-radius: var(--r-sm); cursor: pointer;
+  transition: all var(--t) var(--ease);
+  font-size: 13px; font-weight: 500; color: var(--t2);
+  user-select: none;
+}
+.parcel-toggle:hover { border-color: var(--b2); color: var(--tx); }
+
+.parcel-toggle-icon {
+  width: 28px; height: 28px;
+  background: var(--bl-dim); border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--bl); flex-shrink: 0;
+}
+
+.parcel-toggle-switch {
+  margin-left: auto; flex-shrink: 0;
+  width: 36px; height: 20px;
+  background: var(--s3); border-radius: 999px;
+  position: relative; transition: background var(--t);
+}
+.parcel-toggle-switch::after {
+  content: ''; position: absolute;
+  left: 3px; top: 3px;
+  width: 14px; height: 14px;
+  background: var(--t2); border-radius: 50%;
+  transition: all var(--t) var(--ease);
+}
+.parcel-toggle-switch.on {
+  background: var(--ac);
+}
+.parcel-toggle-switch.on::after {
+  background: #000; transform: translateX(16px);
+}
+
+/* Preview das parcelas */
+.parcel-preview {
+  background: var(--s2); border: 1px solid var(--b1);
+  border-radius: var(--r-sm); padding: 12px 14px;
+  margin-top: 10px; animation: slideDown 0.15s var(--ease);
+}
+.parcel-preview-title {
+  font-size: 11px; font-weight: 600; color: var(--t2);
+  letter-spacing: 0.4px; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.parcel-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0; border-bottom: 1px solid var(--b1);
+  font-size: 12px;
+}
+.parcel-row:last-of-type { border-bottom: none; }
+.parcel-row-dots {
+  color: var(--t3); font-style: italic;
+  justify-content: center; padding: 4px 0;
+}
+.parcel-num  { color: var(--bl); font-weight: 700; min-width: 32px; }
+.parcel-date { color: var(--t2); flex: 1; }
+.parcel-val  { color: var(--rd); font-weight: 600; font-family: var(--fd); }
+.parcel-preview-total {
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid var(--b2);
+  font-size: 12px; font-weight: 600; color: var(--tx);
+  text-align: right;
+}
