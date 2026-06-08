@@ -457,7 +457,7 @@ const Copa = {
     const statusEl = document.getElementById('date-status')
 
     const { data:lanc } = await db.from('copa_lancamentos')
-      .select('*').eq('participante_id', barbeiro.id).eq('data', data).maybeSingle()
+      .select('*').eq('participante_id', Number(barbeiro.id)).eq('data', data).maybeSingle()
 
     if (lanc) {
       lancExisteId = lanc.id
@@ -498,29 +498,55 @@ const Copa = {
     this.onDataChange()
   },
 
-  // ── SALVAR LANÇAMENTO (upsert por participante_id + data) ──
+  // ── SALVAR LANÇAMENTO — SELECT + INSERT/UPDATE explícito ──
   async salvarLancamento() {
-    const data = document.getElementById('lanc-data').value
-    if (!data){ toast('Selecione uma data.','err'); return }
-    const btn  = document.getElementById('save-btn')
-    const pts  = calcPts(cnts.planos, cnts.extras, cnts.produtos)
+    const dataVal = document.getElementById('lanc-data').value
+    if (!dataVal){ toast('Selecione uma data.','err'); return }
+    const btn = document.getElementById('save-btn')
+    const pts = calcPts(cnts.planos, cnts.extras, cnts.produtos)
     btn.disabled=true; btn.innerHTML='<div class="spin"></div> Salvando...'
 
-    // Upsert: cria ou atualiza pelo constraint (participante_id, data)
-    const { error } = await db.from('copa_lancamentos').upsert({
-      participante_id: barbeiro.id,
-      data,
+    const pid = Number(barbeiro.id)
+    const payload = {
       planos:   cnts.planos,
       extras:   cnts.extras,
       produtos: cnts.produtos,
       pontos:   pts,
       updated_at: new Date().toISOString()
-    }, { onConflict: 'participante_id,data' })
+    }
+
+    // Verifica se já existe lançamento nesta data
+    const { data:exist, error:errSel } = await db
+      .from('copa_lancamentos')
+      .select('id')
+      .eq('participante_id', pid)
+      .eq('data', dataVal)
+      .maybeSingle()
+
+    if (errSel) {
+      btn.disabled=false; btn.innerHTML='💾 Salvar lançamento'
+      toast('Erro ao verificar: '+errSel.message, 'err'); return
+    }
+
+    let error
+    if (exist) {
+      // UPDATE
+      const res = await db.from('copa_lancamentos')
+        .update(payload)
+        .eq('id', exist.id)
+      error = res.error
+    } else {
+      // INSERT
+      const res = await db.from('copa_lancamentos')
+        .insert({ ...payload, participante_id: pid, data: dataVal })
+      error = res.error
+    }
 
     btn.disabled=false; btn.innerHTML='💾 Salvar lançamento'
-    if (error){ toast('Erro: '+error.message,'err'); return }
+    if (error){ toast('Erro ao salvar: '+error.message,'err'); return }
 
-    toast(lancExisteId ? 'Lançamento atualizado! ✓' : 'Lançamento salvo! ✓', 'ok')
+    toast(exist ? 'Lançamento atualizado! ✓' : 'Lançamento salvo! ✓', 'ok')
+    lancExisteId = exist?.id || null
     await this.onDataChange()
     await this.atualizarKpisMes()
     await this.carregarHistorico()
@@ -533,7 +559,7 @@ const Copa = {
     const mesEnd   = MES_REF+'-31'
     const { data:lancs } = await db.from('copa_lancamentos')
       .select('planos,extras,produtos,pontos')
-      .eq('participante_id', barbeiro.id)
+      .eq('participante_id', Number(barbeiro.id))
       .gte('data', mesStart).lte('data', mesEnd)
 
     let tPlanos=0, tExtras=0, tProdutos=0, tPts=0
@@ -579,7 +605,7 @@ const Copa = {
     el.innerHTML = '<div class="loading-state"><div class="spin"></div></div>'
     const mesStart=MES_REF+'-01', mesEnd=MES_REF+'-31'
     const { data, error } = await db.from('copa_lancamentos')
-      .select('*').eq('participante_id',barbeiro.id)
+      .select('*').eq('participante_id',Number(barbeiro.id))
       .gte('data',mesStart).lte('data',mesEnd)
       .order('data',{ascending:false})
 
@@ -675,7 +701,7 @@ const Copa = {
     const posClass=['gold','silver','bronze']
 
     el.innerHTML = rankeados.map((r,i)=>{
-      const isOwn = barbeiro && r.id===barbeiro.id
+      const isOwn = barbeiro && Number(r.id)===Number(barbeiro.id)
       const ini   = r.nome.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase()
       return `
         <div class="rank-card ${isOwn?'own-row':''}">
@@ -716,7 +742,7 @@ const Copa = {
 function toast(msg,type='ok'){
   const el=document.getElementById('toast')
   el.textContent=msg; el.className='toast show '+type
-  setTimeout(()=>el.className='toast',3000)
+  setTimeout(()=>el.className='toast', type==='err' ? 6000 : 3000)
 }
 
 Copa.init()
