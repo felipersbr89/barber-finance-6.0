@@ -574,15 +574,14 @@ const Copa = {
 
   // ── KPIs DO MÊS (soma todos os lançamentos do mês) ──
   async atualizarKpisMes() {
-    const mesStart = MES_REF+'-01'
-    const mesEnd   = (() => {
-      const [y,m] = MES_REF.split('-').map(Number)
-      return MES_REF+'-'+new Date(y,m,0).getDate()
-    })()
-    const { data:lancs } = await db.from('copa_lancamentos')
+    const _pid = Number(barbeiro.id)
+    console.log('[Copa KPIs] buscando pid:', _pid, 'mês:', MES_REF)
+    const { data:lancs, error:kpiErr } = await db.from('copa_lancamentos')
       .select('*')
-      .eq('participante_id', Number(barbeiro.id))
-      .gte('data', mesStart).lte('data', mesEnd)
+      .eq('participante_id', _pid)
+      .gte('data', MES_REF+'-01')
+      .lte('data', MES_REF+'-31')
+    console.log('[Copa KPIs] resultado:', { rows: lancs?.length, error: kpiErr })
 
     let tPlanos=0, tExtras=0, tProdutos=0, tPts=0
     ;(lancs||[]).forEach(l=>{ tPlanos+=l.planos; tExtras+=l.extras; tProdutos+=l.produtos; tPts+=l.pontos })
@@ -603,7 +602,6 @@ const Copa = {
 
   async atualizarPosicao(meusPts) {
     // Busca totais de todos os participantes do mesmo grupo
-    const mesStart=MES_REF+'-01', mesEnd=MES_REF+'-31'
     let qParts = db.from('copa_barbeiros').select('id')
     if (GORILAZ(barbeiro.barbearia)) qParts = qParts.ilike('barbearia','%gorilaz%')
     const { data:parts } = await qParts
@@ -613,7 +611,7 @@ const Copa = {
     // Busca um por um para evitar bug de encoding no .in() com bigints
     const todosArr = await Promise.all(ids.map(id =>
       db.from('copa_lancamentos').select('*')
-        .eq('participante_id', Number(id)).gte('data',mesStart).lte('data',mesEnd)
+        .eq('participante_id', Number(id)).gte('data', MES_REF+'-01').lte('data', MES_REF+'-31')
         .then(r => r.data || [])
     ))
     const todos = todosArr.flat()
@@ -630,11 +628,14 @@ const Copa = {
   async carregarHistorico() {
     const el = document.getElementById('historico-list')
     el.innerHTML = '<div class="loading-state"><div class="spin"></div></div>'
-    const mesStart=MES_REF+'-01', mesEnd=MES_REF+'-31'
+    const _hpid = Number(barbeiro.id)
+    console.log('[Copa Hist] buscando pid:', _hpid, 'mês:', MES_REF)
     const { data, error } = await db.from('copa_lancamentos')
-      .select('*').eq('participante_id',Number(barbeiro.id))
-      .gte('data',mesStart).lte('data',mesEnd)
+      .select('*').eq('participante_id', _hpid)
+      .gte('data', MES_REF+'-01')
+      .lte('data', MES_REF+'-31')
       .order('data',{ascending:false})
+    console.log('[Copa Hist] resultado:', { rows: data?.length, error: error })
 
     if (error||!data?.length){
       el.innerHTML='<div class="hist-empty">Nenhum lançamento este mês ainda.</div>'
@@ -696,7 +697,7 @@ const Copa = {
   async carregarRanking() {
     const el = document.getElementById('rank-list')
     el.innerHTML='<div class="loading-state"><div class="spin"></div> Carregando...</div>'
-    const mesStart=MES_REF+'-01', mesEnd=MES_REF+'-31'
+
 
     // Busca participantes
     let qParts = db.from('copa_barbeiros').select('id,nome,barbearia')
@@ -708,7 +709,7 @@ const Copa = {
     // Busca separada por participante para evitar encoding bug no .in()
     const lancsArr = await Promise.all(ids.map(id =>
       db.from('copa_lancamentos').select('*')
-        .eq('participante_id', Number(id)).gte('data',mesStart).lte('data',mesEnd)
+        .eq('participante_id', Number(id)).gte('data', MES_REF+'-01').lte('data', MES_REF+'-31')
         .then(r => r.data || [])
     ))
     const lancs = lancsArr.flat()
