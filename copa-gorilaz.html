@@ -575,9 +575,12 @@ const Copa = {
   // ── KPIs DO MÊS (soma todos os lançamentos do mês) ──
   async atualizarKpisMes() {
     const mesStart = MES_REF+'-01'
-    const mesEnd   = MES_REF+'-31'
+    const mesEnd   = (() => {
+      const [y,m] = MES_REF.split('-').map(Number)
+      return MES_REF+'-'+new Date(y,m,0).getDate()
+    })()
     const { data:lancs } = await db.from('copa_lancamentos')
-      .select('planos,extras,produtos,pontos')
+      .select('*')
       .eq('participante_id', Number(barbeiro.id))
       .gte('data', mesStart).lte('data', mesEnd)
 
@@ -606,9 +609,14 @@ const Copa = {
     const { data:parts } = await qParts
     if (!parts?.length) return
 
-    const ids = parts.map(p=>p.id)
-    const { data:todos } = await db.from('copa_lancamentos')
-      .select('participante_id,pontos').in('participante_id',ids).gte('data',mesStart).lte('data',mesEnd)
+    const ids = parts.map(p=>String(p.id))
+    // Busca um por um para evitar bug de encoding no .in() com bigints
+    const todosArr = await Promise.all(ids.map(id =>
+      db.from('copa_lancamentos').select('*')
+        .eq('participante_id', Number(id)).gte('data',mesStart).lte('data',mesEnd)
+        .then(r => r.data || [])
+    ))
+    const todos = todosArr.flat()
 
     const totaisPorPart = {}
     ;(todos||[]).forEach(l=>{ totaisPorPart[l.participante_id]=(totaisPorPart[l.participante_id]||0)+l.pontos })
@@ -697,9 +705,13 @@ const Copa = {
     if (ep||!parts?.length){ el.innerHTML='<div class="rank-empty">Nenhum participante ainda. Seja o primeiro!</div>'; return }
 
     const ids = parts.map(p=>p.id)
-    const { data:lancs } = await db.from('copa_lancamentos')
-      .select('participante_id,planos,extras,produtos,pontos')
-      .in('participante_id',ids).gte('data',mesStart).lte('data',mesEnd)
+    // Busca separada por participante para evitar encoding bug no .in()
+    const lancsArr = await Promise.all(ids.map(id =>
+      db.from('copa_lancamentos').select('*')
+        .eq('participante_id', Number(id)).gte('data',mesStart).lte('data',mesEnd)
+        .then(r => r.data || [])
+    ))
+    const lancs = lancsArr.flat()
 
     // Agrupa pontos por participante
     const totais = {}
