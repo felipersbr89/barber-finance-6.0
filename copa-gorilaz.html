@@ -169,14 +169,14 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-logo">
+  <a href="dashboard.html" class="hero-logo" style="text-decoration:none;cursor:pointer" title="Voltar ao Dashboard">
     <div class="hero-logo-mark">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
     </div>
     <div>
       <div class="hero-logo-text">GORILAZ</div>
       <div class="hero-logo-sub">Barber Finance</div>
-    </div>
+    </a>
   </div>
   <h1>Copa <span>Gorilaz</span> 🏆</h1>
   <p class="hero-sub">Ranking mensal de barbeiros — venda mais, pontue mais, seja o campeão.</p>
@@ -331,6 +331,7 @@
 
         <div class="day-pts" id="day-pts-preview">→ 0 pontos neste dia</div>
 
+        <div id="save-err" style="display:none;background:var(--rd-dim);border:1px solid var(--rd-bdr);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:var(--rd);margin-bottom:10px"></div>
         <div class="save-row">
           <button class="btn btn-lime" id="save-btn" onclick="Copa.salvarLancamento()">💾 Salvar lançamento</button>
           <button class="btn btn-ghost" onclick="Copa.limparForm()">Limpar</button>
@@ -498,24 +499,28 @@ const Copa = {
     this.onDataChange()
   },
 
-  // ── SALVAR LANÇAMENTO — SELECT + INSERT/UPDATE explícito ──
+  // ── SALVAR LANÇAMENTO ──
   async salvarLancamento() {
     const dataVal = document.getElementById('lanc-data').value
+    const errEl   = document.getElementById('save-err')
+    errEl.style.display = 'none'
+
     if (!dataVal){ toast('Selecione uma data.','err'); return }
     const btn = document.getElementById('save-btn')
     const pts = calcPts(cnts.planos, cnts.extras, cnts.produtos)
     btn.disabled=true; btn.innerHTML='<div class="spin"></div> Salvando...'
 
     const pid = Number(barbeiro.id)
-    const payload = {
-      planos:   cnts.planos,
-      extras:   cnts.extras,
-      produtos: cnts.produtos,
-      pontos:   pts,
-      updated_at: new Date().toISOString()
+
+    const showErr = (msg) => {
+      console.error('[Copa] Erro ao salvar:', msg)
+      btn.disabled=false; btn.innerHTML='💾 Salvar lançamento'
+      errEl.textContent = '⚠ ' + msg
+      errEl.style.display = 'block'
+      toast(msg,'err')
     }
 
-    // Verifica se já existe lançamento nesta data
+    // 1. Verifica existência
     const { data:exist, error:errSel } = await db
       .from('copa_lancamentos')
       .select('id')
@@ -523,29 +528,26 @@ const Copa = {
       .eq('data', dataVal)
       .maybeSingle()
 
-    if (errSel) {
-      btn.disabled=false; btn.innerHTML='💾 Salvar lançamento'
-      toast('Erro ao verificar: '+errSel.message, 'err'); return
-    }
+    if (errSel) { showErr('Tabela não encontrada. Execute copa_lancamentos.sql no Supabase. ('+errSel.message+')'); return }
 
-    let error
+    // 2. INSERT ou UPDATE
+    const payload = { planos:cnts.planos, extras:cnts.extras, produtos:cnts.produtos, pontos:pts, updated_at:new Date().toISOString() }
+    let dbError
+
     if (exist) {
-      // UPDATE
-      const res = await db.from('copa_lancamentos')
-        .update(payload)
-        .eq('id', exist.id)
-      error = res.error
+      const res = await db.from('copa_lancamentos').update(payload).eq('id', exist.id).eq('participante_id', pid)
+      dbError = res.error
     } else {
-      // INSERT
-      const res = await db.from('copa_lancamentos')
-        .insert({ ...payload, participante_id: pid, data: dataVal })
-      error = res.error
+      const res = await db.from('copa_lancamentos').insert({ ...payload, participante_id:pid, data:dataVal })
+      dbError = res.error
     }
 
-    btn.disabled=false; btn.innerHTML='💾 Salvar lançamento'
-    if (error){ toast('Erro ao salvar: '+error.message,'err'); return }
+    if (dbError) { showErr(dbError.message); return }
 
-    toast(exist ? 'Lançamento atualizado! ✓' : 'Lançamento salvo! ✓', 'ok')
+    // 3. Sucesso
+    btn.disabled=false; btn.innerHTML='💾 Salvar lançamento'
+    errEl.style.display='none'
+    toast(exist ? 'Atualizado! ✓' : 'Salvo! ✓', 'ok')
     lancExisteId = exist?.id || null
     await this.onDataChange()
     await this.atualizarKpisMes()
