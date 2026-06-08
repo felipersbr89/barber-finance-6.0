@@ -357,6 +357,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON)
 // ── Constantes ──
 const hoje   = new Date()
 const MES_REF  = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`
+const MES_END  = (() => { const [y,m]=MES_REF.split('-').map(Number); return MES_REF+'-'+new Date(y,m,0).getDate() })()
 const MES_LABEL = (() => {
   const nm = hoje.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
   return nm.charAt(0).toUpperCase()+nm.slice(1)
@@ -580,7 +581,7 @@ const Copa = {
       .select('*')
       .eq('participante_id', _pid)
       .gte('data', MES_REF+'-01')
-      .lte('data', MES_REF+'-31')
+      .lte('data', MES_END)
     console.log('[Copa KPIs] resultado:', { rows: lancs?.length, error: kpiErr })
 
     let tPlanos=0, tExtras=0, tProdutos=0, tPts=0
@@ -611,7 +612,7 @@ const Copa = {
     // Busca um por um para evitar bug de encoding no .in() com bigints
     const todosArr = await Promise.all(ids.map(id =>
       db.from('copa_lancamentos').select('*')
-        .eq('participante_id', Number(id)).gte('data', MES_REF+'-01').lte('data', MES_REF+'-31')
+        .eq('participante_id', Number(id)).gte('data', MES_REF+'-01').lte('data', MES_END)
         .then(r => r.data || [])
     ))
     const todos = todosArr.flat()
@@ -633,7 +634,7 @@ const Copa = {
     const { data, error } = await db.from('copa_lancamentos')
       .select('*').eq('participante_id', _hpid)
       .gte('data', MES_REF+'-01')
-      .lte('data', MES_REF+'-31')
+      .lte('data', MES_END)
       .order('data',{ascending:false})
     console.log('[Copa Hist] resultado:', { rows: data?.length, error: error })
 
@@ -709,7 +710,7 @@ const Copa = {
     // Busca separada por participante para evitar encoding bug no .in()
     const lancsArr = await Promise.all(ids.map(id =>
       db.from('copa_lancamentos').select('*')
-        .eq('participante_id', Number(id)).gte('data', MES_REF+'-01').lte('data', MES_REF+'-31')
+        .eq('participante_id', Number(id)).gte('data', MES_REF+'-01').lte('data', MES_END)
         .then(r => r.data || [])
     ))
     const lancs = lancsArr.flat()
