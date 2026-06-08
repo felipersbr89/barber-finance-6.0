@@ -169,15 +169,15 @@
 
 <!-- HERO -->
 <div class="hero">
-  <a href="dashboard.html" class="hero-logo" style="text-decoration:none;cursor:pointer" title="Voltar ao Dashboard">
+  <a href="dashboard.html" class="hero-logo" style="text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b2);border-radius:999px;padding:6px 16px 6px 8px;margin-bottom:16px" title="Voltar ao Dashboard">
     <div class="hero-logo-mark">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
     </div>
     <div>
       <div class="hero-logo-text">GORILAZ</div>
       <div class="hero-logo-sub">Barber Finance</div>
-    </a>
-  </div>
+    </div>
+  </a>
   <h1>Copa <span>Gorilaz</span> 🏆</h1>
   <p class="hero-sub">Ranking mensal de barbeiros — venda mais, pontue mais, seja o campeão.</p>
   <div class="hero-period" id="hero-period">📅 Carregando...</div>
@@ -503,57 +503,74 @@ const Copa = {
   async salvarLancamento() {
     const dataVal = document.getElementById('lanc-data').value
     const errEl   = document.getElementById('save-err')
-    errEl.style.display = 'none'
-
+    if (errEl) errEl.style.display='none'
     if (!dataVal){ toast('Selecione uma data.','err'); return }
+    if (!barbeiro){ toast('Faça login primeiro.','err'); return }
+
     const btn = document.getElementById('save-btn')
     const pts = calcPts(cnts.planos, cnts.extras, cnts.produtos)
     btn.disabled=true; btn.innerHTML='<div class="spin"></div> Salvando...'
 
     const pid = Number(barbeiro.id)
+    console.log('[Copa] Salvando — pid:', pid, 'data:', dataVal, 'pts:', pts, 'cnts:', cnts)
 
-    const showErr = (msg) => {
-      console.error('[Copa] Erro ao salvar:', msg)
-      btn.disabled=false; btn.innerHTML='💾 Salvar lançamento'
-      errEl.textContent = '⚠ ' + msg
-      errEl.style.display = 'block'
+    const resetBtn = () => { btn.disabled=false; btn.innerHTML='💾 Salvar lançamento' }
+    const showErr  = (msg) => {
+      console.error('[Copa] ERRO:', msg)
+      resetBtn()
+      if(errEl){ errEl.textContent='⚠ '+msg; errEl.style.display='block' }
       toast(msg,'err')
     }
 
-    // 1. Verifica existência
-    const { data:exist, error:errSel } = await db
-      .from('copa_lancamentos')
-      .select('id')
-      .eq('participante_id', pid)
-      .eq('data', dataVal)
-      .maybeSingle()
+    try {
+      // 1. Verificar existência
+      const selRes = await db.from('copa_lancamentos')
+        .select('id').eq('participante_id', pid).eq('data', dataVal).maybeSingle()
+      console.log('[Copa] Select result:', selRes)
 
-    if (errSel) { showErr('Tabela não encontrada. Execute copa_lancamentos.sql no Supabase. ('+errSel.message+')'); return }
+      if (selRes.error) {
+        showErr('Erro ao verificar data: '+selRes.error.message+'. Verifique se executou copa_lancamentos.sql no Supabase.')
+        return
+      }
 
-    // 2. INSERT ou UPDATE
-    const payload = { planos:cnts.planos, extras:cnts.extras, produtos:cnts.produtos, pontos:pts, updated_at:new Date().toISOString() }
-    let dbError
+      const payload = {
+        planos:   cnts.planos,
+        extras:   cnts.extras,
+        produtos: cnts.produtos,
+        pontos:   pts,
+        updated_at: new Date().toISOString()
+      }
+      console.log('[Copa] Payload:', payload)
 
-    if (exist) {
-      const res = await db.from('copa_lancamentos').update(payload).eq('id', exist.id).eq('participante_id', pid)
-      dbError = res.error
-    } else {
-      const res = await db.from('copa_lancamentos').insert({ ...payload, participante_id:pid, data:dataVal })
-      dbError = res.error
+      let opRes
+      if (selRes.data) {
+        // UPDATE
+        console.log('[Copa] Atualizando id:', selRes.data.id)
+        opRes = await db.from('copa_lancamentos').update(payload).eq('id', selRes.data.id)
+      } else {
+        // INSERT
+        console.log('[Copa] Inserindo novo registro')
+        opRes = await db.from('copa_lancamentos').insert({ ...payload, participante_id: pid, data: dataVal })
+      }
+      console.log('[Copa] Op result:', opRes)
+
+      if (opRes.error) { showErr(opRes.error.message); return }
+
+      // Sucesso
+      resetBtn()
+      if(errEl) errEl.style.display='none'
+      lancExisteId = selRes.data?.id || null
+      toast(selRes.data ? 'Atualizado! +'+pts+' pts ✓' : 'Salvo! +'+pts+' pts ✓', 'ok')
+      await this.onDataChange()
+      await this.atualizarKpisMes()
+      await this.carregarHistorico()
+      await this.carregarRanking()
+
+    } catch(e) {
+      showErr('Erro inesperado: '+e.message)
     }
-
-    if (dbError) { showErr(dbError.message); return }
-
-    // 3. Sucesso
-    btn.disabled=false; btn.innerHTML='💾 Salvar lançamento'
-    errEl.style.display='none'
-    toast(exist ? 'Atualizado! ✓' : 'Salvo! ✓', 'ok')
-    lancExisteId = exist?.id || null
-    await this.onDataChange()
-    await this.atualizarKpisMes()
-    await this.carregarHistorico()
-    await this.carregarRanking()
   },
+
 
   // ── KPIs DO MÊS (soma todos os lançamentos do mês) ──
   async atualizarKpisMes() {
