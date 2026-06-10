@@ -684,7 +684,7 @@ const Privacy = {
 
   // Alternar visibilidade
   toggle() {
-    localStorage.setItem(this.KEY, this.isHidden() ? 'hidden' : 'visible')
+    localStorage.setItem(this.KEY, this.isHidden() ? 'visible' : 'hidden')
     this.apply()
   },
 
