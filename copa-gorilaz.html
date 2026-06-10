@@ -760,36 +760,39 @@ const Copa = {
     //    avatarMap indexado por copa_barbeiros.id (não por user_id)
     const avatarMap = {}  // copa_barbeiros.id → avatar_url
 
+    // Busca avatar de TODOS os participantes em paralelo
+    // REQUER: policy "profiles_avatar_public_read" no Supabase
+    // (execute fix_profiles_avatar_public.sql se avatares não aparecerem)
     await Promise.all(parts.map(async p => {
-      try {
-        if (p.user_id) {
-          // a) Busca direta pelo user_id vinculado
-          const { data: prof } = await db.from('profiles')
-            .select('avatar_url')
-            .eq('user_id', p.user_id)
-            .maybeSingle()
-          if (prof?.avatar_url) { avatarMap[p.id] = prof.avatar_url; return }
+      if (p.user_id) {
+        // Caminho 1: join direto por user_id (preciso, sem ambiguidade)
+        const { data: prof, error: e1 } = await db.from('profiles')
+          .select('avatar_url')
+          .eq('user_id', p.user_id)
+          .maybeSingle()
+        if (e1) console.warn('[Copa avatar] user_id lookup error:', e1.message)
+        if (prof?.avatar_url) { avatarMap[p.id] = prof.avatar_url; return }
+      }
+      // Caminho 2: fallback por full_name (participantes sem user_id ainda)
+      const firstName = p.nome.trim().split(' ')[0]
+      const { data: profs, error: e2 } = await db.from('profiles')
+        .select('avatar_url, user_id')
+        .ilike('full_name', firstName + '%')
+        .not('avatar_url', 'is', null)
+        .limit(1)
+      if (e2) console.warn('[Copa avatar] name lookup error:', e2.message, '— execute fix_profiles_avatar_public.sql')
+      if (profs?.[0]?.avatar_url) {
+        avatarMap[p.id] = profs[0].avatar_url
+        // Vincula user_id em background para próximas buscas usarem caminho 1
+        if (!p.user_id && profs[0].user_id) {
+          db.from('copa_barbeiros')
+            .update({ user_id: profs[0].user_id })
+            .eq('id', p.id)
+            .then(() => console.log('[Copa] user_id vinculado para', p.nome))
         }
-        // b) Fallback: busca pelo primeiro nome em profiles.full_name
-        //    Usa o primeiro token do nome para tolerar variações de maiúsculas
-        const firstName = p.nome.trim().split(' ')[0]
-        const { data: profs } = await db.from('profiles')
-          .select('avatar_url, user_id')
-          .ilike('full_name', firstName + '%')
-          .not('avatar_url', 'is', null)
-          .limit(1)
-        if (profs?.[0]?.avatar_url) {
-          avatarMap[p.id] = profs[0].avatar_url
-          // Aproveita para vincular o user_id caso ainda seja null
-          if (!p.user_id && profs[0].user_id) {
-            db.from('copa_barbeiros')
-              .update({ user_id: profs[0].user_id })
-              .eq('id', p.id)
-              .then(() => {})  // fire-and-forget, não bloqueia o render
-          }
-        }
-      } catch(_) {}
+      }
     }))
+    console.log('[Copa ranking] avatarMap:', Object.keys(avatarMap).length, 'fotos encontradas para', parts.length, 'participantes')
 
     // 4. Agrupa pontos
     const totais = {}, det = {}
