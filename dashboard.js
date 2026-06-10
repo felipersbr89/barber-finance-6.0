@@ -131,7 +131,10 @@ const DashboardModule = (() => {
     // Busca nome do perfil no Supabase
     // Botão de privacidade no header desktop
     const _privBtn = document.getElementById('dash-privacy-btn')
-    if (_privBtn && window.Privacy) _privBtn.innerHTML = Privacy.btnHTML()
+    if (_privBtn && window.Privacy) {
+      _privBtn.innerHTML = Privacy.btnHTML()
+      Privacy._bindBtns()   // adiciona listener ao botão recém injetado
+    }
 
     if (window._greet) {
       const gp = document.getElementById('dash-greet-period')

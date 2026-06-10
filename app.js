@@ -212,10 +212,15 @@ const Layout = {
     document.getElementById('sidebar-overlay').addEventListener('click', () => Layout.closeSidebar())
     // Carrega avatar salvo
     setTimeout(() => Layout.loadSavedAvatar(), 50)
-    setTimeout(() => Privacy.init(), 40)
+    setTimeout(() => {
+      Privacy._applyValues()
+      Privacy._updateBtns()
+    }, 40)
+    // _bindBtns após botões serem injetados (desktop + mobile)
+    setTimeout(() => Privacy._bindBtns(), 200)
     // Carrega nome do perfil na sidebar
     setTimeout(() => Layout.loadProfileName(), 80)
-    setTimeout(() => { const el=document.getElementById('topbar-privacy-btn'); if(el&&window.Privacy) el.innerHTML=Privacy.btnHTML() }, 60)
+    setTimeout(() => { const el=document.getElementById('topbar-privacy-btn'); if(el&&window.Privacy){ el.innerHTML=Privacy.btnHTML(); Privacy._bindBtns() } }, 120)
     // Injeta saudação na page-content via evento
     window._greetInjected = false
   },
@@ -640,89 +645,110 @@ window.updateUserAvatar = (src) => Avatar._apply(src)
 
 // ════════════════════════════════════════════════════════
 // PRIVACY — Ocultar/exibir valores financeiros
-// Chave localStorage: 'financeVisibility' = 'visible'|'hidden'
-// Classe nos valores: .financial-value
+// Regras de segurança:
+//   - SEM MutationObserver (causava loop infinito)
+//   - Lê data-real-value (imutável), não textContent
+//   - Botões com type="button" + data-toggle-finance-visibility
+//   - Listeners adicionados UMA vez via _bindBtns()
+//   - Não recarrega página, não chama Supabase
 // ════════════════════════════════════════════════════════
 const Privacy = {
-  KEY:    'financeVisibility',
-  MASK:   '••••••',
+  KEY:  'financeVisibility',
+  MASK: '••••••',
 
   isHidden() {
     return localStorage.getItem(this.KEY) === 'hidden'
   },
 
-  // Alterna o estado e aplica
+  // Alterna e aplica — chamado pelo clique no botão
   toggle() {
-    localStorage.setItem(this.KEY, this.isHidden() ? 'visible' : 'hidden')
-    this.apply()
+    const next = this.isHidden() ? 'visible' : 'hidden'
+    localStorage.setItem(this.KEY, next)
+    this._applyValues()
+    this._updateBtns()
   },
 
-  // Aplica estado atual em todos os .financial-value da página
-  apply() {
+  // Aplica estado nos valores — usa data-real-value como fonte imutável
+  _applyValues() {
     const hidden = this.isHidden()
     document.querySelectorAll('.financial-value').forEach(el => {
+      // Garantir que data-real-value está salvo (feito uma vez)
+      if (!el.dataset.realValue && el.textContent.trim() && el.textContent.trim() !== this.MASK) {
+        el.dataset.realValue = el.textContent.trim()
+      }
       if (hidden) {
-        if (!el.dataset.fvOrig) el.dataset.fvOrig = el.textContent
         el.textContent = this.MASK
       } else {
-        if (el.dataset.fvOrig !== undefined) {
-          el.textContent = el.dataset.fvOrig
-          delete el.dataset.fvOrig
-        }
+        if (el.dataset.realValue) el.textContent = el.dataset.realValue
       }
     })
-    // Atualizar todos os botões da página
-    document.querySelectorAll('.privacy-btn').forEach(btn => {
-      const h = this.isHidden()
-      btn.innerHTML = h ? this._svgShow() : this._svgHide()
-      btn.title     = h ? 'Mostrar valores' : 'Ocultar valores'
-      btn.setAttribute('aria-label',   btn.title)
-      btn.setAttribute('aria-pressed', String(h))
+  },
+
+  // Atualiza ícone e label dos botões — SEM innerHTML para não disparar eventos
+  _updateBtns() {
+    const hidden = this.isHidden()
+    const label  = hidden ? 'Mostrar valores' : 'Ocultar valores'
+    document.querySelectorAll('[data-toggle-finance-visibility]').forEach(btn => {
+      // Trocar apenas o SVG dentro do botão (primeiro filho)
+      const svg = btn.querySelector('svg')
+      if (svg) {
+        if (hidden) {
+          // Olho riscado = valores ocultos
+          svg.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        } else {
+          // Olho aberto = valores visíveis
+          svg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+        }
+      }
+      btn.title = label
+      btn.setAttribute('aria-label',   label)
+      btn.setAttribute('aria-pressed', String(hidden))
     })
   },
 
-  // Inicializa: aplica estado salvo + observa novos elementos
+  // Adiciona listener UMA vez em todos os botões — seguro contra duplicata
+  _bindBtns() {
+    document.querySelectorAll('[data-toggle-finance-visibility]').forEach(btn => {
+      if (btn.dataset.privacyBound) return   // já tem listener
+      btn.dataset.privacyBound = '1'
+      btn.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        Privacy.toggle()
+      })
+    })
+  },
+
+  // Inicializar: aplicar estado salvo + bind nos botões
+  // Chamado após o DOM estar pronto (via Layout.render)
   init() {
-    this.apply()
-    if (!this._obs) {
-      this._obs = new MutationObserver(() => { if (this.isHidden()) this.apply() })
-      this._obs.observe(document.body, { childList: true, subtree: true })
-    }
+    this._applyValues()
+    this._updateBtns()
+    this._bindBtns()
   },
 
-  // Gera o HTML do botão (reutilizável em qualquer página)
+  // Gera o HTML do botão — sem onclick inline, sem innerHTML que triggere eventos
   btnHTML() {
-    const h = this.isHidden()
+    const hidden = this.isHidden()
+    const label  = hidden ? 'Mostrar valores' : 'Ocultar valores'
+    // SVG inline sem onclick; listener adicionado via _bindBtns()
+    const svgPath = hidden
+      ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+      : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
     return `<button
+      type="button"
       class="privacy-btn"
-      onclick="toggleFinanceVisibility()"
-      title="${h ? 'Mostrar valores' : 'Ocultar valores'}"
-      aria-label="${h ? 'Mostrar valores' : 'Ocultar valores'}"
-      aria-pressed="${h}"
-    >${h ? this._svgShow() : this._svgHide()}</button>`
-  },
-
-  // Olho riscado — estado: valores OCULTOS → clique para MOSTRAR
-  _svgShow() {
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:15px;height:15px;pointer-events:none">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-      <line x1="1" y1="1" x2="23" y2="23"/>
-    </svg>`
-  },
-
-  // Olho aberto — estado: valores VISÍVEIS → clique para OCULTAR
-  _svgHide() {
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:15px;height:15px;pointer-events:none">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>`
+      data-toggle-finance-visibility
+      title="${label}"
+      aria-label="${label}"
+      aria-pressed="${hidden}"
+    ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;pointer-events:none">${svgPath}</svg></button>`
   }
 }
 
-// Funções globais
+// Funções globais (compatibilidade)
 function toggleFinanceVisibility()  { Privacy.toggle() }
-function updateFinanceVisibility()  { Privacy.apply()  }
+function updateFinanceVisibility()  { Privacy._applyValues(); Privacy._updateBtns() }
 
 // ── 8. EXPÕE GLOBALMENTE ─────────────────────
 window.Auth   = Auth
