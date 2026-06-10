@@ -753,14 +753,42 @@ const Copa = {
     ))
     const lancs = lancsArr.flat()
 
-    // 3. Buscar avatar_url de profiles para cada participante que tem user_id
-    //    Fonte única: profiles.avatar_url — mesma do perfil, sidebar, mobile
-    const avatarMap = {}  // user_id → avatar_url
-    const uids = [...new Set(parts.map(p=>p.user_id).filter(Boolean))]
-    await Promise.all(uids.map(async uid => {
-      const { data: prof } = await db.from('profiles')
-        .select('avatar_url').eq('user_id', uid).maybeSingle()
-      if (prof?.avatar_url) avatarMap[uid] = prof.avatar_url
+    // 3. Buscar avatar_url de profiles para CADA participante
+    //    Estratégia dupla:
+    //    a) Participantes com user_id → busca direta por user_id (preciso)
+    //    b) Participantes sem user_id  → busca por full_name ILIKE nome (fallback)
+    //    avatarMap indexado por copa_barbeiros.id (não por user_id)
+    const avatarMap = {}  // copa_barbeiros.id → avatar_url
+
+    await Promise.all(parts.map(async p => {
+      try {
+        if (p.user_id) {
+          // a) Busca direta pelo user_id vinculado
+          const { data: prof } = await db.from('profiles')
+            .select('avatar_url')
+            .eq('user_id', p.user_id)
+            .maybeSingle()
+          if (prof?.avatar_url) { avatarMap[p.id] = prof.avatar_url; return }
+        }
+        // b) Fallback: busca pelo primeiro nome em profiles.full_name
+        //    Usa o primeiro token do nome para tolerar variações de maiúsculas
+        const firstName = p.nome.trim().split(' ')[0]
+        const { data: profs } = await db.from('profiles')
+          .select('avatar_url, user_id')
+          .ilike('full_name', firstName + '%')
+          .not('avatar_url', 'is', null)
+          .limit(1)
+        if (profs?.[0]?.avatar_url) {
+          avatarMap[p.id] = profs[0].avatar_url
+          // Aproveita para vincular o user_id caso ainda seja null
+          if (!p.user_id && profs[0].user_id) {
+            db.from('copa_barbeiros')
+              .update({ user_id: profs[0].user_id })
+              .eq('id', p.id)
+              .then(() => {})  // fire-and-forget, não bloqueia o render
+          }
+        }
+      } catch(_) {}
     }))
 
     // 4. Agrupa pontos
@@ -785,8 +813,11 @@ const Copa = {
       const ini      = r.nome.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase()
       // Avatar: busca em profiles.avatar_url via user_id (fonte única)
       // Para o próprio usuário: também aceita window.__avatarUrl (atualização imediata após troca)
-      const avatarUrl = (isOwn ? window.__avatarUrl : null)
-                     || (r.user_id ? avatarMap[r.user_id] : null)
+      // isOwn: usa window.__avatarUrl (atualização imediata após troca de foto)
+      // Todos: avatarMap[r.id] indexado por copa_barbeiros.id
+      const avatarUrl = (isOwn && window.__avatarUrl)
+                     || avatarMap[r.id]
+                     || null
       const avatarHtml = avatarUrl
         ? `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="${r.nome}">`
         : ini
