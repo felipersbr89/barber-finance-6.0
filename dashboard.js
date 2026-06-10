@@ -267,7 +267,7 @@ const DashboardModule = (() => {
             <span>${Utils.fmtDate(t.data)}</span>
           </div>
         </div>
-        <div class="financial-value" style="font-size:13px;font-weight:600;color:${isR?\'var(--gr)\':\'var(--rd)\'};flex-shrink:0">${isR?'+':'-'}${Utils.fmt(t.valor)}</div>
+        <div class="financial-value" style="font-size:13px;font-weight:600;color:${isR?'var(--gr)':'var(--rd)'};flex-shrink:0">${isR?'+':'-'}${Utils.fmt(t.valor)}</div>
       </div>`
     }).join('')
   }
