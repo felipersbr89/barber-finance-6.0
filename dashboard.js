@@ -133,7 +133,7 @@ const DashboardModule = (() => {
     const _privBtn = document.getElementById('dash-privacy-btn')
     if (_privBtn && window.Privacy) {
       _privBtn.innerHTML = Privacy.btnHTML()
-      Privacy._bindBtns()   // adiciona listener ao botão recém injetado
+      Privacy._bindBtns()
     }
 
     if (window._greet) {
@@ -190,7 +190,7 @@ const DashboardModule = (() => {
     // Hero card
     const heroEl = document.getElementById('dash-hero')
     if (heroEl) { heroEl.style.display = ''; }
-    setText('hero-balance', Utils.fmt(balance))
+    Privacy.register(document.getElementById('hero-balance'), Utils.fmt(balance))
     const heroSub = document.getElementById('hero-sub')
     if (heroSub) heroSub.textContent = 'Receitas — Despesas de ' + Utils.monthName(viewMonth, viewYear)
     if (savings > 0) {
@@ -200,16 +200,16 @@ const DashboardModule = (() => {
     }
 
     // KPI cards
-    setText('kpi-income',       Utils.fmt(totalInc))
-    setText('kpi-expense',      Utils.fmt(totalExp))
-    setText('kpi-balance',      Utils.fmt(balance))
+    Privacy.register(document.getElementById('kpi-income'), Utils.fmt(totalInc))
+    Privacy.register(document.getElementById('kpi-expense'), Utils.fmt(totalExp))
+    Privacy.register(document.getElementById('kpi-balance'), Utils.fmt(balance))
     const kpiBalEl = document.getElementById('kpi-balance')
-    if (kpiBalEl) kpiBalEl.className = 'card-value ' + (balance >= 0 ? 'c-lime' : 'c-red')
+    if (kpiBalEl) kpiBalEl.className = 'card-value financial-value ' + (balance >= 0 ? 'c-lime' : 'c-red')
     const kpiBar = document.querySelector('.card-kpi-bar.lime, .card-kpi-bar.red')
     if (kpiBar) { kpiBar.className = 'card-kpi-bar ' + (balance >= 0 ? 'lime' : 'red') }
-    setText('kpi-balance-hint', balance >= 0 ? 'positivo ✓' : 'negativo ⚠')
-    if (totalInc > 0) setText('kpi-income-hint', Utils.fmt(totalInc))
-    if (totalInc > 0) setText('kpi-expense-hint', ((totalExp/totalInc)*100).toFixed(1)+'% da receita')
+    Privacy.register(document.getElementById('kpi-balance-hint'), balance >= 0 ? 'positivo ✓' : 'negativo ⚠')
+    if (totalInc > 0) Privacy.register(document.getElementById('kpi-income-hint'), Utils.fmt(totalInc))
+    if (totalInc > 0) Privacy.register(document.getElementById('kpi-expense-hint'), ((totalExp/totalInc)*100).toFixed(1)+'% da receita')
 
     // Últimas movimentações
     const receitas = (rRecent[0].data||[]).map(r => ({...r, _tipo:'receita'}))
@@ -270,7 +270,7 @@ const DashboardModule = (() => {
             <span>${Utils.fmtDate(t.data)}</span>
           </div>
         </div>
-        <div class="financial-value" style="font-size:13px;font-weight:600;color:${isR?'var(--gr)':'var(--rd)'};flex-shrink:0">${isR?'+':'-'}${Utils.fmt(t.valor)}</div>
+        <div class="financial-value" data-real-value="${isR?'+':'-'}${Utils.fmt(t.valor)}" style="font-size:13px;font-weight:600;color:${isR?'var(--gr)':'var(--rd)'};flex-shrink:0">${isR?'+':'-'}${Utils.fmt(t.valor)}</div>
       </div>`
     }).join('')
   }
@@ -293,8 +293,8 @@ const DashboardModule = (() => {
         </div>
         <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${done?'var(--ac2)':'var(--ac)'}"></div></div>
         <div style="display:flex;justify-content:space-between;margin-top:4px">
-          <span style="font-size:11px;color:var(--t3)"><span class="financial-value">${Utils.fmt(g.valor_atual||0)}</span></span>
-          <span class="financial-value" style="font-size:11px;color:var(--t3)">${Utils.fmt(g.valor_alvo)}</span>
+          <span style="font-size:11px;color:var(--t3)"><span class="financial-value" data-real-value="${Utils.fmt(g.valor_atual||0)}">${Utils.fmt(g.valor_atual||0)}</span></span>
+          <span class="financial-value" data-real-value="${Utils.fmt(g.valor_alvo)}" style="font-size:11px;color:var(--t3)">${Utils.fmt(g.valor_alvo)}</span>
         </div>
       </div>`
     }).join('')
@@ -333,7 +333,7 @@ const DashboardModule = (() => {
         </div>
         <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:11px;color:var(--t2)">${pct}%</span>
-          <span class="financial-value" style="font-size:12px;font-weight:600">${Utils.fmt(val)}</span>
+          <span class="financial-value" data-real-value="${Utils.fmt(val)}" style="font-size:12px;font-weight:600">${Utils.fmt(val)}</span>
         </div>
       </div>`
     }).join('')

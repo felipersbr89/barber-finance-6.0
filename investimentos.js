@@ -96,9 +96,9 @@ const InvestimentosModule = (() => {
     const ti=todos.reduce((s,i)=>s+Number(i.valor_investido||0),0)
     const ta=todos.reduce((s,i)=>s+Number(i.valor_atual||0),0)
     const g=ta-ti, r=ti>0?(g/ti)*100:0
-    setText('k-inv',Utils.fmt(ti))
-    setText('k-atual',Utils.fmt(ta))
-    setText('k-ganho',(g>=0?'+':'')+Utils.fmt(g))
+    Privacy.register(document.getElementById('k-inv'), Utils.fmt(ti))
+    Privacy.register(document.getElementById('k-atual'), Utils.fmt(ta))
+    Privacy.register(document.getElementById('k-ganho'), (g>=0?'+':'')+Utils.fmt(g))
     setStyle('k-ganho','color',g>=0?'var(--gr)':'var(--rd)')
     setText('k-rent',(r>=0?'+':'')+r.toFixed(2)+'%')
     setStyle('k-rent','color',r>=0?'var(--ac)':'var(--rd)')
@@ -130,8 +130,8 @@ const InvestimentosModule = (() => {
           </div>
         </div>
         <div class="grid-4" style="background:var(--s2);border-radius:10px;padding:10px;gap:8px">
-          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Investido</div><div class="financial-value" style="font-size:13px;font-weight:600;color:var(--t2)">${Utils.fmt(inv.valor_investido)}</div></div>
-          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Atual</div><div class="financial-value" style="font-size:13px;font-weight:600">${Utils.fmt(inv.valor_atual)}</div></div>
+          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Investido</div><div class="financial-value" data-real-value="${Utils.fmt(inv.valor_investido)}" style="font-size:13px;font-weight:600;color:var(--t2)">${Utils.fmt(inv.valor_investido)}</div></div>
+          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Atual</div><div class="financial-value" data-real-value="${Utils.fmt(inv.valor_atual)}" style="font-size:13px;font-weight:600">${Utils.fmt(inv.valor_atual)}</div></div>
           <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Ganho/Perda</div><div class="financial-value" style="font-size:13px;font-weight:600;color:${g>=0?'var(--gr)':'var(--rd)'}">${g>=0?'+':''}${Utils.fmt(g)}</div></div>
           <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">% Carteira</div><div style="font-size:13px;font-weight:600;color:var(--t2)">${pct.toFixed(1)}%</div></div>
         </div>
@@ -153,7 +153,7 @@ const InvestimentosModule = (() => {
             ${cor?`<div style="width:8px;height:8px;border-radius:50%;background:${cor}"></div>`:''}
             <span style="font-size:13px">${Utils.esc(k)}</span>
           </div>
-          <span class="financial-value" style="font-size:13px;font-weight:600">${Utils.fmt(v)}</span>
+          <span class="financial-value" data-real-value="${Utils.fmt(v)}" style="font-size:13px;font-weight:600">${Utils.fmt(v)}</span>
         </div>
         <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${cor||'var(--bl)'}"></div></div>
       </div>`

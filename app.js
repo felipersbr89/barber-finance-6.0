@@ -197,7 +197,6 @@ const Layout = {
             <span class="topbar-brand-text">GORILAZ</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px">
-            <span id="topbar-privacy-btn"></span>
             <label for="avatar-input" style="cursor:pointer;display:block;line-height:0">
               <div class="user-avatar" id="topbar-avatar" title="Trocar foto de perfil" style="cursor:pointer">${initials}</div>
             </label>
@@ -220,7 +219,6 @@ const Layout = {
     setTimeout(() => Privacy._bindBtns(), 200)
     // Carrega nome do perfil na sidebar
     setTimeout(() => Layout.loadProfileName(), 80)
-    setTimeout(() => { const el=document.getElementById('topbar-privacy-btn'); if(el&&window.Privacy){ el.innerHTML=Privacy.btnHTML(); Privacy._bindBtns() } }, 120)
     // Injeta saudação na page-content via evento
     window._greetInjected = false
   },
@@ -645,12 +643,19 @@ window.updateUserAvatar = (src) => Avatar._apply(src)
 
 // ════════════════════════════════════════════════════════
 // PRIVACY — Ocultar/exibir valores financeiros
-// Regras de segurança:
-//   - SEM MutationObserver (causava loop infinito)
-//   - Lê data-real-value (imutável), não textContent
-//   - Botões com type="button" + data-toggle-finance-visibility
-//   - Listeners adicionados UMA vez via _bindBtns()
-//   - Não recarrega página, não chama Supabase
+//
+// REGRA CENTRAL:
+//   Cada .financial-value deve ter data-real-value preenchido
+//   pelo módulo que gerou o valor (dashboard, receitas, etc.)
+//   Privacy NUNCA captura textContent — só lê data-real-value.
+//
+// FLUXO:
+//   1. Módulo escreve valor → chama Privacy.register(el, valor)
+//   2. Clique no olho → Privacy.toggle()
+//   3. toggle() → salva no localStorage → chama apply()
+//   4. apply() → lê data-real-value (não textContent)
+//      → se hidden: textContent = '••••••'
+//      → se visible: textContent = data-real-value
 // ════════════════════════════════════════════════════════
 const Privacy = {
   KEY:  'financeVisibility',
@@ -660,56 +665,48 @@ const Privacy = {
     return localStorage.getItem(this.KEY) === 'hidden'
   },
 
-  // Alterna e aplica — chamado pelo clique no botão
-  toggle() {
-    const next = this.isHidden() ? 'visible' : 'hidden'
-    localStorage.setItem(this.KEY, next)
-    this._applyValues()
+  // Registrar um valor em um elemento — chamado pelos módulos ao escrever valores
+  // Salva o valor real em data-real-value e aplica o estado atual
+  register(el, valorTexto) {
+    if (!el) return
+    el.setAttribute('data-real-value', valorTexto)
+    el.textContent = this.isHidden() ? this.MASK : valorTexto
+  },
+
+  // Aplicar estado atual a todos os .financial-value que já têm data-real-value
+  apply() {
+    const hidden = this.isHidden()
+    document.querySelectorAll('.financial-value[data-real-value]').forEach(el => {
+      el.textContent = hidden ? this.MASK : el.getAttribute('data-real-value')
+    })
     this._updateBtns()
   },
 
-  // Aplica estado nos valores — usa data-real-value como fonte imutável
-  _applyValues() {
-    const hidden = this.isHidden()
-    document.querySelectorAll('.financial-value').forEach(el => {
-      // Garantir que data-real-value está salvo (feito uma vez)
-      if (!el.dataset.realValue && el.textContent.trim() && el.textContent.trim() !== this.MASK) {
-        el.dataset.realValue = el.textContent.trim()
-      }
-      if (hidden) {
-        el.textContent = this.MASK
-      } else {
-        if (el.dataset.realValue) el.textContent = el.dataset.realValue
-      }
-    })
+  // Alternar visibilidade
+  toggle() {
+    localStorage.setItem(this.KEY, this.isHidden() ? 'hidden' : 'visible')
+    this.apply()
   },
 
-  // Atualiza ícone e label dos botões — SEM innerHTML para não disparar eventos
+  // Atualizar ícone dos botões sem trocar o innerHTML do botão inteiro
   _updateBtns() {
     const hidden = this.isHidden()
     const label  = hidden ? 'Mostrar valores' : 'Ocultar valores'
     document.querySelectorAll('[data-toggle-finance-visibility]').forEach(btn => {
-      // Trocar apenas o SVG dentro do botão (primeiro filho)
       const svg = btn.querySelector('svg')
-      if (svg) {
-        if (hidden) {
-          // Olho riscado = valores ocultos
-          svg.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
-        } else {
-          // Olho aberto = valores visíveis
-          svg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
-        }
-      }
+      if (svg) svg.innerHTML = hidden
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
       btn.title = label
       btn.setAttribute('aria-label',   label)
       btn.setAttribute('aria-pressed', String(hidden))
     })
   },
 
-  // Adiciona listener UMA vez em todos os botões — seguro contra duplicata
+  // Bind nos botões — UMA vez, com proteção anti-duplicata
   _bindBtns() {
     document.querySelectorAll('[data-toggle-finance-visibility]').forEach(btn => {
-      if (btn.dataset.privacyBound) return   // já tem listener
+      if (btn.dataset.privacyBound) return
       btn.dataset.privacyBound = '1'
       btn.addEventListener('click', (e) => {
         e.preventDefault()
@@ -719,36 +716,20 @@ const Privacy = {
     })
   },
 
-  // Inicializar: aplicar estado salvo + bind nos botões
-  // Chamado após o DOM estar pronto (via Layout.render)
-  init() {
-    this._applyValues()
-    this._updateBtns()
-    this._bindBtns()
-  },
-
-  // Gera o HTML do botão — sem onclick inline, sem innerHTML que triggere eventos
+  // Gera HTML do botão
   btnHTML() {
-    const hidden = this.isHidden()
-    const label  = hidden ? 'Mostrar valores' : 'Ocultar valores'
-    // SVG inline sem onclick; listener adicionado via _bindBtns()
+    const hidden  = this.isHidden()
+    const label   = hidden ? 'Mostrar valores' : 'Ocultar valores'
     const svgPath = hidden
       ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
       : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
-    return `<button
-      type="button"
-      class="privacy-btn"
-      data-toggle-finance-visibility
-      title="${label}"
-      aria-label="${label}"
-      aria-pressed="${hidden}"
-    ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;pointer-events:none">${svgPath}</svg></button>`
+    return `<button type="button" class="privacy-btn" data-toggle-finance-visibility title="${label}" aria-label="${label}" aria-pressed="${hidden}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;pointer-events:none">${svgPath}</svg></button>`
   }
 }
 
-// Funções globais (compatibilidade)
+// Funções globais
 function toggleFinanceVisibility()  { Privacy.toggle() }
-function updateFinanceVisibility()  { Privacy._applyValues(); Privacy._updateBtns() }
+function updateFinanceVisibility()  { Privacy.apply()  }
 
 // ── 8. EXPÕE GLOBALMENTE ─────────────────────
 window.Auth   = Auth

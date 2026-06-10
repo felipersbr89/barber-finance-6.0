@@ -89,7 +89,14 @@ const ReceitasModule = (() => {
     todos = data || []
     const total = todos.reduce((s,t) => s + Number(t.valor||0), 0)
     const el = document.getElementById('rec-total')
-    if (el) { const span=el.querySelector('.financial-value')||el; if(span!==el){span.dataset.fvOrig=undefined; span.textContent=Utils.fmt(total)} else el.innerHTML='— Total: <span class="financial-value">' + Utils.fmt(total) + '</span>' }
+    if (el) {
+      const fmtTotal = Utils.fmt(total)
+      el.innerHTML = '— Total: <span class="financial-value" data-real-value="' + fmtTotal + '">' + fmtTotal + '</span>'
+      if (window.Privacy?.isHidden()) {
+        const s = el.querySelector('.financial-value')
+        if (s) s.textContent = Privacy.MASK
+      }
+    }
     render()
   }
 
@@ -118,7 +125,7 @@ const ReceitasModule = (() => {
             </div>
           </div>
           <div class="receita-right">
-            <div class="receita-val financial-value">+${Utils.fmt(t.valor)}</div>
+            <div class="receita-val financial-value" data-real-value="+${Utils.fmt(t.valor)}">+${Utils.fmt(t.valor)}</div>
             <div class="receita-actions">
               <button class="btn btn-ghost btn-icon btn-sm" onclick="ReceitasModule.abrirEdicao('${t.id}')" title="Editar">✏️</button>
               <button class="btn btn-danger btn-icon btn-sm" onclick="ReceitasModule.abrirDel('${t.id}')" title="Excluir">🗑️</button>

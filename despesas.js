@@ -141,7 +141,14 @@ const DespesasModule = (() => {
     todos = data || []
     const total = todos.reduce((s,t) => s + Number(t.valor||0), 0)
     const el = document.getElementById('desp-total')
-    if (el) { const span=el.querySelector('.financial-value')||el; if(span!==el){span.dataset.fvOrig=undefined; span.textContent=Utils.fmt(total)} else el.innerHTML='— Total: <span class="financial-value">' + Utils.fmt(total) + '</span>' }
+    if (el) {
+      const fmtTotal = Utils.fmt(total)
+      el.innerHTML = '— Total: <span class="financial-value" data-real-value="' + fmtTotal + '">' + fmtTotal + '</span>'
+      if (window.Privacy?.isHidden()) {
+        const s = el.querySelector('.financial-value')
+        if (s) s.textContent = Privacy.MASK
+      }
+    }
     render()
   }
 
@@ -183,7 +190,7 @@ const DespesasModule = (() => {
             </div>
           </div>
           <div class="desp-right">
-            <div class="desp-val financial-value">-${Utils.fmt(d.valor)}</div>
+            <div class="desp-val financial-value" data-real-value="-${Utils.fmt(d.valor)}">-${Utils.fmt(d.valor)}</div>
             <div class="desp-actions">
               <button class="btn btn-ghost btn-icon btn-sm" onclick="DespesasModule.abrirEdicao('${d.id}')" title="Editar">✏️</button>
               <button class="btn btn-danger btn-icon btn-sm" onclick="DespesasModule.abrirDel('${d.id}')" title="Excluir">🗑️</button>

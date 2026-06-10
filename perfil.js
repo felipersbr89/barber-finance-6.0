@@ -102,10 +102,10 @@ const PerfilModule = (() => {
     const td=(dRes.data||[]).reduce((s,x)=>s+Number(x.valor||0),0)
     const ti=(iRes.data||[]).reduce((s,x)=>s+Number(x.valor_atual||0),0)
     const ts=tr-td
-    setText('s-rec',Utils.fmtShort(tr))
-    setText('s-desp',Utils.fmtShort(td))
-    setText('s-saldo',Utils.fmtShort(ts))
-    setText('s-inv',Utils.fmtShort(ti))
+    Privacy.register(document.getElementById('s-rec'), Utils.fmtShort(tr))
+    Privacy.register(document.getElementById('s-desp'), Utils.fmtShort(td))
+    Privacy.register(document.getElementById('s-saldo'), Utils.fmtShort(ts))
+    Privacy.register(document.getElementById('s-inv'), Utils.fmtShort(ti))
     document.getElementById('s-saldo').style.color=ts>=0?'var(--ac)':'var(--rd)'
   }
 
