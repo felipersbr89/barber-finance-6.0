@@ -4,7 +4,7 @@ const DespesasModule = (() => {
   let fMonth=new Date().getMonth(), fYear=new Date().getFullYear()
   let statusForm='pago', statusModal='pago'
   let isParcelado=false  // toggle parcelamento no form
-  const CATS=['Aluguel','Produtos','Energia','Água','Internet','Transporte','Alimentação','Equipamentos','Marketing','Impostos','Outros']
+  const CATS=['Alimentação','Aluguel','Água','Energia','Equipamentos','Impostos','Internet','Marketing','Produtos','Transporte','Outros']
   const catOpts=CATS.map(c=>`<option value="${c}">${c}</option>`).join('')
   const ICONS={Aluguel:'🏠',Produtos:'📦',Energia:'⚡',Água:'💧',Internet:'📡',Transporte:'🚗',Alimentação:'🍽️',Equipamentos:'🔧',Marketing:'📣',Impostos:'📋'}
 

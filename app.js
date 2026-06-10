@@ -296,6 +296,14 @@ const Utils = {
   monthStr(y,m)   { return `${y}-${String(m+1).padStart(2,'0')}` },
   monthStart(y,m) { return `${y}-${String(m+1).padStart(2,'0')}-01` },
   monthEnd(y,m)   { const d=new Date(y,m+1,0); return `${y}-${String(m+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` },
+
+  // Ordena opções de categoria: Sem categoria 1º · Outros último · resto alfabético PT-BR
+  sortCats(cats) {
+    const outros = cats.filter(c => c.toLowerCase() === 'outros')
+    const mid    = cats.filter(c => c.toLowerCase() !== 'outros')
+      .sort((a,b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }))
+    return [...mid, ...outros]
+  },
   monthName(m,y)  { const d=new Date(y,m); const mes=d.toLocaleDateString('pt-BR',{month:'long'}); return mes.charAt(0).toUpperCase()+mes.slice(1)+' '+y },
   esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') },
   initials(name, email) {

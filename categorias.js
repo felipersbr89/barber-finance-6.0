@@ -7,27 +7,27 @@ const CategoriasModule = (() => {
 
   // Categorias fixas padrão do sistema
   const CATS_DESPESA = [
-    { nome:'Aluguel',       icon:'🏠', cor:'#ef4444' },
-    { nome:'Produtos',      icon:'📦', cor:'#f97316' },
-    { nome:'Energia',       icon:'⚡', cor:'#eab308' },
-    { nome:'Água',          icon:'💧', cor:'#3b82f6' },
-    { nome:'Internet',      icon:'📡', cor:'#8b5cf6' },
-    { nome:'Transporte',    icon:'🚗', cor:'#06b6d4' },
     { nome:'Alimentação',   icon:'🍽️', cor:'#84cc16' },
+    { nome:'Aluguel',       icon:'🏠', cor:'#ef4444' },
+    { nome:'Água',          icon:'💧', cor:'#3b82f6' },
+    { nome:'Energia',       icon:'⚡', cor:'#eab308' },
     { nome:'Equipamentos',  icon:'🔧', cor:'#64748b' },
-    { nome:'Marketing',     icon:'📣', cor:'#ec4899' },
     { nome:'Impostos',      icon:'📋', cor:'#f87171' },
+    { nome:'Internet',      icon:'📡', cor:'#8b5cf6' },
+    { nome:'Marketing',     icon:'📣', cor:'#ec4899' },
+    { nome:'Produtos',      icon:'📦', cor:'#f97316' },
+    { nome:'Transporte',    icon:'🚗', cor:'#06b6d4' },
     { nome:'Outros',        icon:'💸', cor:'#71717a' },
   ]
   const CATS_RECEITA = [
-    { nome:'Corte de Cabelo', icon:'✂️',  cor:'#4ade80' },
     { nome:'Barba',           icon:'🪒',  cor:'#22c55e' },
+    { nome:'Bônus',           icon:'🎁',  cor:'#facc15' },
+    { nome:'Comissão',        icon:'💼',  cor:'#2dd4bf' },
+    { nome:'Corte de Cabelo', icon:'✂️',  cor:'#4ade80' },
+    { nome:'Dividendos',      icon:'📈',  cor:'#fb923c' },
+    { nome:'Hidratação',      icon:'💆',  cor:'#34d399' },
     { nome:'Pigmentação',     icon:'🎨',  cor:'#a3e635' },
     { nome:'Sobrancelha',     icon:'✨',  cor:'#84cc16' },
-    { nome:'Hidratação',      icon:'💆',  cor:'#34d399' },
-    { nome:'Comissão',        icon:'💼',  cor:'#2dd4bf' },
-    { nome:'Bônus',           icon:'🎁',  cor:'#facc15' },
-    { nome:'Dividendos',      icon:'📈',  cor:'#fb923c' },
     { nome:'Outros',          icon:'💰',  cor:'#71717a' },
   ]
 

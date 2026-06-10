@@ -1,7 +1,7 @@
 /* GORILAZ — modules/investimentos.js */
 const InvestimentosModule = (() => {
   let todos=[], tabAtiva='lista', editandoId=null, deletandoId=null
-  const TIPOS=['CDB','Tesouro Direto','Poupança','Fundos','Ações','FIIs','Criptomoedas','Previdência','Outros']
+  const TIPOS=['Ações','CDB','Criptomoedas','FIIs','Fundos','Poupança','Previdência','Tesouro Direto','Outros']
   const COLORS={'CDB':'#3b82f6','Tesouro Direto':'#1d4ed8','Poupança':'#10b981','Fundos':'#f59e0b','Ações':'#ef4444','FIIs':'#8b5cf6','Criptomoedas':'#f97316','Previdência':'#06b6d4','Outros':'#6b7280'}
   const tipoOpts = TIPOS.map(t=>`<option value="${t}">${t}</option>`).join('')
 
