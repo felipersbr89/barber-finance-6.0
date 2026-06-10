@@ -109,7 +109,7 @@ const DespesasModule = (() => {
         <div class="modal-body">
           <p style="font-size:13px;color:var(--t2);margin-bottom:6px">Tem certeza que deseja excluir esta despesa?</p>
           <p style="font-size:12px;color:var(--t3)" id="del-desp-desc"></p>
-          <div id="del-parcel-warn" style="display:none;margin-top:10px;background:var(--or-dim);border:1px solid rgba(251,146,60,0.25);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--or)">
+          <div id="del-parcel-warn" class="field-error warning" style="margin-top:10px">
             ⚠️ Esta é uma despesa parcelada. Deseja excluir apenas esta parcela ou todas as parcelas restantes?
             <div style="display:flex;gap:8px;margin-top:10px">
               <button class="btn btn-sm btn-ghost" id="del-only-btn" onclick="DespesasModule.confirmarDel(false)">Só esta</button>
@@ -386,11 +386,11 @@ const DespesasModule = (() => {
 
     if(d.parcela_total>1 && d.parcela_grupo_id){
       // Parcelada: mostra opção de excluir só esta ou todas as restantes
-      if(warn) warn.style.display=''
-      if(footer) footer.style.display='none'
+      warn?.classList.add('show')
+      footer?.classList.add('hidden')
     } else {
-      if(warn) warn.style.display='none'
-      if(footer) footer.style.display=''
+      warn?.classList.remove('show')
+      footer?.classList.remove('hidden')
     }
     Modal.open('modal-desp-del')
   }

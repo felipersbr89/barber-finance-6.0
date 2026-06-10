@@ -72,8 +72,8 @@
     .btn:disabled{opacity:.4;cursor:not-allowed}
     .spin{width:13px;height:13px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .6s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .msg-err{background:var(--rd-dim);border:1px solid var(--rd-bdr);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:var(--rd);margin-bottom:12px;display:none}
-    .msg-ok{background:var(--ac-dim);border:1px solid var(--ac-bdr);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:var(--ac);margin-bottom:12px;display:none}
+    .msg-err{background:var(--rd-dim);border:1px solid var(--rd-bdr);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:var(--rd);margin-bottom:12px;display:none;word-break:break-word;white-space:normal}
+    .msg-ok{background:var(--ac-dim);border:1px solid var(--ac-bdr);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:var(--ac);margin-bottom:12px;display:none;word-break:break-word;white-space:normal}
 
     /* PAINEL */
     .dash-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
@@ -332,7 +332,7 @@
 
         <div class="day-pts" id="day-pts-preview">→ 0 pontos neste dia</div>
 
-        <div id="save-err" style="display:none;background:var(--rd-dim);border:1px solid var(--rd-bdr);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:var(--rd);margin-bottom:10px"></div>
+        <div id="save-err" class="field-error"></div>
         <div class="save-row">
           <button class="btn btn-lime" id="save-btn" onclick="Copa.salvarLancamento()">💾 Salvar lançamento</button>
           <button class="btn btn-ghost" onclick="Copa.limparForm()">Limpar</button>
@@ -543,7 +543,7 @@ const Copa = {
   async salvarLancamento() {
     const dataVal = document.getElementById('lanc-data').value
     const errEl   = document.getElementById('save-err')
-    if (errEl) errEl.style.display='none'
+    if (errEl) errEl?.classList.remove('show')
     if (!dataVal){ toast('Selecione uma data.','err'); return }
     if (!barbeiro){ toast('Faça login primeiro.','err'); return }
 
@@ -558,7 +558,7 @@ const Copa = {
     const showErr  = (msg) => {
       console.error('[Copa] ERRO:', msg)
       resetBtn()
-      if(errEl){ errEl.textContent='⚠ '+msg; errEl.style.display='block' }
+      if(errEl){ errEl.textContent='⚠ '+msg; errEl.classList.add('show') }
       toast(msg,'err')
     }
 
@@ -598,7 +598,7 @@ const Copa = {
 
       // Sucesso
       resetBtn()
-      if(errEl) errEl.style.display='none'
+      errEl?.classList.remove('show')
       lancExisteId = selRes.data?.id || null
       toast(selRes.data ? 'Atualizado! +'+pts+' pts ✓' : 'Salvo! +'+pts+' pts ✓', 'ok')
       await this.onDataChange()

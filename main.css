@@ -154,11 +154,12 @@ a { text-decoration: none; color: inherit; }
   position: fixed; bottom: 80px; left: 50%;
   transform: translateX(-50%) translateY(8px);
   background: var(--s2); color: var(--tx);
-  padding: 10px 22px; border-radius: 999px;
+  padding: 10px 22px; border-radius: 16px;
   font-size: 13px; font-weight: 500; z-index: 9999; opacity: 0;
   transition: opacity 0.2s, transform 0.2s;
   pointer-events: none; border: 1px solid var(--b2);
-  white-space: nowrap; max-width: 92vw;
+  white-space: normal; word-break: break-word;
+  max-width: min(92vw, 420px); text-align: center;
   font-family: var(--fb);
 }
 #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -348,8 +349,8 @@ a { text-decoration: none; color: inherit; }
 .auth-logo-sub  { font-size:8px; color:var(--ac); letter-spacing:2.5px; text-transform:uppercase; font-weight:600; margin-top:3px; }
 .auth-title { font-family:var(--fd); font-size:18px; font-weight:700; margin-bottom:4px; }
 .auth-sub   { font-size:13px; color:var(--t2); margin-bottom:22px; }
-.auth-err   { background:var(--rd-dim); border:1px solid var(--rd-bdr); border-radius:var(--r-lg); padding:10px 14px; font-size:13px; color:var(--rd); margin-bottom:14px; }
-.auth-ok    { background:var(--ac-dim); border:1px solid var(--ac-bdr); border-radius:var(--r-lg); padding:10px 14px; font-size:13px; color:var(--ac); margin-bottom:14px; }
+/* auth-err definida acima em MENSAGENS DE ERRO */
+/* auth-ok definida acima em MENSAGENS DE ERRO */
 .auth-switch { text-align:center; font-size:13px; color:var(--t2); margin-top:18px; }
 .auth-switch a { color:var(--ac); font-weight:600; cursor:pointer; }
 .auth-divider { display:flex; align-items:center; gap:10px; margin:16px 0; color:var(--t3); font-size:11px; }
@@ -584,6 +585,68 @@ textarea { resize:vertical; min-height:80px; }
 .mnav-btn:hover,.month-nav-btn:hover { color:var(--tx); }
 .mnav-label,.month-nav-label { font-family:var(--fd); font-size:13px; font-weight:600; min-width:120px; text-align:center; text-transform:capitalize; color:var(--tx); }
 
+
+/* ── MENSAGENS DE ERRO / VALIDAÇÃO ─────────────────
+   Classe padrão para todas as mensagens de feedback
+   inline no projeto. Ocupa espaço próprio no fluxo,
+   nunca usa position:absolute.
+──────────────────────────────────────────────────── */
+.field-error {
+  display: none;
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 0;
+  padding: 8px 12px;
+  background: var(--rd-dim);
+  border: 1px solid var(--rd-bdr);
+  border-radius: var(--r-sm);
+  color: var(--rd);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  word-break: break-word;
+  white-space: normal;
+  box-sizing: border-box;
+}
+.field-error.show { display: block; }
+.field-error.warning {
+  background: var(--or-dim);
+  border-color: rgba(251,146,60,0.25);
+  color: var(--or);
+}
+.field-error.success {
+  background: var(--ac-dim);
+  border-color: var(--ac-bdr);
+  color: var(--ac);
+}
+
+/* Formulários: espaço reservado para erro abaixo do campo */
+.field-with-error { margin-bottom: 4px; }
+.field-with-error + .field-error { margin-bottom: 10px; }
+
+/* Auth pages */
+.auth-err {
+  background: var(--rd-dim);
+  border: 1px solid var(--rd-bdr);
+  border-radius: var(--r-lg);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--rd);
+  margin-bottom: 14px;
+  word-break: break-word;
+  white-space: normal;
+}
+.auth-ok {
+  background: var(--ac-dim);
+  border: 1px solid var(--ac-bdr);
+  border-radius: var(--r-lg);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--ac);
+  margin-bottom: 14px;
+  word-break: break-word;
+  white-space: normal;
+}
 /* ══════════════════════════════════════════════
    MODAL
 ══════════════════════════════════════════════ */
