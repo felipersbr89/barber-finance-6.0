@@ -415,8 +415,10 @@ const Copa = {
       toast('Bem-vindo de volta, '+nome+'! ✓','ok')
     } else {
       // Pega uid do usuário autenticado (se existir) para linkar com profiles
-      const { data: authData } = await db.auth.getUser().catch(() => ({ data: null }))
-      const authUid = authData?.user?.id || null
+      // getSession() lê a sessão do localStorage — mais confiável que getUser()
+      const { data: sessData } = await db.auth.getSession().catch(() => ({ data: null }))
+      const authUid = sessData?.session?.user?.id || null
+      console.log('[Copa] auth uid ao cadastrar:', authUid)
 
       const { data:novo, error } = await db.from('copa_barbeiros')
         .insert({ nome, barbearia, planos:0, servicos:0, produtos:0, mes_referencia:MES_REF, user_id: authUid })
@@ -451,10 +453,41 @@ const Copa = {
     document.getElementById('painel-nome').textContent = barbeiro.nome
     document.getElementById('painel-barb').textContent = '✂️ '+barbeiro.barbearia
     document.getElementById('lanc-data').value = DATA_HOJE
-    // Avatar buscado direto de profiles.avatar_url no carregarRanking()
+
+    // Resolver user_id e avatar — garante que barbeiros existentes sejam linkados
+    await this._resolverUserIdEAvatar()
+
     await this.onDataChange()
     await this.atualizarKpisMes()
     await this.carregarHistorico()
+  },
+
+  // Busca sessão Supabase, atualiza user_id em copa_barbeiros se precisar,
+  // e mostra o avatar do próprio barbeiro no painel
+  async _resolverUserIdEAvatar() {
+    try {
+      const { data: sess } = await db.auth.getSession()
+      const uid = sess?.session?.user?.id
+      if (!uid) return
+
+      // Atualizar user_id em copa_barbeiros (para registros sem user_id)
+      await db.from('copa_barbeiros')
+        .update({ user_id: uid })
+        .eq('id', Number(barbeiro.id))
+        .is('user_id', null)  // só atualiza se ainda não tem
+
+      // Guardar uid no objeto barbeiro local
+      barbeiro.user_id = uid
+
+      // Buscar avatar de profiles.avatar_url
+      const { data: prof } = await db.from('profiles')
+        .select('avatar_url').eq('user_id', uid).maybeSingle()
+      if (prof?.avatar_url) {
+        window.__avatarUrl = prof.avatar_url
+      }
+    } catch(e) {
+      console.warn('[Copa] _resolverUserIdEAvatar:', e.message)
+    }
   },
 
   // ── DATA CHANGE — carrega lançamento existente se houver ──
