@@ -196,7 +196,10 @@ const Layout = {
             </div>
             <span class="topbar-brand-text">GORILAZ</span>
           </div>
-          <div class="user-avatar" id="topbar-avatar" onclick="document.getElementById('gb-avatar-input').click()" title="Trocar foto de perfil" style="cursor:pointer;position:relative">${initials}</div>
+          <label for="gb-avatar-input-mobile" style="cursor:pointer;display:block">
+            <div class="user-avatar" id="topbar-avatar" title="Trocar foto de perfil" style="cursor:pointer;position:relative">${initials}</div>
+          </label>
+          <input type="file" id="gb-avatar-input-mobile" accept="image/*" style="display:none" onchange="Layout.updateAvatar(this)">
         </header>
         <main class="page-content" id="page-content"></main>
       </div>
@@ -220,90 +223,122 @@ const Layout = {
     document.getElementById('sidebar')?.classList.remove('open')
     document.getElementById('sidebar-overlay')?.classList.remove('show')
   },
+  // ════════════════════════════════════════════════
+  // AVATAR SYSTEM — fonte de verdade: profiles.avatar_url
+  // ════════════════════════════════════════════════
+
+  // Chave única no localStorage
+  _AVATAR_KEY: 'gb_avatar_url',
+
+  // Retorna a URL do avatar atual (de qualquer fonte)
+  _getAvatarUrl() {
+    return window._gbAvatarUrl || localStorage.getItem('gb_avatar_url') || null
+  },
+
+  // updateUserAvatar() — função global, chamada por qualquer componente
+  // Atualiza TODOS os avatares visíveis na tela imediatamente
+  updateUserAvatar(src) {
+    if (!src) return
+    window._gbAvatarUrl = src
+    try { localStorage.setItem('gb_avatar_url', src) } catch(_) {}
+
+    const img = `<img src="${src}" alt="Foto" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+
+    // 1. Sidebar desktop
+    const sav = document.getElementById('sidebar-avatar')
+    if (sav) { sav.innerHTML = img; sav.style.padding='0'; sav.style.fontSize='0' }
+
+    // 2. Topbar mobile
+    const tav = document.getElementById('topbar-avatar')
+    if (tav) { tav.innerHTML = img; tav.style.padding='0'; tav.style.fontSize='0' }
+
+    // 3. Página Perfil (se estiver aberta)
+    const pimg = document.getElementById('perfil-avatar-img')
+    if (pimg) { pimg.src=src; pimg.style.display='' }
+    const pinit = document.getElementById('av-big-initials')
+    if (pinit) pinit.style.display='none'
+
+    // 4. Copa Gorilaz — todos os avatares do usuário logado
+    document.querySelectorAll('.copa-rank-avatar[data-own="true"]').forEach(el => {
+      el.innerHTML = img; el.style.padding='0'; el.style.fontSize='0'
+    })
+  },
+
+  // Carrega avatar do Supabase (fonte de verdade) e propaga
+  async loadSavedAvatar() {
+    // Aplicar cache local imediatamente (sem latência)
+    const cached = this._getAvatarUrl()
+    if (cached) this.updateUserAvatar(cached)
+
+    // Buscar do Supabase (fonte de verdade)
+    try {
+      if (!App.user?.id || !window.db) return
+      const { data: prof } = await window.db
+        .from('profiles')
+        .select('avatar_url')
+        .eq('user_id', App.user.id)
+        .maybeSingle()
+
+      if (prof?.avatar_url && prof.avatar_url !== cached) {
+        this.updateUserAvatar(prof.avatar_url)
+      }
+    } catch(err) {
+      console.warn('[Avatar] loadSavedAvatar:', err.message)
+    }
+  },
+
+  // Chamado pelo input file (desktop sidebar, mobile topbar, página perfil)
   async updateAvatar(input) {
     const file = input.files[0]
     if (!file) return
 
-    // Preview imediato em base64
+    // Preview imediato com base64
     const reader = new FileReader()
     reader.onload = async (e) => {
       const b64 = e.target.result
-      // Atualiza todos os pontos imediatamente
-      Layout._applyAvatar(b64)
-      // Persiste no localStorage como fallback
-      try { localStorage.setItem('gb-avatar', b64) } catch(_) {}
 
-      // Upload para Supabase Storage
+      // 1. Aplica imediatamente em toda a tela
+      this.updateUserAvatar(b64)
+
+      // 2. Upload para Supabase Storage
       try {
-        const uid   = App.user?.id
+        const uid = App.user?.id
         if (!uid || !window.db) return
-        const ext   = file.name.split('.').pop() || 'jpg'
-        const path  = `${uid}/avatar.${ext}`
+        const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase()
+        const path = `${uid}/avatar.${ext}`
+
         const { error: upErr } = await window.db.storage
           .from('avatars')
           .upload(path, file, { upsert: true, contentType: file.type })
-        if (upErr) { console.warn('[Avatar] Storage upload error:', upErr.message); return }
 
-        // Buscar URL pública
+        if (upErr) {
+          console.warn('[Avatar] Storage error:', upErr.message)
+          // Mantém o base64 no localStorage como fallback
+          return
+        }
+
+        // 3. Obter URL pública
         const { data: urlData } = window.db.storage.from('avatars').getPublicUrl(path)
         const publicUrl = urlData?.publicUrl
         if (!publicUrl) return
 
-        // Salvar avatar_url no profile
+        // 4. Persistir URL pública no profile (sobrescreve base64 no cache)
         await window.db.from('profiles')
           .upsert({ user_id: uid, avatar_url: publicUrl }, { onConflict: 'user_id' })
 
-        // Guardar URL pública para outros componentes (copa, etc)
-        window._avatarUrl = publicUrl
-        localStorage.setItem('gb-avatar-url', publicUrl)
+        // 5. Atualizar cache com URL pública (mais leve que base64)
+        this.updateUserAvatar(publicUrl)
+
       } catch(err) {
-        console.warn('[Avatar] Erro ao salvar no Supabase:', err.message)
+        console.warn('[Avatar] Upload error:', err.message)
       }
     }
     reader.readAsDataURL(file)
   },
 
-  // Aplica a foto em TODOS os pontos do sistema
-  _applyAvatar(src) {
-    const imgTag = `<img src="${src}" alt="Foto" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-    // Sidebar
-    const sav = document.getElementById('sidebar-avatar')
-    if (sav) { sav.innerHTML = imgTag; sav.style.padding='0'; sav.style.fontSize='0' }
-    // Topbar mobile
-    const tav = document.getElementById('topbar-avatar')
-    if (tav) { tav.innerHTML = imgTag; tav.style.padding='0'; tav.style.fontSize='0' }
-    // Perfil (se estiver na página)
-    const pav = document.getElementById('perfil-avatar-img')
-    if (pav) { pav.src = src; pav.style.display='' }
-    // Copa ranking (se open)
-    window._avatarSrc = src
-    document.querySelectorAll('.copa-my-avatar').forEach(el => {
-      el.innerHTML = imgTag; el.style.padding='0'; el.style.fontSize='0'
-    })
-  },
-  async loadSavedAvatar() {
-    // 1. Aplicar localStorage imediatamente (sem latência)
-    try {
-      const cached = localStorage.getItem('gb-avatar')
-      if (cached) Layout._applyAvatar(cached)
-    } catch(_) {}
+  // Expõe globalmente para ser chamado de qualquer módulo
+  // Ex: window.updateUserAvatar(src)
 
-    // 2. Buscar URL do Supabase (fonte de verdade)
-    try {
-      if (!App.user?.id || !window.db) return
-      const { data: prof } = await window.db
-        .from('profiles').select('avatar_url')
-        .eq('user_id', App.user.id).maybeSingle()
-      if (prof?.avatar_url) {
-        window._avatarUrl = prof.avatar_url
-        localStorage.setItem('gb-avatar-url', prof.avatar_url)
-        // Aplica URL pública (mais confiável que base64)
-        Layout._applyAvatar(prof.avatar_url)
-      }
-    } catch(err) {
-      console.warn('[Avatar] loadSavedAvatar error:', err.message)
-    }
-  },
   async loadProfileName() {
     try {
       const nameEl = document.getElementById('sidebar-name')
@@ -591,5 +626,6 @@ window.Layout = Layout
 window.Toast  = Toast
 window.Modal  = Modal
 window.Utils       = Utils
-window.MonthPicker  = MonthPicker
+window.MonthPicker      = MonthPicker
+window.updateUserAvatar = (src) => Layout.updateUserAvatar(src)
 window.ComingSoon   = ComingSoon

@@ -87,17 +87,29 @@ const PerfilModule = (() => {
       document.getElementById('av-name').textContent=p.full_name||'Sem nome'
       document.getElementById('av-shop').textContent=p.barbershop_name||'Barbearia'
       if(p.created_at){const since=document.getElementById('av-since');since.textContent='📅 Membro desde '+new Date(p.created_at).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});since.style.display='block'}
-      // Carregar foto de perfil
-      const avatarSrc = p.avatar_url || localStorage.getItem('gb-avatar')
+      // Carregar foto de perfil (usa mesma fonte de verdade do sistema)
+      const avatarSrc = p.avatar_url
+        || localStorage.getItem('gb_avatar_url')
+        || localStorage.getItem('gb-avatar-url')
+        || localStorage.getItem('gb-avatar')
       if(avatarSrc){
-        const imgEl=document.getElementById('perfil-avatar-img')
-        if(imgEl){imgEl.src=avatarSrc;imgEl.style.display='';if(initSpan)initSpan.style.display='none'}
+        if(typeof window.updateUserAvatar === 'function') {
+          window.updateUserAvatar(avatarSrc)
+        } else {
+          const imgEl=document.getElementById('perfil-avatar-img')
+          if(imgEl){imgEl.src=avatarSrc;imgEl.style.display='';if(initSpan)initSpan.style.display='none'}
+        }
       }
     } else {
       const ini=Utils.initials('',App.user.email)
       const initSpan=document.getElementById('av-big-initials')
       if(initSpan) initSpan.textContent=ini
       document.getElementById('av-name').textContent='Sem nome'
+      // Tentar carregar do cache mesmo sem profile
+      const cachedUrl = localStorage.getItem('gb_avatar_url') || localStorage.getItem('gb-avatar')
+      if(cachedUrl && typeof window.updateUserAvatar === 'function') {
+        window.updateUserAvatar(cachedUrl)
+      }
     }
     document.getElementById('av-email').textContent=App.user.email||''
     const tr=(rRes.data||[]).reduce((s,x)=>s+Number(x.valor||0),0)
