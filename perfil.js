@@ -26,10 +26,10 @@ const PerfilModule = (() => {
         <div id="av-since" style="font-size:11px;color:var(--t4);margin-top:6px;display:none">—</div>
       </div>
       <div class="grid-4" style="margin-bottom:16px">
-        <div class="card card-sm"><div class="card-icon bg-green-soft" style="margin-bottom:8px">${iconReceitas()}</div><div id="s-rec" style="font-size:14px;font-weight:700;color:var(--gr)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Total receitas</div></div>
-        <div class="card card-sm"><div class="card-icon bg-red-soft" style="margin-bottom:8px">${iconDespesas()}</div><div id="s-desp" style="font-size:14px;font-weight:700;color:var(--rd)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Total despesas</div></div>
-        <div class="card card-sm"><div class="card-icon bg-lime-soft" style="margin-bottom:8px">${iconInvest()}</div><div id="s-saldo" style="font-size:14px;font-weight:700;color:var(--ac)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Saldo geral</div></div>
-        <div class="card card-sm"><div class="card-icon bg-blue-soft" style="margin-bottom:8px">${iconInvest()}</div><div id="s-inv" style="font-size:14px;font-weight:700;color:var(--bl)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Investimentos</div></div>
+        <div class="card card-sm"><div class="card-icon bg-green-soft" style="margin-bottom:8px">${iconReceitas()}</div><div id="s-rec" class="financial-value" style="font-size:14px;font-weight:700;color:var(--gr)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Total receitas</div></div>
+        <div class="card card-sm"><div class="card-icon bg-red-soft" style="margin-bottom:8px">${iconDespesas()}</div><div id="s-desp" class="financial-value" style="font-size:14px;font-weight:700;color:var(--rd)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Total despesas</div></div>
+        <div class="card card-sm"><div class="card-icon bg-lime-soft" style="margin-bottom:8px">${iconInvest()}</div><div id="s-saldo" class="financial-value" style="font-size:14px;font-weight:700;color:var(--ac)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Saldo geral</div></div>
+        <div class="card card-sm"><div class="card-icon bg-blue-soft" style="margin-bottom:8px">${iconInvest()}</div><div id="s-inv" class="financial-value" style="font-size:14px;font-weight:700;color:var(--bl)">—</div><div style="font-size:10px;color:var(--t4);margin-top:2px">Investimentos</div></div>
       </div>
       <div class="panel" style="margin-bottom:12px">
         <div class="panel-title">Editar dados</div>

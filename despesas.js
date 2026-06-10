@@ -12,7 +12,7 @@ const DespesasModule = (() => {
 
   function ui(){return`
     <div class="sec-header">
-      <div class="sec-title">Despesas <span id="desp-total" style="font-size:13px;font-weight:400;color:var(--t2)">— Total: R$ 0,00</span></div>
+      <div class="sec-title">Despesas <span id="desp-total" style="font-size:13px;font-weight:400;color:var(--t2)">— Total: <span class="financial-value">R$ 0,00</span></span></div>
       <button class="btn btn-red btn-sm" onclick="DespesasModule.toggleForm()">${svgPlus()} <span id="desp-form-lbl">Nova despesa</span></button>
     </div>
     <div id="desp-form" class="form-card hidden">
@@ -141,7 +141,7 @@ const DespesasModule = (() => {
     todos = data || []
     const total = todos.reduce((s,t) => s + Number(t.valor||0), 0)
     const el = document.getElementById('desp-total')
-    if (el) el.textContent = '— Total: ' + Utils.fmt(total)
+    if (el) { const span=el.querySelector('.financial-value')||el; if(span!==el){span.dataset.fvOrig=undefined; span.textContent=Utils.fmt(total)} else el.innerHTML='— Total: <span class="financial-value">' + Utils.fmt(total) + '</span>' }
     render()
   }
 
@@ -183,7 +183,7 @@ const DespesasModule = (() => {
             </div>
           </div>
           <div class="desp-right">
-            <div class="desp-val">-${Utils.fmt(d.valor)}</div>
+            <div class="desp-val financial-value">-${Utils.fmt(d.valor)}</div>
             <div class="desp-actions">
               <button class="btn btn-ghost btn-icon btn-sm" onclick="DespesasModule.abrirEdicao('${d.id}')" title="Editar">✏️</button>
               <button class="btn btn-danger btn-icon btn-sm" onclick="DespesasModule.abrirDel('${d.id}')" title="Excluir">🗑️</button>

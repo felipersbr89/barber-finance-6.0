@@ -18,9 +18,9 @@ const InvestimentosModule = (() => {
         <button class="btn btn-blue btn-sm" onclick="InvestimentosModule.toggleForm()">${iconPlus()} <span id="inv-form-lbl">Novo</span></button>
       </div>
       <div class="grid-4" style="margin-bottom:16px">
-        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Total investido</div><div id="k-inv" style="font-size:18px;font-weight:700;color:var(--t2)">—</div></div>
-        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Valor atual</div><div id="k-atual" style="font-size:18px;font-weight:700;color:var(--bl)">—</div></div>
-        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Ganho/Perda</div><div id="k-ganho" style="font-size:18px;font-weight:700">—</div></div>
+        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Total investido</div><div id="k-inv" class="financial-value" style="font-size:18px;font-weight:700;color:var(--t2)">—</div></div>
+        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Valor atual</div><div id="k-atual" class="financial-value" style="font-size:18px;font-weight:700;color:var(--bl)">—</div></div>
+        <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Ganho/Perda</div><div id="k-ganho" class="financial-value" style="font-size:18px;font-weight:700">—</div></div>
         <div class="card card-sm"><div style="font-size:11px;color:var(--t2);margin-bottom:6px">Rentabilidade</div><div id="k-rent" style="font-size:18px;font-weight:700">—</div></div>
       </div>
       <div id="inv-form" class="form-card hidden">
@@ -130,9 +130,9 @@ const InvestimentosModule = (() => {
           </div>
         </div>
         <div class="grid-4" style="background:var(--s2);border-radius:10px;padding:10px;gap:8px">
-          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Investido</div><div style="font-size:13px;font-weight:600;color:var(--t2)">${Utils.fmt(inv.valor_investido)}</div></div>
-          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Atual</div><div style="font-size:13px;font-weight:600">${Utils.fmt(inv.valor_atual)}</div></div>
-          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Ganho/Perda</div><div style="font-size:13px;font-weight:600;color:${g>=0?'var(--gr)':'var(--rd)'}">${g>=0?'+':''}${Utils.fmt(g)}</div></div>
+          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Investido</div><div class="financial-value" style="font-size:13px;font-weight:600;color:var(--t2)">${Utils.fmt(inv.valor_investido)}</div></div>
+          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Atual</div><div class="financial-value" style="font-size:13px;font-weight:600">${Utils.fmt(inv.valor_atual)}</div></div>
+          <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">Ganho/Perda</div><div class="financial-value" style="font-size:13px;font-weight:600;color:${g>=0?'var(--gr)':'var(--rd)'}">${g>=0?'+':''}${Utils.fmt(g)}</div></div>
           <div><div style="font-size:10px;color:var(--t3);margin-bottom:2px">% Carteira</div><div style="font-size:13px;font-weight:600;color:var(--t2)">${pct.toFixed(1)}%</div></div>
         </div>
         ${inv.objetivo?`<p style="font-size:11px;color:var(--t3);margin-top:8px">🎯 ${Utils.esc(inv.objetivo)}</p>`:''}
@@ -153,7 +153,7 @@ const InvestimentosModule = (() => {
             ${cor?`<div style="width:8px;height:8px;border-radius:50%;background:${cor}"></div>`:''}
             <span style="font-size:13px">${Utils.esc(k)}</span>
           </div>
-          <span style="font-size:13px;font-weight:600">${Utils.fmt(v)}</span>
+          <span class="financial-value" style="font-size:13px;font-weight:600">${Utils.fmt(v)}</span>
         </div>
         <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${cor||'var(--bl)'}"></div></div>
       </div>`

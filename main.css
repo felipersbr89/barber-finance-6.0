@@ -1019,3 +1019,43 @@ textarea { resize:vertical; min-height:80px; }
   font-size: 12px; font-weight: 600; color: var(--tx);
   text-align: right;
 }
+
+/* ════════════════════════════════════════════════════════
+   PRIVACY — Botão ocultar/exibir valores financeiros
+════════════════════════════════════════════════════════ */
+
+/* Botão de privacidade */
+.privacy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--b2);
+  border-radius: var(--r-sm, 8px);
+  background: var(--s2);
+  color: var(--t2);
+  cursor: pointer;
+  transition: all .15s;
+  flex-shrink: 0;
+  padding: 0;
+  vertical-align: middle;
+}
+.privacy-btn:hover {
+  background: var(--s3);
+  border-color: var(--b3);
+  color: var(--tx);
+}
+.privacy-btn:active { transform: scale(0.93); }
+
+/* Ativo = valores ocultos: destacar com verde-lima */
+.privacy-btn[aria-pressed="true"] {
+  border-color: var(--ac-bdr);
+  color: var(--ac);
+  background: var(--ac-dim);
+}
+
+/* Transição suave ao ocultar/exibir */
+.financial-value {
+  transition: opacity .18s;
+}

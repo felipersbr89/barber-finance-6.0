@@ -9,7 +9,7 @@ const ReceitasModule = (() => {
 
   function ui() { return `
     <div class="sec-header">
-      <div class="sec-title">Receitas <span id="rec-total" style="font-size:13px;font-weight:400;color:var(--t2)">— Total: R$ 0,00</span></div>
+      <div class="sec-title">Receitas <span id="rec-total" style="font-size:13px;font-weight:400;color:var(--t2)">— Total: <span class="financial-value">R$ 0,00</span></span></div>
       <button class="btn btn-lime btn-sm" onclick="ReceitasModule.toggleForm()">${svgPlus()} <span id="rec-form-lbl">Nova receita</span></button>
     </div>
     <div id="rec-form" class="form-card hidden">
@@ -89,7 +89,7 @@ const ReceitasModule = (() => {
     todos = data || []
     const total = todos.reduce((s,t) => s + Number(t.valor||0), 0)
     const el = document.getElementById('rec-total')
-    if (el) el.textContent = '— Total: ' + Utils.fmt(total)
+    if (el) { const span=el.querySelector('.financial-value')||el; if(span!==el){span.dataset.fvOrig=undefined; span.textContent=Utils.fmt(total)} else el.innerHTML='— Total: <span class="financial-value">' + Utils.fmt(total) + '</span>' }
     render()
   }
 
@@ -118,7 +118,7 @@ const ReceitasModule = (() => {
             </div>
           </div>
           <div class="receita-right">
-            <div class="receita-val">+${Utils.fmt(t.valor)}</div>
+            <div class="receita-val financial-value">+${Utils.fmt(t.valor)}</div>
             <div class="receita-actions">
               <button class="btn btn-ghost btn-icon btn-sm" onclick="ReceitasModule.abrirEdicao('${t.id}')" title="Editar">✏️</button>
               <button class="btn btn-danger btn-icon btn-sm" onclick="ReceitasModule.abrirDel('${t.id}')" title="Excluir">🗑️</button>

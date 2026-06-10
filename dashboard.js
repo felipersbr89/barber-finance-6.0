@@ -26,14 +26,17 @@ const DashboardModule = (() => {
           <div class="page-title">Dashboard</div>
           <div class="page-sub" id="dash-sub">Carregando...</div>
         </div>
-        <div id="dash-mpicker"></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="dash-mpicker"></div>
+          <span id="dash-privacy-btn"></span>
+        </div>
       </div>
       <!-- Hero Card (estilo DEMO) -->
       <div class="hero-card" id="dash-hero" style="display:none;animation:none">
         <div class="hero-card-deco"></div>
         <div class="hero-card-deco2"></div>
         <div class="hero-card-label">Saldo do mês</div>
-        <div class="hero-card-value" id="hero-balance">—</div>
+        <div class="hero-card-value financial-value" id="hero-balance">—</div>
         <div class="hero-card-sub" id="hero-sub">Receitas — Despesas</div>
         <div class="hero-card-badge" id="hero-badge" style="display:none">
           ${iconArrowUp()} <span id="hero-badge-txt"></span>
@@ -45,21 +48,21 @@ const DashboardModule = (() => {
         <div class="card" style="padding:16px 18px">
           <div class="card-icon bg-green-soft" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px">${iconReceitas()}</div>
           <div class="card-label">RECEITAS</div>
-          <div class="card-value c-green" id="kpi-income">—</div>
+          <div class="card-value c-green financial-value" id="kpi-income">—</div>
           <div class="card-hint" id="kpi-income-hint"></div>
           <div class="card-kpi-bar green"></div>
         </div>
         <div class="card" style="padding:16px 18px">
           <div class="card-icon bg-red-soft" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px">${iconDespesas()}</div>
           <div class="card-label">DESPESAS</div>
-          <div class="card-value c-red" id="kpi-expense">—</div>
+          <div class="card-value c-red financial-value" id="kpi-expense">—</div>
           <div class="card-hint" id="kpi-expense-hint"></div>
           <div class="card-kpi-bar red"></div>
         </div>
         <div class="card" style="padding:16px 18px">
           <div class="card-icon bg-lime-soft" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px">${iconInvest()}</div>
           <div class="card-label">SALDO</div>
-          <div class="card-value c-lime" id="kpi-balance">—</div>
+          <div class="card-value c-lime financial-value" id="kpi-balance">—</div>
           <div class="card-hint" id="kpi-balance-hint"></div>
           <div class="card-kpi-bar lime"></div>
         </div>
@@ -100,7 +103,7 @@ const DashboardModule = (() => {
           <span class="card-label">${label}</span>
           <div class="card-icon ${bg}">${icon}</div>
         </div>
-        <div class="card-value ${color}" id="${id}">—</div>
+        <div class="card-value financial-value ${color}" id="${id}">—</div>
         <div class="card-hint" id="${id}-hint"></div>
       </div>`
   }
@@ -126,6 +129,10 @@ const DashboardModule = (() => {
 
     // Saudação
     // Busca nome do perfil no Supabase
+    // Botão de privacidade no header desktop
+    const _privBtn = document.getElementById('dash-privacy-btn')
+    if (_privBtn && window.Privacy) _privBtn.innerHTML = Privacy.btnHTML()
+
     if (window._greet) {
       const gp = document.getElementById('dash-greet-period')
       const gm = document.getElementById('dash-greet-msg')
@@ -260,7 +267,7 @@ const DashboardModule = (() => {
             <span>${Utils.fmtDate(t.data)}</span>
           </div>
         </div>
-        <div style="font-size:13px;font-weight:600;color:${isR?'var(--gr)':'var(--rd)'};flex-shrink:0">${isR?'+':'-'}${Utils.fmt(t.valor)}</div>
+        <div class="financial-value" style="font-size:13px;font-weight:600;color:${isR?\'var(--gr)\':\'var(--rd)\'};flex-shrink:0">${isR?'+':'-'}${Utils.fmt(t.valor)}</div>
       </div>`
     }).join('')
   }
@@ -283,8 +290,8 @@ const DashboardModule = (() => {
         </div>
         <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${done?'var(--ac2)':'var(--ac)'}"></div></div>
         <div style="display:flex;justify-content:space-between;margin-top:4px">
-          <span style="font-size:11px;color:var(--t3)">${Utils.fmt(g.valor_atual||0)}</span>
-          <span style="font-size:11px;color:var(--t3)">${Utils.fmt(g.valor_alvo)}</span>
+          <span style="font-size:11px;color:var(--t3)"><span class="financial-value">${Utils.fmt(g.valor_atual||0)}</span></span>
+          <span class="financial-value" style="font-size:11px;color:var(--t3)">${Utils.fmt(g.valor_alvo)}</span>
         </div>
       </div>`
     }).join('')
@@ -323,7 +330,7 @@ const DashboardModule = (() => {
         </div>
         <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:11px;color:var(--t2)">${pct}%</span>
-          <span style="font-size:12px;font-weight:600">${Utils.fmt(val)}</span>
+          <span class="financial-value" style="font-size:12px;font-weight:600">${Utils.fmt(val)}</span>
         </div>
       </div>`
     }).join('')
