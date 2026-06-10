@@ -279,7 +279,7 @@ const Layout = {
         .eq('user_id', App.user.id)
         .maybeSingle()
 
-      if (prof?.avatar_url && prof.avatar_url !== cached) {
+      if (prof?.avatar_url) {
         this.updateUserAvatar(prof.avatar_url)
       }
     } catch(err) {
@@ -292,48 +292,73 @@ const Layout = {
     const file = input.files[0]
     if (!file) return
 
-    // Preview imediato com base64
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      const b64 = e.target.result
+    const uid = App.user?.id
+    if (!uid || !window.db) return
 
-      // 1. Aplica imediatamente em toda a tela
+    // 1. Comprimir imagem via canvas (garante <80KB, funciona em qualquer device)
+    const compress = (f) => new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (ev) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const MAX = 200  // px
+          let w = img.width, h = img.height
+          if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX } }
+          else       { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX } }
+          canvas.width = w; canvas.height = h
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+          resolve(canvas.toDataURL('image/jpeg', 0.82))
+        }
+        img.src = ev.target.result
+      }
+      reader.readAsDataURL(f)
+    })
+
+    try {
+      const b64 = await compress(file)
+
+      // 2. Aplicar preview imediato em toda a tela
       this.updateUserAvatar(b64)
 
-      // 2. Upload para Supabase Storage
-      try {
-        const uid = App.user?.id
-        if (!uid || !window.db) return
-        const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase()
-        const path = `${uid}/avatar.${ext}`
+      // 3. Salvar base64 comprimido DIRETO no banco — funciona sem Storage
+      //    Isso garante sincronização entre desktop e mobile via Supabase
+      const { error: dbErr } = await window.db.from('profiles')
+        .upsert({ user_id: uid, avatar_url: b64 }, { onConflict: 'user_id' })
 
-        const { error: upErr } = await window.db.storage
-          .from('avatars')
-          .upload(path, file, { upsert: true, contentType: file.type })
-
-        if (upErr) {
-          console.warn('[Avatar] Storage error:', upErr.message)
-          // Mantém o base64 no localStorage como fallback
-          return
-        }
-
-        // 3. Obter URL pública
-        const { data: urlData } = window.db.storage.from('avatars').getPublicUrl(path)
-        const publicUrl = urlData?.publicUrl
-        if (!publicUrl) return
-
-        // 4. Persistir URL pública no profile (sobrescreve base64 no cache)
-        await window.db.from('profiles')
-          .upsert({ user_id: uid, avatar_url: publicUrl }, { onConflict: 'user_id' })
-
-        // 5. Atualizar cache com URL pública (mais leve que base64)
-        this.updateUserAvatar(publicUrl)
-
-      } catch(err) {
-        console.warn('[Avatar] Upload error:', err.message)
+      if (dbErr) {
+        console.warn('[Avatar] DB error:', dbErr.message)
+      } else {
+        console.log('[Avatar] Salvo no banco ✓')
+        this.updateUserAvatar(b64)
       }
+
+      // 4. Tentar Storage em paralelo (melhora performance se bucket existir)
+      try {
+        const ext  = 'jpg'
+        const path = `${uid}/avatar.${ext}`
+        const blob = await fetch(b64).then(r => r.blob())
+        const { error: upErr } = await window.db.storage
+          .from('avatars').upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
+
+        if (!upErr) {
+          const { data: urlData } = window.db.storage.from('avatars').getPublicUrl(path)
+          const publicUrl = urlData?.publicUrl
+          if (publicUrl) {
+            // Atualiza para URL pública (mais leve que base64 no banco)
+            await window.db.from('profiles')
+              .upsert({ user_id: uid, avatar_url: publicUrl }, { onConflict: 'user_id' })
+            this.updateUserAvatar(publicUrl)
+            console.log('[Avatar] URL pública salva ✓', publicUrl)
+          }
+        }
+      } catch(_) {
+        // Storage não configurado — base64 no banco é suficiente
+      }
+
+    } catch(err) {
+      console.warn('[Avatar] Erro geral:', err.message)
     }
-    reader.readAsDataURL(file)
   },
 
   // Expõe globalmente para ser chamado de qualquer módulo
