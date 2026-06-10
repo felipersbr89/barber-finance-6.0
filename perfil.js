@@ -10,7 +10,7 @@ const PerfilModule = (() => {
       <div class="page-title" style="margin-bottom:4px">Perfil</div>
       <div class="page-sub" style="margin-bottom:20px">Gerencie suas informações</div>
       <div class="card" style="text-align:center;padding:28px;margin-bottom:16px">
-        <div style="position:relative;width:80px;height:80px;margin:0 auto 14px;cursor:pointer" onclick="document.getElementById('perfil-avatar-input').click()" title="Trocar foto de perfil">
+        <div style="position:relative;width:80px;height:80px;margin:0 auto 14px;cursor:pointer" onclick="document.getElementById('avatar-input-perfil').click()" title="Trocar foto de perfil">
           <div id="av-big" style="width:80px;height:80px;border-radius:50%;background:var(--ac-dim);border:2px solid var(--ac-bdr);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:var(--ac);overflow:hidden">
             <img id="perfil-avatar-img" src="" alt="Foto de perfil" style="display:none;width:100%;height:100%;object-fit:cover">
             <span id="av-big-initials">?</span>
@@ -19,7 +19,7 @@ const PerfilModule = (() => {
             <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" style="width:12px;height:12px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
           </div>
         </div>
-        <input type="file" id="perfil-avatar-input" accept="image/*" style="display:none" onchange="Layout.updateAvatar(this)">
+        <input type="file" id="avatar-input-perfil" accept="image/*" style="display:none" onchange="Avatar.upload(this)">
         <div id="av-name" style="font-size:17px;font-weight:700">—</div>
         <div id="av-shop" style="font-size:13px;color:var(--t3);margin-top:3px">—</div>
         <div id="av-email" style="font-size:12px;color:var(--t4);margin-top:2px">—</div>
@@ -88,28 +88,14 @@ const PerfilModule = (() => {
       document.getElementById('av-shop').textContent=p.barbershop_name||'Barbearia'
       if(p.created_at){const since=document.getElementById('av-since');since.textContent='📅 Membro desde '+new Date(p.created_at).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});since.style.display='block'}
       // Carregar foto de perfil (usa mesma fonte de verdade do sistema)
-      const avatarSrc = p.avatar_url
-        || localStorage.getItem('gb_avatar_url')
-        || localStorage.getItem('gb-avatar-url')
-        || localStorage.getItem('gb-avatar')
-      if(avatarSrc){
-        if(typeof window.updateUserAvatar === 'function') {
-          window.updateUserAvatar(avatarSrc)
-        } else {
-          const imgEl=document.getElementById('perfil-avatar-img')
-          if(imgEl){imgEl.src=avatarSrc;imgEl.style.display='';if(initSpan)initSpan.style.display='none'}
-        }
-      }
+      // Avatar carregado por Avatar.load() — fonte de verdade: profiles.avatar_url
+      if(p.avatar_url) window.Avatar?._apply(p.avatar_url)
     } else {
       const ini=Utils.initials('',App.user.email)
       const initSpan=document.getElementById('av-big-initials')
       if(initSpan) initSpan.textContent=ini
       document.getElementById('av-name').textContent='Sem nome'
-      // Tentar carregar do cache mesmo sem profile
-      const cachedUrl = localStorage.getItem('gb_avatar_url') || localStorage.getItem('gb-avatar')
-      if(cachedUrl && typeof window.updateUserAvatar === 'function') {
-        window.updateUserAvatar(cachedUrl)
-      }
+
     }
     document.getElementById('av-email').textContent=App.user.email||''
     const tr=(rRes.data||[]).reduce((s,x)=>s+Number(x.valor||0),0)

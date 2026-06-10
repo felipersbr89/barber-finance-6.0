@@ -168,7 +168,7 @@ const Layout = {
         <nav class="sidebar-nav">${navHTML}${barberMetasHTML}</nav>
         <div class="sidebar-footer">
           <div class="user-chip">
-            <div class="user-avatar-wrap" id="sidebar-avatar-wrap" onclick="document.getElementById('gb-avatar-input').click()" title="Trocar foto de perfil" style="cursor:pointer">
+            <div class="user-avatar-wrap" id="sidebar-avatar-wrap" onclick="document.getElementById('avatar-input').click()" title="Trocar foto de perfil" style="cursor:pointer">
               <div class="user-avatar" id="sidebar-avatar">${initials}</div>
               <div class="avatar-cam-badge">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:8px;height:8px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -179,7 +179,7 @@ const Layout = {
               <div class="user-email" id="sidebar-email">${email}</div>
             </div>
           </div>
-          <input type="file" id="gb-avatar-input" accept="image/*" style="display:none" onchange="Layout.updateAvatar(this)">
+          <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="Avatar.upload(this)">
           <button class="btn-logout" onclick="Auth.signOut()">
             ${iconLogout()} Sair da conta
           </button>
@@ -196,10 +196,9 @@ const Layout = {
             </div>
             <span class="topbar-brand-text">GORILAZ</span>
           </div>
-          <label for="gb-avatar-input-mobile" style="cursor:pointer;display:block">
-            <div class="user-avatar" id="topbar-avatar" title="Trocar foto de perfil" style="cursor:pointer;position:relative">${initials}</div>
+          <label for="avatar-input" style="cursor:pointer;display:block;line-height:0">
+            <div class="user-avatar" id="topbar-avatar" title="Trocar foto de perfil" style="cursor:pointer">${initials}</div>
           </label>
-          <input type="file" id="gb-avatar-input-mobile" accept="image/*" style="display:none" onchange="Layout.updateAvatar(this)">
         </header>
         <main class="page-content" id="page-content"></main>
       </div>
@@ -223,146 +222,12 @@ const Layout = {
     document.getElementById('sidebar')?.classList.remove('open')
     document.getElementById('sidebar-overlay')?.classList.remove('show')
   },
-  // ════════════════════════════════════════════════
-  // AVATAR SYSTEM — fonte de verdade: profiles.avatar_url
-  // ════════════════════════════════════════════════
+  // ════════════════════════════════════════════
+  // DELEGAÇÃO — Avatar gerenciado pelo objeto Avatar
+  // ════════════════════════════════════════════
+  updateAvatar(input) { Avatar.upload(input) },
+  loadSavedAvatar()   { return Avatar.load()  },
 
-  // Chave única no localStorage
-  _AVATAR_KEY: 'gb_avatar_url',
-
-  // Retorna a URL do avatar atual (de qualquer fonte)
-  _getAvatarUrl() {
-    return window._gbAvatarUrl || localStorage.getItem('gb_avatar_url') || null
-  },
-
-  // updateUserAvatar() — função global, chamada por qualquer componente
-  // Atualiza TODOS os avatares visíveis na tela imediatamente
-  updateUserAvatar(src) {
-    if (!src) return
-    window._gbAvatarUrl = src
-    try { localStorage.setItem('gb_avatar_url', src) } catch(_) {}
-
-    const img = `<img src="${src}" alt="Foto" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-
-    // 1. Sidebar desktop
-    const sav = document.getElementById('sidebar-avatar')
-    if (sav) { sav.innerHTML = img; sav.style.padding='0'; sav.style.fontSize='0' }
-
-    // 2. Topbar mobile
-    const tav = document.getElementById('topbar-avatar')
-    if (tav) { tav.innerHTML = img; tav.style.padding='0'; tav.style.fontSize='0' }
-
-    // 3. Página Perfil (se estiver aberta)
-    const pimg = document.getElementById('perfil-avatar-img')
-    if (pimg) { pimg.src=src; pimg.style.display='' }
-    const pinit = document.getElementById('av-big-initials')
-    if (pinit) pinit.style.display='none'
-
-    // 4. Copa Gorilaz — todos os avatares do usuário logado
-    document.querySelectorAll('.copa-rank-avatar[data-own="true"]').forEach(el => {
-      el.innerHTML = img; el.style.padding='0'; el.style.fontSize='0'
-    })
-  },
-
-  // Carrega avatar do Supabase (fonte de verdade) e propaga
-  async loadSavedAvatar() {
-    // Aplicar cache local imediatamente (sem latência)
-    const cached = this._getAvatarUrl()
-    if (cached) this.updateUserAvatar(cached)
-
-    // Buscar do Supabase (fonte de verdade)
-    try {
-      if (!App.user?.id || !window.db) return
-      const { data: prof } = await window.db
-        .from('profiles')
-        .select('avatar_url')
-        .eq('user_id', App.user.id)
-        .maybeSingle()
-
-      if (prof?.avatar_url) {
-        this.updateUserAvatar(prof.avatar_url)
-      }
-    } catch(err) {
-      console.warn('[Avatar] loadSavedAvatar:', err.message)
-    }
-  },
-
-  // Chamado pelo input file (desktop sidebar, mobile topbar, página perfil)
-  async updateAvatar(input) {
-    const file = input.files[0]
-    if (!file) return
-
-    const uid = App.user?.id
-    if (!uid || !window.db) return
-
-    // 1. Comprimir imagem via canvas (garante <80KB, funciona em qualquer device)
-    const compress = (f) => new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onload = (ev) => {
-        const img = new Image()
-        img.onload = () => {
-          const canvas = document.createElement('canvas')
-          const MAX = 200  // px
-          let w = img.width, h = img.height
-          if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX } }
-          else       { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX } }
-          canvas.width = w; canvas.height = h
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h)
-          resolve(canvas.toDataURL('image/jpeg', 0.82))
-        }
-        img.src = ev.target.result
-      }
-      reader.readAsDataURL(f)
-    })
-
-    try {
-      const b64 = await compress(file)
-
-      // 2. Aplicar preview imediato em toda a tela
-      this.updateUserAvatar(b64)
-
-      // 3. Salvar base64 comprimido DIRETO no banco — funciona sem Storage
-      //    Isso garante sincronização entre desktop e mobile via Supabase
-      const { error: dbErr } = await window.db.from('profiles')
-        .upsert({ user_id: uid, avatar_url: b64 }, { onConflict: 'user_id' })
-
-      if (dbErr) {
-        console.warn('[Avatar] DB error:', dbErr.message)
-      } else {
-        console.log('[Avatar] Salvo no banco ✓')
-        this.updateUserAvatar(b64)
-      }
-
-      // 4. Tentar Storage em paralelo (melhora performance se bucket existir)
-      try {
-        const ext  = 'jpg'
-        const path = `${uid}/avatar.${ext}`
-        const blob = await fetch(b64).then(r => r.blob())
-        const { error: upErr } = await window.db.storage
-          .from('avatars').upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
-
-        if (!upErr) {
-          const { data: urlData } = window.db.storage.from('avatars').getPublicUrl(path)
-          const publicUrl = urlData?.publicUrl
-          if (publicUrl) {
-            // Atualiza para URL pública (mais leve que base64 no banco)
-            await window.db.from('profiles')
-              .upsert({ user_id: uid, avatar_url: publicUrl }, { onConflict: 'user_id' })
-            this.updateUserAvatar(publicUrl)
-            console.log('[Avatar] URL pública salva ✓', publicUrl)
-          }
-        }
-      } catch(_) {
-        // Storage não configurado — base64 no banco é suficiente
-      }
-
-    } catch(err) {
-      console.warn('[Avatar] Erro geral:', err.message)
-    }
-  },
-
-  // Expõe globalmente para ser chamado de qualquer módulo
-  // Ex: window.updateUserAvatar(src)
 
   async loadProfileName() {
     try {
@@ -645,6 +510,120 @@ const ComingSoon = {
   }
 }
 
+
+// ════════════════════════════════════════════════════════
+// AVATAR — fonte de verdade ÚNICA: profiles.avatar_url
+// Todas as telas usam as mesmas duas funções:
+//   Avatar.load()         — carrega do Supabase e aplica
+//   Avatar.upload(input)  — faz upload e salva no Supabase
+// ════════════════════════════════════════════════════════
+const Avatar = {
+
+  // Aplica a foto em TODOS os .user-avatar da tela
+  // Regra: qualquer elemento que exiba foto DO USUÁRIO deve ter classe .user-avatar
+  _apply(src) {
+    if (!src) return
+    const img = `<img src="${src}" alt="Foto" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+    document.querySelectorAll('.user-avatar').forEach(el => {
+      el.innerHTML = img
+      el.style.padding   = '0'
+      el.style.fontSize  = '0'
+      el.style.lineHeight = '0'
+    })
+    // Perfil: img tag separada
+    const pimg = document.getElementById('perfil-avatar-img')
+    if (pimg) { pimg.src = src; pimg.style.display = '' }
+    const pinit = document.getElementById('av-big-initials')
+    if (pinit) pinit.style.display = 'none'
+    // Copa ranking (página separada, não tem .user-avatar do sistema)
+    document.querySelectorAll('.copa-rank-avatar[data-own="true"]').forEach(el => {
+      el.innerHTML = img; el.style.padding='0'; el.style.fontSize='0'
+    })
+    // Guardar em memória para componentes que renderizarem depois
+    window.__avatarUrl = src
+  },
+
+  // loadUserAvatar() — busca profiles.avatar_url e aplica em toda a tela
+  async load() {
+    try {
+      if (!App?.user?.id || !window.db) return
+      const { data: prof } = await window.db
+        .from('profiles')
+        .select('avatar_url')
+        .eq('user_id', App.user.id)
+        .maybeSingle()
+      if (prof?.avatar_url) {
+        this._apply(prof.avatar_url)
+      }
+    } catch(e) {
+      console.warn('[Avatar.load]', e.message)
+    }
+  },
+
+  // uploadAvatar() — única função de upload, funciona em desktop e mobile
+  async upload(input) {
+    const file = input?.files?.[0]
+    if (!file || !App?.user?.id || !window.db) return
+
+    const uid = App.user.id
+
+    // 1. Comprimir para 200×200 JPEG ~20KB via canvas
+    const b64 = await new Promise(resolve => {
+      const reader = new FileReader()
+      reader.onload = ev => {
+        const img = new Image()
+        img.onload = () => {
+          const MAX = 200
+          let w = img.width, h = img.height
+          if (w > h) { if (w > MAX) { h = Math.round(h*MAX/w); w = MAX } }
+          else       { if (h > MAX) { w = Math.round(w*MAX/h); h = MAX } }
+          const canvas = document.createElement('canvas')
+          canvas.width = w; canvas.height = h
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+          resolve(canvas.toDataURL('image/jpeg', 0.85))
+        }
+        img.src = ev.target.result
+      }
+      reader.readAsDataURL(file)
+    })
+
+    // 2. Aplicar preview imediato na tela
+    this._apply(b64)
+
+    // 3. Salvar em profiles.avatar_url — fonte de verdade para todos os devices
+    const { error } = await window.db.from('profiles')
+      .upsert({ user_id: uid, avatar_url: b64 }, { onConflict: 'user_id' })
+
+    if (error) {
+      console.warn('[Avatar.upload] DB error:', error.message)
+      return
+    }
+    console.log('[Avatar.upload] Salvo em profiles.avatar_url ✓')
+
+    // 4. (Opcional) Tentar Storage para URL pública mais leve
+    try {
+      const blob = await fetch(b64).then(r => r.blob())
+      const path = `${uid}/avatar.jpg`
+      const { error: upErr } = await window.db.storage
+        .from('avatars').upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
+      if (!upErr) {
+        const { data } = window.db.storage.from('avatars').getPublicUrl(path)
+        if (data?.publicUrl) {
+          await window.db.from('profiles')
+            .upsert({ user_id: uid, avatar_url: data.publicUrl }, { onConflict: 'user_id' })
+          this._apply(data.publicUrl)
+          console.log('[Avatar.upload] URL pública atualizada ✓')
+        }
+      }
+    } catch(_) { /* Storage não configurado — base64 no banco é suficiente */ }
+  }
+}
+
+// Expor globalmente
+window.Avatar          = Avatar
+window.loadUserAvatar  = ()  => Avatar.load()
+window.updateUserAvatar = (src) => Avatar._apply(src)
+
 // ── 8. EXPÕE GLOBALMENTE ─────────────────────
 window.Auth   = Auth
 window.Layout = Layout
@@ -652,5 +631,4 @@ window.Toast  = Toast
 window.Modal  = Modal
 window.Utils       = Utils
 window.MonthPicker      = MonthPicker
-window.updateUserAvatar = (src) => Layout.updateUserAvatar(src)
 window.ComingSoon   = ComingSoon

@@ -447,11 +447,8 @@ const Copa = {
     document.getElementById('painel-nome').textContent = barbeiro.nome
     document.getElementById('painel-barb').textContent = '✂️ '+barbeiro.barbearia
     document.getElementById('lanc-data').value = DATA_HOJE
-    // Sincronizar foto de perfil (usa chave única do sistema)
-    const savedAvatar = localStorage.getItem('gb_avatar_url')
-      || localStorage.getItem('gb-avatar-url')
-      || localStorage.getItem('gb-avatar')
-    if (savedAvatar) { window._avatarSrc = savedAvatar }
+    // Avatar sincronizado via window.__avatarUrl (carregado pelo Avatar.load())
+    if (window.__avatarUrl) window._avatarSrc = window.__avatarUrl
     await this.onDataChange()
     await this.atualizarKpisMes()
     await this.carregarHistorico()
@@ -747,8 +744,8 @@ const Copa = {
           <div class="rank-pos ${i<3?posClass[i]:'other'}">${i+1}°</div>
           ${i<3?`<div class="rank-medal">${medals[i]}</div>`:'<div style="width:18px"></div>'}
           <div class="rank-avatar copa-rank-avatar" data-id="${r.id}" ${isOwn ? 'data-own="true"' : ''}>${
-            isOwn && window._avatarSrc
-              ? `<img src="${window._avatarSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="${r.nome}">`
+            isOwn && (window.__avatarUrl || window._avatarSrc)
+              ? `<img src="${window.__avatarUrl || window._avatarSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="${r.nome}">`
               : ini
           }</div>
           <div class="rank-info">
