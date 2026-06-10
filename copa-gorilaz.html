@@ -32,7 +32,8 @@
     /* HERO */
     .hero{background:linear-gradient(135deg,#0d1a00 0%,#0a0a0a 50%,#0d1a00 100%);border-bottom:1px solid var(--b1);padding:36px 20px 28px;text-align:center;position:relative;overflow:hidden}
     .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(198,241,53,.08) 0%,transparent 65%)}
-    .hero-logo{display:inline-flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b2);border-radius:999px;padding:6px 16px 6px 8px;margin-bottom:16px}
+    .hero-logo{display:inline-flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b2);border-radius:999px;padding:6px 16px 6px 8px;margin-bottom:16px;cursor:pointer;text-decoration:none;transition:opacity .15s}
+    .hero-logo:hover{opacity:.85}
     .hero-logo-mark{width:26px;height:26px;background:var(--ac);border-radius:7px;display:flex;align-items:center;justify-content:center}
     .hero-logo-mark svg{width:14px;height:14px;color:#000}
     .hero-logo-text{font-family:var(--fd);font-size:12px;font-weight:700;letter-spacing:1px}
@@ -169,7 +170,7 @@
 
 <!-- HERO -->
 <div class="hero">
-  <a href="dashboard.html" class="hero-logo" style="text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b2);border-radius:999px;padding:6px 16px 6px 8px;margin-bottom:16px" title="Voltar ao Dashboard">
+  <a href="dashboard.html" class="hero-logo" aria-label="Voltar ao Dashboard principal">
     <div class="hero-logo-mark">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
     </div>
