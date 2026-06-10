@@ -414,8 +414,12 @@ const Copa = {
       id = exist.id
       toast('Bem-vindo de volta, '+nome+'! ✓','ok')
     } else {
+      // Pega uid do usuário autenticado (se existir) para linkar com profiles
+      const { data: authData } = await db.auth.getUser().catch(() => ({ data: null }))
+      const authUid = authData?.user?.id || null
+
       const { data:novo, error } = await db.from('copa_barbeiros')
-        .insert({ nome, barbearia, planos:0, servicos:0, produtos:0, mes_referencia:MES_REF })
+        .insert({ nome, barbearia, planos:0, servicos:0, produtos:0, mes_referencia:MES_REF, user_id: authUid })
         .select('id').single()
       if (error){ err.textContent='Erro: '+error.message; err.style.display='block'; btn.disabled=false; btn.textContent='Entrar na Copa'; return }
       id = novo.id
@@ -447,8 +451,7 @@ const Copa = {
     document.getElementById('painel-nome').textContent = barbeiro.nome
     document.getElementById('painel-barb').textContent = '✂️ '+barbeiro.barbearia
     document.getElementById('lanc-data').value = DATA_HOJE
-    // Avatar sincronizado via window.__avatarUrl (carregado pelo Avatar.load())
-    if (window.__avatarUrl) window._avatarSrc = window.__avatarUrl
+    // Avatar buscado direto de profiles.avatar_url no carregarRanking()
     await this.onDataChange()
     await this.atualizarKpisMes()
     await this.carregarHistorico()
@@ -702,15 +705,14 @@ const Copa = {
     const el = document.getElementById('rank-list')
     el.innerHTML='<div class="loading-state"><div class="spin"></div> Carregando...</div>'
 
-
-    // Busca participantes
-    let qParts = db.from('copa_barbeiros').select('id,nome,barbearia')
+    // 1. Buscar participantes COM user_id para poder buscar avatar em profiles
+    let qParts = db.from('copa_barbeiros').select('id,nome,barbearia,user_id')
     if (rankFiltro==='gorilaz') qParts=qParts.ilike('barbearia','%gorilaz%')
     const { data:parts, error:ep } = await qParts
     if (ep||!parts?.length){ el.innerHTML='<div class="rank-empty">Nenhum participante ainda. Seja o primeiro!</div>'; return }
 
+    // 2. Buscar lançamentos do mês
     const ids = parts.map(p=>p.id)
-    // Busca separada por participante para evitar encoding bug no .in()
     const lancsArr = await Promise.all(ids.map(id =>
       db.from('copa_lancamentos').select('*')
         .eq('participante_id', Number(id)).gte('data', MES_REF+'-01').lte('data', MES_END)
@@ -718,11 +720,20 @@ const Copa = {
     ))
     const lancs = lancsArr.flat()
 
-    // Agrupa pontos por participante
-    const totais = {}
-    const det    = {}  // detalhes: planos/extras/produtos
+    // 3. Buscar avatar_url de profiles para cada participante que tem user_id
+    //    Fonte única: profiles.avatar_url — mesma do perfil, sidebar, mobile
+    const avatarMap = {}  // user_id → avatar_url
+    const uids = [...new Set(parts.map(p=>p.user_id).filter(Boolean))]
+    await Promise.all(uids.map(async uid => {
+      const { data: prof } = await db.from('profiles')
+        .select('avatar_url').eq('user_id', uid).maybeSingle()
+      if (prof?.avatar_url) avatarMap[uid] = prof.avatar_url
+    }))
+
+    // 4. Agrupa pontos
+    const totais = {}, det = {}
     parts.forEach(p=>{ totais[p.id]=0; det[p.id]={planos:0,extras:0,produtos:0} })
-    ;(lancs||[]).forEach(l=>{
+    lancs.forEach(l=>{
       totais[l.participante_id]=(totais[l.participante_id]||0)+l.pontos
       det[l.participante_id].planos  =(det[l.participante_id].planos||0)+l.planos
       det[l.participante_id].extras  =(det[l.participante_id].extras||0)+l.extras
@@ -737,17 +748,21 @@ const Copa = {
     const posClass=['gold','silver','bronze']
 
     el.innerHTML = rankeados.map((r,i)=>{
-      const isOwn = barbeiro && Number(r.id)===Number(barbeiro.id)
-      const ini   = r.nome.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase()
+      const isOwn    = barbeiro && Number(r.id)===Number(barbeiro.id)
+      const ini      = r.nome.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase()
+      // Avatar: busca em profiles.avatar_url via user_id (fonte única)
+      // Para o próprio usuário: também aceita window.__avatarUrl (atualização imediata após troca)
+      const avatarUrl = (isOwn ? window.__avatarUrl : null)
+                     || (r.user_id ? avatarMap[r.user_id] : null)
+      const avatarHtml = avatarUrl
+        ? `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="${r.nome}">`
+        : ini
       return `
         <div class="rank-card ${isOwn?'own-row':''}">
           <div class="rank-pos ${i<3?posClass[i]:'other'}">${i+1}°</div>
           ${i<3?`<div class="rank-medal">${medals[i]}</div>`:'<div style="width:18px"></div>'}
-          <div class="rank-avatar copa-rank-avatar" data-id="${r.id}" ${isOwn ? 'data-own="true"' : ''}>${
-            isOwn && (window.__avatarUrl || window._avatarSrc)
-              ? `<img src="${window.__avatarUrl || window._avatarSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="${r.nome}">`
-              : ini
-          }</div>
+          <div class="rank-avatar copa-rank-avatar" data-id="${r.id}" ${isOwn?'data-own="true"':''}
+               style="${avatarUrl ? 'padding:0;font-size:0;line-height:0' : ''}">${avatarHtml}</div>
           <div class="rank-info">
             <div class="rank-name">${r.nome}${isOwn?' <span style="font-size:10px;color:var(--ac)">(você)</span>':''}</div>
             <div class="rank-barb">✂️ ${r.barbearia}</div>
