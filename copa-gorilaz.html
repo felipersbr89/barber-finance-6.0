@@ -447,6 +447,9 @@ const Copa = {
     document.getElementById('painel-nome').textContent = barbeiro.nome
     document.getElementById('painel-barb').textContent = '✂️ '+barbeiro.barbearia
     document.getElementById('lanc-data').value = DATA_HOJE
+    // Sincronizar foto de perfil do sistema
+    const savedAvatar = localStorage.getItem('gb-avatar') || localStorage.getItem('gb-avatar-url')
+    if (savedAvatar) { window._avatarSrc = savedAvatar }
     await this.onDataChange()
     await this.atualizarKpisMes()
     await this.carregarHistorico()
@@ -741,7 +744,11 @@ const Copa = {
         <div class="rank-card ${isOwn?'own-row':''}">
           <div class="rank-pos ${i<3?posClass[i]:'other'}">${i+1}°</div>
           ${i<3?`<div class="rank-medal">${medals[i]}</div>`:'<div style="width:18px"></div>'}
-          <div class="rank-avatar">${ini}</div>
+          <div class="rank-avatar copa-rank-avatar" data-id="${r.id}">${
+            isOwn && window._avatarSrc
+              ? `<img src="${window._avatarSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="${r.nome}">`
+              : ini
+          }</div>
           <div class="rank-info">
             <div class="rank-name">${r.nome}${isOwn?' <span style="font-size:10px;color:var(--ac)">(você)</span>':''}</div>
             <div class="rank-barb">✂️ ${r.barbearia}</div>

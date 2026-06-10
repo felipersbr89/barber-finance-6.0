@@ -196,7 +196,7 @@ const Layout = {
             </div>
             <span class="topbar-brand-text">GORILAZ</span>
           </div>
-          <div class="user-avatar" style="cursor:default">${initials}</div>
+          <div class="user-avatar" id="topbar-avatar" onclick="document.getElementById('gb-avatar-input').click()" title="Trocar foto de perfil" style="cursor:pointer;position:relative">${initials}</div>
         </header>
         <main class="page-content" id="page-content"></main>
       </div>
@@ -220,34 +220,89 @@ const Layout = {
     document.getElementById('sidebar')?.classList.remove('open')
     document.getElementById('sidebar-overlay')?.classList.remove('show')
   },
-  updateAvatar(input) {
+  async updateAvatar(input) {
     const file = input.files[0]
     if (!file) return
+
+    // Preview imediato em base64
     const reader = new FileReader()
-    reader.onload = (e) => {
-      const av = document.getElementById('sidebar-avatar')
-      if (av) {
-        av.innerHTML = `<img src="${e.target.result}" alt="Foto" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-        av.style.padding = '0'
-        av.style.fontSize = '0'
+    reader.onload = async (e) => {
+      const b64 = e.target.result
+      // Atualiza todos os pontos imediatamente
+      Layout._applyAvatar(b64)
+      // Persiste no localStorage como fallback
+      try { localStorage.setItem('gb-avatar', b64) } catch(_) {}
+
+      // Upload para Supabase Storage
+      try {
+        const uid   = App.user?.id
+        if (!uid || !window.db) return
+        const ext   = file.name.split('.').pop() || 'jpg'
+        const path  = `${uid}/avatar.${ext}`
+        const { error: upErr } = await window.db.storage
+          .from('avatars')
+          .upload(path, file, { upsert: true, contentType: file.type })
+        if (upErr) { console.warn('[Avatar] Storage upload error:', upErr.message); return }
+
+        // Buscar URL pública
+        const { data: urlData } = window.db.storage.from('avatars').getPublicUrl(path)
+        const publicUrl = urlData?.publicUrl
+        if (!publicUrl) return
+
+        // Salvar avatar_url no profile
+        await window.db.from('profiles')
+          .upsert({ user_id: uid, avatar_url: publicUrl }, { onConflict: 'user_id' })
+
+        // Guardar URL pública para outros componentes (copa, etc)
+        window._avatarUrl = publicUrl
+        localStorage.setItem('gb-avatar-url', publicUrl)
+      } catch(err) {
+        console.warn('[Avatar] Erro ao salvar no Supabase:', err.message)
       }
-      // Persiste no localStorage
-      try { localStorage.setItem('gb-avatar', e.target.result) } catch(e) {}
     }
     reader.readAsDataURL(file)
   },
-  loadSavedAvatar() {
+
+  // Aplica a foto em TODOS os pontos do sistema
+  _applyAvatar(src) {
+    const imgTag = `<img src="${src}" alt="Foto" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+    // Sidebar
+    const sav = document.getElementById('sidebar-avatar')
+    if (sav) { sav.innerHTML = imgTag; sav.style.padding='0'; sav.style.fontSize='0' }
+    // Topbar mobile
+    const tav = document.getElementById('topbar-avatar')
+    if (tav) { tav.innerHTML = imgTag; tav.style.padding='0'; tav.style.fontSize='0' }
+    // Perfil (se estiver na página)
+    const pav = document.getElementById('perfil-avatar-img')
+    if (pav) { pav.src = src; pav.style.display='' }
+    // Copa ranking (se open)
+    window._avatarSrc = src
+    document.querySelectorAll('.copa-my-avatar').forEach(el => {
+      el.innerHTML = imgTag; el.style.padding='0'; el.style.fontSize='0'
+    })
+  },
+  async loadSavedAvatar() {
+    // 1. Aplicar localStorage imediatamente (sem latência)
     try {
-      const saved = localStorage.getItem('gb-avatar')
-      if (saved) {
-        const av = document.getElementById('sidebar-avatar')
-        if (av) {
-          av.innerHTML = `<img src="${saved}" alt="Foto" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-          av.style.padding = '0'
-          av.style.fontSize = '0'
-        }
+      const cached = localStorage.getItem('gb-avatar')
+      if (cached) Layout._applyAvatar(cached)
+    } catch(_) {}
+
+    // 2. Buscar URL do Supabase (fonte de verdade)
+    try {
+      if (!App.user?.id || !window.db) return
+      const { data: prof } = await window.db
+        .from('profiles').select('avatar_url')
+        .eq('user_id', App.user.id).maybeSingle()
+      if (prof?.avatar_url) {
+        window._avatarUrl = prof.avatar_url
+        localStorage.setItem('gb-avatar-url', prof.avatar_url)
+        // Aplica URL pública (mais confiável que base64)
+        Layout._applyAvatar(prof.avatar_url)
       }
-    } catch(e) {}
+    } catch(err) {
+      console.warn('[Avatar] loadSavedAvatar error:', err.message)
+    }
   },
   async loadProfileName() {
     try {
