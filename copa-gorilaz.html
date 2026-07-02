@@ -140,6 +140,11 @@
 
     /* RANKING */
     .rank-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+    .rank-month-picker{display:inline-flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--b2);border-radius:999px;padding:4px 4px 4px 12px;font-size:13px;font-weight:600}
+    .rank-month-picker span{min-width:110px;text-align:center}
+    .rank-month-btn{width:26px;height:26px;border-radius:50%;border:none;background:var(--s3);color:var(--tx);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1;transition:background .15s}
+    .rank-month-btn:hover{background:var(--b2)}
+    .rank-month-current{background:var(--ac-dim);color:var(--ac);border:1px solid var(--ac-bdr);font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;cursor:pointer}
     .rank-filter{display:flex;gap:6px;flex-wrap:wrap}
     .rank-filter button{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--b1);background:transparent;color:var(--t2);font-family:var(--fb);transition:all .15s}
     .rank-filter button.active{background:var(--ac-dim);color:var(--ac);border-color:var(--ac-bdr)}
@@ -201,8 +206,17 @@
   <!-- RANKING -->
   <div class="panel active" id="panel-rank">
     <div class="rank-header">
-      <div style="font-family:var(--fd);font-size:14px;font-weight:700">
-        Classificação <span id="rank-mes-label" style="font-size:12px;font-weight:400;color:var(--t2)"></span>
+      <div>
+        <div style="font-family:var(--fd);font-size:14px;font-weight:700;margin-bottom:8px">
+          Classificação <span id="rank-mes-label" style="font-size:12px;font-weight:400;color:var(--t2)"></span>
+        </div>
+        <!-- Seletor de mês do ranking -->
+        <div class="rank-month-picker">
+          <button class="rank-month-btn" onclick="Copa.rankMesAnterior()" title="Mês anterior">‹</button>
+          <span id="rank-mes-display">Carregando...</span>
+          <button class="rank-month-btn" id="rank-mes-next-btn" onclick="Copa.rankMesProximo()" title="Próximo mês">›</button>
+          <button class="rank-month-current" id="rank-mes-hoje-btn" onclick="Copa.rankMesHoje()" style="display:none" title="Voltar ao mês atual">Hoje</button>
+        </div>
       </div>
       <div class="rank-filter">
         <button class="active" onclick="Copa.filtrarRank('gorilaz',this)">Gorilaz</button>
@@ -357,15 +371,28 @@ const { createClient } = supabase
 const db = createClient(SUPABASE_URL, SUPABASE_ANON)
 
 // ── Constantes ──
-const hoje   = new Date()
-const MES_REF  = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`
-const MES_END  = (() => { const [y,m]=MES_REF.split('-').map(Number); return MES_REF+'-'+new Date(y,m,0).getDate() })()
-const MES_LABEL = (() => {
-  const nm = hoje.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
-  return nm.charAt(0).toUpperCase()+nm.slice(1)
-})()
+const hoje    = new Date()
 const DATA_HOJE = hoje.toISOString().split('T')[0]
 const GORILAZ   = b => b.toLowerCase().includes('gorilaz')
+
+// MES_REF é variável — permite navegar entre meses no ranking
+let _rankYear  = hoje.getFullYear()
+let _rankMonth = hoje.getMonth() + 1  // 1-12
+
+// MES_REF e MES_END do mês atual (usado no painel "Meu Painel")
+const MES_REF_ATUAL = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`
+const MES_END_ATUAL = (() => { const [y,m]=MES_REF_ATUAL.split('-').map(Number); return MES_REF_ATUAL+'-'+new Date(y,m,0).getDate() })()
+
+// MES_REF e MES_END dinâmicos — usados pelo ranking e histórico
+function getMesRef()  { return `${_rankYear}-${String(_rankMonth).padStart(2,'0')}` }
+function getMesEnd()  { const r=getMesRef(); const [y,m]=r.split('-').map(Number); return r+'-'+new Date(y,m,0).getDate() }
+function getMesLabel(){ const d=new Date(_rankYear,_rankMonth-1,1); const nm=d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); return nm.charAt(0).toUpperCase()+nm.slice(1) }
+function isMesAtual() { return _rankYear===hoje.getFullYear() && _rankMonth===hoje.getMonth()+1 }
+
+// Alias para compatibilidade — Meu Painel usa mês atual
+const MES_REF   = MES_REF_ATUAL
+const MES_END   = MES_END_ATUAL
+const MES_LABEL = (() => { const nm=hoje.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); return nm.charAt(0).toUpperCase()+nm.slice(1) })()
 
 const PTS = { planos: 30, extras: 20, produtos: 10 }
 const calcPts = (p,e,pr) => p*PTS.planos + e*PTS.extras + pr*PTS.produtos
@@ -391,7 +418,7 @@ const Copa = {
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'))
     document.getElementById('tab-'+tab).classList.add('active')
     document.getElementById('panel-'+tab).classList.add('active')
-    if (tab==='rank') this.carregarRanking()
+    if (tab==='rank') { this._atualizarSeletorMes(); this.carregarRanking() }
     if (tab==='meu' && barbeiro) this.atualizarKpisMes()
   },
 
@@ -652,7 +679,7 @@ const Copa = {
     // Busca um por um para evitar bug de encoding no .in() com bigints
     const todosArr = await Promise.all(ids.map(id =>
       db.from('copa_lancamentos').select('*')
-        .eq('participante_id', Number(id)).gte('data', MES_REF+'-01').lte('data', MES_END)
+        .eq('participante_id', Number(id)).gte('data', getMesRef()+'-01').lte('data', getMesEnd())
         .then(r => r.data || [])
     ))
     const todos = todosArr.flat()
@@ -735,7 +762,7 @@ const Copa = {
     toast('Dados carregados — edite e salve.','ok')
   },
 
-  // ── RANKING ──
+  // ── RANKING — Filtro barbearia ──
   filtrarRank(f, btn) {
     rankFiltro=f
     document.querySelectorAll('.rank-filter button').forEach(b=>b.classList.remove('active'))
@@ -743,9 +770,45 @@ const Copa = {
     this.carregarRanking()
   },
 
+  // ── RANKING — Navegação de mês ──
+  _atualizarSeletorMes() {
+    const display  = document.getElementById('rank-mes-display')
+    const nextBtn  = document.getElementById('rank-mes-next-btn')
+    const hojeBtn  = document.getElementById('rank-mes-hoje-btn')
+    if (display) display.textContent = getMesLabel()
+    // Desabilitar "próximo" se já estamos no mês atual
+    if (nextBtn)  nextBtn.disabled = isMesAtual()
+    if (nextBtn)  nextBtn.style.opacity = isMesAtual() ? '0.3' : '1'
+    // Mostrar botão "Hoje" só quando não estamos no mês atual
+    if (hojeBtn)  hojeBtn.style.display = isMesAtual() ? 'none' : ''
+  },
+
+  rankMesAnterior() {
+    _rankMonth--
+    if (_rankMonth < 1) { _rankMonth = 12; _rankYear-- }
+    this._atualizarSeletorMes()
+    this.carregarRanking()
+  },
+
+  rankMesProximo() {
+    if (isMesAtual()) return  // não avança além do mês atual
+    _rankMonth++
+    if (_rankMonth > 12) { _rankMonth = 1; _rankYear++ }
+    this._atualizarSeletorMes()
+    this.carregarRanking()
+  },
+
+  rankMesHoje() {
+    _rankYear  = hoje.getFullYear()
+    _rankMonth = hoje.getMonth() + 1
+    this._atualizarSeletorMes()
+    this.carregarRanking()
+  },
+
   async carregarRanking() {
     const el = document.getElementById('rank-list')
     el.innerHTML='<div class="loading-state"><div class="spin"></div> Carregando...</div>'
+    this._atualizarSeletorMes()
 
     // 1. Buscar participantes COM user_id para poder buscar avatar em profiles
     let qParts = db.from('copa_barbeiros').select('id,nome,barbearia,user_id')
@@ -757,7 +820,7 @@ const Copa = {
     const ids = parts.map(p=>p.id)
     const lancsArr = await Promise.all(ids.map(id =>
       db.from('copa_lancamentos').select('*')
-        .eq('participante_id', Number(id)).gte('data', MES_REF+'-01').lte('data', MES_END)
+        .eq('participante_id', Number(id)).gte('data', getMesRef()+'-01').lte('data', getMesEnd())
         .then(r => r.data || [])
     ))
     const lancs = lancsArr.flat()
@@ -864,6 +927,7 @@ const Copa = {
 
   // ── INIT ──
   async init() {
+    this._atualizarSeletorMes()
     if (barbeiro) { await this.mostrarPainel() }
     else { document.getElementById('cad-nome').value=''; }
     await this.carregarRanking()
