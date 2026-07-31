@@ -110,37 +110,43 @@ const Layout = {
         </a>`).join('')}`).join('')
 
     // ── Seção BARBER METAS (Em Breve) ──
-    const iconFaturamento = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>`
-    const iconServicos    = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
-    const iconProdutos    = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`
-    const iconLock        = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+    const iconLock = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
 
     const iconCopa = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>`
+    const iconMetaColetiva = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>`
+    const iconPerformance  = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`
+    const iconHighTicket   = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`
+    const iconRoyalTicket  = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
 
-    const barberMetasHTML = `
+    const barberMetasHTML = \`
       <div class="nav-section-label nav-section-premium">
         BARBER METAS
         <span class="nav-section-badge">NOVO</span>
       </div>
       <a href="copa-gorilaz.html" class="nav-item nav-item-copa" style="color:var(--ac);background:var(--ac-dim);border-color:var(--ac-bdr)">
-        <span class="nav-icon">${iconCopa()}</span>
+        <span class="nav-icon">\${iconCopa()}</span>
         Copa Gorilaz 🏆
       </a>
-      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Meta de Faturamento', 'Acompanhe em tempo real o faturamento da sua barbearia e defina metas mensais para crescer de forma consistente.')">
-        <span class="nav-icon">${iconFaturamento()}</span>
-        Meta de Faturamento
-        <span class="nav-coming-lock">${iconLock()}</span>
+      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Meta de Faturamento (Coletivo)', 'Defina metas coletivas de faturamento para sua equipe e acompanhe o progresso do time em tempo real.')">
+        <span class="nav-icon">\${iconMetaColetiva()}</span>
+        Meta de Faturamento (Coletivo)
+        <span class="nav-coming-lock">\${iconLock()}</span>
       </div>
-      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Meta de Serviços', 'Defina metas de quantidade de serviços realizados por dia, semana ou mês e acompanhe sua produtividade.')">
-        <span class="nav-icon">${iconServicos()}</span>
-        Meta de Serviços
-        <span class="nav-coming-lock">${iconLock()}</span>
+      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Performance Elite', 'Acompanhe a performance individual de cada barbeiro, compare evolução mensal e identifique talentos da equipe.')">
+        <span class="nav-icon">\${iconPerformance()}</span>
+        Performance Elite
+        <span class="nav-coming-lock">\${iconLock()}</span>
       </div>
-      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Meta de Produtos', 'Monitore as vendas de produtos da sua barbearia e estabeleça metas para maximizar sua receita adicional.')">
-        <span class="nav-icon">${iconProdutos()}</span>
-        Meta de Produtos
-        <span class="nav-coming-lock">${iconLock()}</span>
-      </div>`
+      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('High Ticket', 'Monitore e incentive a venda de serviços e pacotes premium para maximizar o ticket médio da barbearia.')">
+        <span class="nav-icon">\${iconHighTicket()}</span>
+        High Ticket
+        <span class="nav-coming-lock">\${iconLock()}</span>
+      </div>
+      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Royal Ticket', 'O programa de fidelidade e experiência VIP da Gorilaz. Recompense seus melhores clientes com benefícios exclusivos.')">
+        <span class="nav-icon">\${iconRoyalTicket()}</span>
+        Royal Ticket
+        <span class="nav-coming-lock">\${iconLock()}</span>
+      </div>\`
 
     const bottomItems = navItems.filter(i => !['categorias','relatorios'].includes(i.id))
     const bottomNavHTML = bottomItems.map(item => `
