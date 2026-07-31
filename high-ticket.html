@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>High Ticket — Gorilaz</title>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#C6FF00">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#07070a;--s1:#111;--s2:#1a1a1a;--s3:#222;--s4:#2a2a2a;
+      --b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.12);--b3:rgba(255,255,255,.18);
+      --tx:#f4f4f4;--t2:#a0a0a0;--t3:#555;
+      --ac:#C6FF00;--ac2:#d4ff33;--ac-dim:rgba(198,255,0,.10);--ac-bdr:rgba(198,255,0,.22);
+      --gr:#4ade80;--gr-dim:rgba(74,222,128,.10);--gr-bdr:rgba(74,222,128,.22);
+      --rd:#f87171;--rd-dim:rgba(248,113,113,.10);--rd-bdr:rgba(248,113,113,.22);
+      --or:#fb923c;--or-dim:rgba(251,146,60,.10);--or-bdr:rgba(251,146,60,.22);
+      --gold:#fbbf24;--gold-dim:rgba(251,191,36,.12);--gold-bdr:rgba(251,191,36,.28);
+      --fd:'Space Grotesk',system-ui,sans-serif;--fb:'DM Sans',system-ui,sans-serif;
+      --r:12px;--r-sm:8px;--r-lg:18px;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:var(--fb);background:var(--bg);color:var(--tx);min-height:100vh;-webkit-font-smoothing:antialiased}
+    a{text-decoration:none;color:inherit}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:2px}
+    .hidden{display:none!important}
+
+    /* HERO */
+    .hero{background:linear-gradient(135deg,#1a0a00 0%,#0a0a0a 50%,#1a0a00 100%);border-bottom:1px solid var(--b1);padding:32px 20px 24px;text-align:center;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(251,191,36,.08) 0%,transparent 65%);pointer-events:none}
+    .hero-logo{display:inline-flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b2);border-radius:999px;padding:6px 16px 6px 8px;margin-bottom:14px;cursor:pointer;text-decoration:none;transition:opacity .15s;position:relative;z-index:1}
+    .hero-logo:hover{opacity:.85}
+    .hero-logo-mark{width:26px;height:26px;background:var(--ac);border-radius:7px;overflow:hidden}
+    .hero-logo-mark img{width:26px;height:26px;object-fit:cover;border-radius:7px;display:block}
+    .hero-logo-text{font-family:var(--fd);font-size:12px;font-weight:700;letter-spacing:1px}
+    .hero-logo-sub{font-size:8px;color:var(--ac);letter-spacing:2px;text-transform:uppercase;font-weight:600}
+    h1{font-family:var(--fd);font-size:clamp(20px,4vw,28px);font-weight:700;letter-spacing:-0.5px;margin-bottom:4px;position:relative;z-index:1}
+    h1 span{color:var(--gold)}
+    .hero-sub{font-size:13px;color:var(--t2);position:relative;z-index:1}
+
+    /* TABS */
+    .tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--b1);overflow-x:auto}
+    .tab{padding:13px 18px;font-size:13px;font-weight:600;color:var(--t2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;white-space:nowrap;transition:.15s;font-family:var(--fb)}
+    .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+    .tab:hover:not(.active){color:var(--tx)}
+
+    /* MÊS NAV */
+    .mes-nav{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 16px;background:var(--s1);border-bottom:1px solid var(--b1)}
+    .mes-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--b2);background:var(--s2);color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:.15s}
+    .mes-btn:hover{background:var(--s3)}
+    .mes-btn:disabled{opacity:.3;cursor:not-allowed}
+    .mes-label-el{font-family:var(--fd);font-size:14px;font-weight:700;min-width:130px;text-align:center}
+    .mes-hoje-btn{font-size:11px;padding:2px 10px;border-radius:999px;background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold-bdr);cursor:pointer;font-weight:600}
+
+    /* LAYOUT */
+    .wrap{max-width:720px;margin:0 auto;padding:20px 16px 80px}
+    .card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r-lg);padding:18px;margin-bottom:14px}
+    .card-title{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+    /* PRÊMIO BADGE */
+    .premio-badge{display:inline-flex;align-items:center;gap:8px;background:var(--gold-dim);border:1px solid var(--gold-bdr);border-radius:999px;padding:8px 18px;font-size:14px;font-weight:700;color:var(--gold);margin-bottom:16px}
+
+    /* FORMULÁRIO */
+    .field{margin-bottom:12px}
+    .field label{display:block;font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+    .field input,.field select,.field textarea{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:var(--r-sm);color:var(--tx);font-family:var(--fb);font-size:13px;padding:9px 12px;outline:none;transition:.15s}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold-bdr);box-shadow:0 0 0 2px var(--gold-dim)}
+    .field select option{background:var(--s2)}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:480px){.form-grid{grid-template-columns:1fr}}
+
+    /* RANKING */
+    .rank-item{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:.15s}
+    .rank-item.infrationado{opacity:.6}
+    .rank-pos{font-family:var(--fd);font-size:16px;font-weight:700;min-width:30px;text-align:center}
+    .rank-pos.g{color:var(--gold)}.rank-pos.s{color:#94a3b8}.rank-pos.b{color:#cd7c2f}
+    .rank-av{width:36px;height:36px;border-radius:50%;background:var(--gold-dim);border:2px solid var(--gold-bdr);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold);font-size:13px;flex-shrink:0;overflow:hidden}
+    .rank-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+    .rank-info{flex:1;min-width:0}
+    .rank-nome{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rank-data{font-size:11px;color:var(--t2);margin-top:2px}
+    .rank-infrac{font-size:10px;color:var(--rd);margin-top:2px;display:flex;align-items:center;gap:4px}
+    .rank-valor{font-family:var(--fd);font-size:16px;font-weight:700;color:var(--gold);text-align:right;white-space:nowrap}
+    .rank-valor.riscado{text-decoration:line-through;color:var(--rd);opacity:.6}
+    .infrac-btn{padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--rd-bdr);background:var(--rd-dim);color:var(--rd);font-family:var(--fb);transition:.15s;white-space:nowrap}
+    .infrac-btn:hover{background:var(--rd);color:#fff}
+    .remover-infrac-btn{padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--b2);background:var(--s3);color:var(--t2);font-family:var(--fb);transition:.15s}
+    .remover-infrac-btn:hover{background:var(--s4)}
+
+    /* REGRAS */
+    .regra-section{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r-lg);padding:18px;margin-bottom:14px}
+    .regra-section-title{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+    .regra-row{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b1);gap:12px}
+    .regra-row:last-child{border-bottom:none}
+    .regra-desc strong{display:block;font-size:13px;font-weight:700;margin-bottom:2px}
+    .regra-desc span{font-size:12px;color:var(--t2);line-height:1.4}
+    .regra-badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap;flex-shrink:0}
+    .regra-badge.obrig{background:var(--ac-dim);color:var(--ac);border:1px solid var(--ac-bdr)}
+    .regra-badge.neg{background:var(--rd-dim);color:var(--rd);border:1px solid var(--rd-bdr)}
+
+    /* MASTER */
+    .master-section{background:var(--s1);border:1px solid var(--or-bdr);border-radius:var(--r-lg);padding:18px;margin-bottom:14px}
+    .master-badge{display:inline-flex;align-items:center;gap:6px;background:var(--or-dim);border:1px solid var(--or-bdr);border-radius:999px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+
+    /* MODAL INFRAÇÃO */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+    .modal-box{background:var(--s1);border:1px solid var(--b2);border-radius:var(--r-lg);padding:22px;width:100%;max-width:380px}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .modal-title{font-family:var(--fd);font-size:15px;font-weight:700}
+    .modal-close{background:none;border:none;color:var(--t2);font-size:20px;cursor:pointer;padding:4px;line-height:1}
+    .modal-close:hover{color:var(--tx)}
+
+    /* BOTÕES */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border-radius:var(--r-sm);font-family:var(--fb);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+    .btn-gold{background:var(--gold);color:#000}.btn-gold:hover{opacity:.9}
+    .btn-lime{background:var(--ac);color:#000}.btn-lime:hover{background:var(--ac2)}
+    .btn-ghost{background:var(--s3);color:var(--tx);border:1px solid var(--b2)}.btn-ghost:hover{background:var(--s4)}
+    .btn-rd{background:var(--rd-dim);color:var(--rd);border:1px solid var(--rd-bdr)}.btn-rd:hover{background:var(--rd);color:#fff}
+    .btn:disabled{opacity:.4;cursor:not-allowed}
+    .spin{width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s2);color:var(--tx);padding:10px 22px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;border:1px solid var(--b2);max-width:90vw;text-align:center}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .toast.ok{background:var(--ac-dim);color:var(--ac);border-color:var(--ac-bdr)}
+    .toast.err{background:var(--rd-dim);color:var(--rd);border-color:var(--rd-bdr)}
+    .loading{text-align:center;padding:40px;color:var(--t2);display:flex;align-items:center;justify-content:center;gap:10px}
+    .spin-gold{width:16px;height:16px;border:2px solid var(--b2);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite}
+    .empty{text-align:center;padding:32px;color:var(--t2);font-size:13px}
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <a href="dashboard.html" class="hero-logo" aria-label="Voltar">
+    <div class="hero-logo-mark"><img src="icons/android-chrome-192x192.png" alt="Gorilaz"></div>
+    <div><div class="hero-logo-text">GORILAZ</div><div class="hero-logo-sub">Barber Finance</div></div>
+  </a>
+  <h1>🎫 High <span>Ticket</span></h1>
+  <p class="hero-sub">Registre suas vendas premium e dispute o ranking</p>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" id="tab-ranking" onclick="HT.setTab('ranking',this)">🏆 Ranking</button>
+  <button class="tab"        id="tab-lancar"  onclick="HT.setTab('lancar',this)">➕ Lançar</button>
+  <button class="tab"        id="tab-regras"  onclick="HT.setTab('regras',this)">📋 Regras</button>
+  <button class="tab hidden" id="tab-master"  onclick="HT.setTab('master',this)">⚙️ Master</button>
+</div>
+
+<!-- MÊS NAV -->
+<div class="mes-nav" id="mes-nav">
+  <button class="mes-btn" onclick="HT.mesAnterior()">‹</button>
+  <div class="mes-label-el" id="mes-label">...</div>
+  <button class="mes-btn" id="btn-next" onclick="HT.mesProximo()">›</button>
+  <button class="mes-hoje-btn" id="btn-hoje" onclick="HT.mesHoje()" style="display:none">Hoje</button>
+</div>
+
+<div class="wrap">
+  <div id="conteudo"><div class="loading"><div class="spin-gold"></div> Carregando...</div></div>
+</div>
+
+<!-- MODAL INFRAÇÃO -->
+<div class="modal-overlay hidden" id="modal-infrac" onclick="if(event.target===this)HT.fecharModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--rd)">⚠️ Registrar Infração</div>
+      <button class="modal-close" onclick="HT.fecharModal()">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:14px" id="modal-infrac-info"></div>
+    <div class="field">
+      <label>Motivo da infração</label>
+      <textarea id="infrac-motivo" rows="3" placeholder="Ex: Não enviou foto da comanda no grupo"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn btn-rd" id="btn-aplicar-infrac" onclick="HT.aplicarInfracao()" style="flex:1">⚠️ Aplicar infração</button>
+      <button class="btn btn-ghost" onclick="HT.fecharModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SURL  = 'https://ixgwhyaponyssvczcabn.supabase.co'
+const SANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4Z3doeWFwb255c3N2Y3pjYWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0MTA5NDYsImV4cCI6MjA5NDk4Njk0Nn0.uSyPDUn87ERrrZpzK4DmIepqO_Sbcvwt7RzlN4QB8FM'
+const db = supabase.createClient(SURL, SANON)
+
+const MASTERS = new Set(['felipersbr@gmail.com'])
+let isMaster   = false
+let userEmail  = ''
+let meuBarbeiro = null  // via localStorage copa_barbeiro
+let aba = 'ranking'
+let _infracTarget = null  // { id, nome }
+
+const hoje = new Date()
+let _y = hoje.getFullYear(), _m = hoje.getMonth() + 1
+const mesRef  = () => `${_y}-${String(_m).padStart(2,'0')}`
+const isHoje  = () => _y === hoje.getFullYear() && _m === hoje.getMonth() + 1
+const mesLabel = (y,m) => {
+  if(!y){y=_y;m=_m}
+  const s = new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
+  return s.charAt(0).toUpperCase()+s.slice(1)
+}
+const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
+const ini = n => (n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()
+const fmtDate = d => new Date(d+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'})
+
+function toast(msg,type='ok'){
+  const el=document.getElementById('toast')
+  el.textContent=msg;el.className='toast show '+type
+  setTimeout(()=>el.className='toast',type==='err'?5000:3000)
+}
+
+const HT = {
+  setTab(t,btn){
+    aba=t
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'))
+    btn.classList.add('active')
+    document.getElementById('mes-nav').style.display = (t==='regras'||t==='master') ? 'none' : ''
+    this.render()
+  },
+  mesAnterior(){ _m--;if(_m<1){_m=12;_y--};this.render() },
+  mesProximo(){ if(isHoje())return;_m++;if(_m>12){_m=1;_y++};this.render() },
+  mesHoje(){ _y=hoje.getFullYear();_m=hoje.getMonth()+1;this.render() },
+
+  async render(){
+    document.getElementById('mes-label').textContent = mesLabel()
+    document.getElementById('btn-next').disabled = isHoje()
+    document.getElementById('btn-hoje').style.display = isHoje() ? 'none' : ''
+    const el = document.getElementById('conteudo')
+    el.innerHTML = '<div class="loading"><div class="spin-gold"></div> Carregando...</div>'
+    if(aba==='ranking') await this.renderRanking(el)
+    if(aba==='lancar')  await this.renderLancar(el)
+    if(aba==='regras')  this.renderRegras(el)
+    if(aba==='master')  await this.renderMaster(el)
+  },
+
+  // ── RANKING ──────────────────────────────────────────
+  async renderRanking(el){
+    const ref = mesRef()
+    const [{ data: lancs }, { data: camp }, { data: barbs }] = await Promise.all([
+      db.from('ht_lancamentos').select('*').eq('mes_ref' in {} ? 'mes_ref' : 'id', ref)
+        .gte('data', ref+'-01').lte('data', ref+'-'+new Date(_y,_m,0).getDate()).order('valor',{ascending:false}),
+      db.from('ht_campanha').select('*').eq('mes_ref', ref).maybeSingle(),
+      db.from('copa_barbeiros').select('id,nome,barbearia,user_id')
+    ])
+
+    // Avatar map
+    const avatarMap = {}
+    const uids = [...new Set((barbs||[]).map(b=>b.user_id).filter(Boolean))]
+    await Promise.all(uids.map(async uid=>{
+      const {data:p} = await db.from('profiles').select('user_id,avatar_url').eq('user_id',uid).maybeSingle()
+      if(p?.avatar_url) avatarMap[uid]=p.avatar_url
+    }))
+
+    const barbMap = {}; (barbs||[]).forEach(b=>barbMap[b.id]=b)
+    const posI=['🥇','🥈','🥉']
+    const posC=['g','s','b']
+
+    el.innerHTML = `
+      ${camp?.premio ? `<div style="text-align:center;margin-bottom:16px">
+        <div class="premio-badge">🏆 Prêmio: ${camp.premio}</div>
+        ${camp.descricao ? `<div style="font-size:12px;color:var(--t2)">${camp.descricao}</div>` : ''}
+      </div>` : ''}
+
+      ${!lancs?.length ? `<div class="empty">
+        <div style="font-size:36px;margin-bottom:10px">🎫</div>
+        Nenhum High Ticket registrado em ${mesLabel()}.
+      </div>` : lancs.map((l,i)=>{
+        const b = barbMap[l.copa_barbeiro_id]
+        const nome = b?.nome || 'Profissional'
+        const uid  = b?.user_id
+        const av   = uid ? avatarMap[uid] : null
+        const isEu = meuBarbeiro && l.copa_barbeiro_id === meuBarbeiro.id
+        return `<div class="rank-item ${l.infracao?'infrationado':''}">
+          <div class="rank-pos ${posC[i]||''}">${i<3?posI[i]:(i+1)+'°'}</div>
+          <div class="rank-av">${av?`<img src="${av}" alt="${nome}">`:(ini(nome))}</div>
+          <div class="rank-info">
+            <div class="rank-nome">${nome}${isEu?' <span style="font-size:10px;color:var(--ac)">(você)</span>':''}</div>
+            <div class="rank-data">${fmtDate(l.data)} · ${b?.barbearia||''}</div>
+            ${l.infracao ? `<div class="rank-infrac">⚠️ ${l.infracao_motivo||'Infração registrada'}</div>` : ''}
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            <div class="rank-valor ${l.infracao?'riscado':''}">${fmt(l.valor)}</div>
+            ${isMaster ? (!l.infracao
+              ? `<button class="infrac-btn" onclick="HT.abrirInfracao(${l.id},'${nome.replace(/'/g,"\\'")}')">⚠️</button>`
+              : `<button class="remover-infrac-btn" onclick="HT.removerInfracao(${l.id})">↩</button>`
+            ) : ''}
+          </div>
+        </div>`
+      }).join('')}
+    `
+  },
+
+  // ── LANÇAR ───────────────────────────────────────────
+  async renderLancar(el){
+    if(!meuBarbeiro){
+      el.innerHTML=`<div class="card"><div class="empty">
+        <div style="font-size:36px;margin-bottom:10px">🏆</div>
+        <div style="font-weight:700;margin-bottom:8px">Cadastre-se na Copa Gorilaz primeiro</div>
+        <div style="font-size:13px;color:var(--t2)">O High Ticket usa o mesmo cadastro da Copa.</div>
+        <a href="copa-gorilaz.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:16px;background:var(--ac);color:#000;font-weight:700;padding:10px 20px;border-radius:var(--r-sm);font-size:13px">🏆 Ir para a Copa Gorilaz</a>
+      </div></div>`
+      return
+    }
+    const ref = mesRef()
+    const { data: meus } = await db.from('ht_lancamentos')
+      .select('*').eq('copa_barbeiro_id', meuBarbeiro.id)
+      .gte('data', ref+'-01').lte('data', ref+'-'+new Date(_y,_m,0).getDate())
+      .order('data',{ascending:false})
+
+    el.innerHTML = `
+      <div class="card">
+        <div class="card-title">🎫 Registrar High Ticket</div>
+        <div class="form-grid">
+          <div class="field"><label>💰 Valor (R$)</label>
+            <input type="number" id="ht-valor" step="0.01" min="0" placeholder="0,00"></div>
+          <div class="field"><label>📅 Data</label>
+            <input type="date" id="ht-data" value="${hoje.toISOString().split('T')[0]}"></div>
+        </div>
+        <div class="field"><label>📝 Observação (opcional)</label>
+          <input type="text" id="ht-obs" placeholder="Ex: Progressiva completa + produtos"></div>
+        <button class="btn btn-gold" id="btn-ht-salvar" onclick="HT.salvar()" style="width:100%">💾 Registrar High Ticket</button>
+      </div>
+
+      ${meus?.length ? `<div class="card">
+        <div class="card-title">📋 Meus lançamentos — ${mesLabel()}</div>
+        ${meus.map(l=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b1)">
+            <div>
+              <div style="font-size:13px;font-weight:600 ${l.infracao?';text-decoration:line-through;color:var(--t2)':''}">${fmt(l.valor)}</div>
+              <div style="font-size:11px;color:var(--t2)">${fmtDate(l.data)}${l.observacao?' · '+l.observacao:''}</div>
+              ${l.infracao?`<div style="font-size:10px;color:var(--rd)">⚠️ ${l.infracao_motivo||'Infração'}</div>`:''}
+            </div>
+          </div>`).join('')}
+      </div>` : ''}
+    `
+  },
+
+  async salvar(){
+    if(!meuBarbeiro){ toast('Cadastre-se na Copa Gorilaz primeiro.','err'); return }
+    const valor = parseFloat(document.getElementById('ht-valor')?.value)
+    const data  = document.getElementById('ht-data')?.value
+    if(!valor||valor<=0){ toast('Informe um valor válido.','err'); return }
+    if(!data){ toast('Informe a data.','err'); return }
+    const btn = document.getElementById('btn-ht-salvar')
+    btn.disabled=true; btn.innerHTML='<div class="spin"></div> Salvando...'
+    const { error } = await db.from('ht_lancamentos').insert({
+      copa_barbeiro_id: meuBarbeiro.id,
+      valor,
+      data,
+      mes_ref: `${data.slice(0,7)}`,
+      observacao: document.getElementById('ht-obs')?.value?.trim()||null
+    })
+    btn.disabled=false; btn.innerHTML='💾 Registrar High Ticket'
+    if(error){ toast('Erro: '+error.message,'err'); return }
+    toast('High Ticket registrado! ✓')
+    document.getElementById('ht-valor').value=''
+    document.getElementById('ht-obs').value=''
+    await this.render()
+  },
+
+  // ── INFRAÇÃO (MASTER) ────────────────────────────────
+  abrirInfracao(id, nome){
+    if(!isMaster){ toast('Acesso restrito.','err'); return }
+    _infracTarget = { id, nome }
+    document.getElementById('modal-infrac-info').textContent = `Lançamento de: ${nome}`
+    document.getElementById('infrac-motivo').value = ''
+    document.getElementById('modal-infrac').classList.remove('hidden')
+  },
+  fecharModal(){
+    document.getElementById('modal-infrac').classList.add('hidden')
+    _infracTarget = null
+  },
+  async aplicarInfracao(){
+    if(!isMaster||!_infracTarget){ return }
+    const motivo = document.getElementById('infrac-motivo').value.trim()
+    if(!motivo){ toast('Informe o motivo.','err'); return }
+    const btn = document.getElementById('btn-aplicar-infrac')
+    btn.disabled=true; btn.innerHTML='<div class="spin"></div>'
+    const { error } = await db.from('ht_lancamentos').update({
+      infracao: true, infracao_motivo: motivo, infracao_por: userEmail
+    }).eq('id', _infracTarget.id)
+    btn.disabled=false; btn.innerHTML='⚠️ Aplicar infração'
+    if(error){ toast('Erro: '+error.message,'err'); return }
+    toast('Infração registrada.')
+    this.fecharModal()
+    await this.render()
+  },
+  async removerInfracao(id){
+    if(!isMaster){ toast('Acesso restrito.','err'); return }
+    const { error } = await db.from('ht_lancamentos').update({
+      infracao: false, infracao_motivo: null, infracao_por: null
+    }).eq('id', id)
+    if(error){ toast('Erro: '+error.message,'err'); return }
+    toast('Infração removida.')
+    await this.render()
+  },
+
+  // ── REGRAS ───────────────────────────────────────────
+  renderRegras(el){
+    el.innerHTML = `
+      <div class="regra-section">
+        <div class="regra-section-title">🎫 O que é High Ticket?</div>
+        <div style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:0">
+          High Ticket é qualquer serviço ou venda de valor superior à média da barbearia.
+          Registre cada atendimento premium realizado e dispute o ranking mensal.
+          O profissional com maior valor acumulado de High Tickets no mês é o campeão.
+        </div>
+      </div>
+
+      <div class="regra-section">
+        <div class="regra-section-title">✅ Regras de participação</div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Enviar foto da comanda no grupo da equipe</strong>
+            <span>Obrigatório enviar a foto da comanda no grupo oficial da equipe imediatamente após o atendimento. Sem a foto, o lançamento pode ser invalidado pelo Master.</span>
+          </div>
+          <div class="regra-badge obrig">Obrigatório</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Registrar no sistema no mesmo dia</strong>
+            <span>O valor deve ser lançado no High Ticket no mesmo dia do atendimento. Lançamentos retroativos podem não ser aceitos.</span>
+          </div>
+          <div class="regra-badge obrig">Obrigatório</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Valor mínimo para qualificar</strong>
+            <span>Apenas serviços e vendas que se enquadrem como premium são válidos. O Master define o valor mínimo da campanha vigente.</span>
+          </div>
+          <div class="regra-badge obrig">Verificado</div>
+        </div>
+      </div>
+
+      <div class="regra-section">
+        <div class="regra-section-title">⚠️ Infrações — Master</div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Não enviar foto da comanda</strong>
+            <span>Lançamento sem comprovação fotográfica no grupo da equipe. O valor ficará riscado no ranking.</span>
+          </div>
+          <div class="regra-badge neg">Invalidado</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Valor incorreto ou fraudado</strong>
+            <span>Qualquer divergência entre o valor lançado e a comanda apresentada resulta em invalidação imediata.</span>
+          </div>
+          <div class="regra-badge neg">Invalidado</div>
+        </div>
+      </div>
+
+      <div style="background:var(--gold-dim);border:1px solid var(--gold-bdr);border-radius:var(--r);padding:14px;font-size:12px;color:var(--gold);line-height:1.6">
+        🏆 <strong>Prêmio:</strong> O profissional com maior valor de High Ticket válido ao final do mês recebe a premiação definida pelo Master para a campanha vigente.
+        Apenas lançamentos sem infração contam para o prêmio.
+      </div>
+    `
+  },
+
+  // ── MASTER ───────────────────────────────────────────
+  async renderMaster(el){
+    if(!isMaster){ el.innerHTML='<div class="empty">Acesso restrito.</div>'; return }
+    const ref = mesRef()
+    const { data: camp } = await db.from('ht_campanha').select('*').eq('mes_ref', ref).maybeSingle()
+    el.innerHTML = `
+      <div class="master-section">
+        <div class="master-badge">⚙️ Painel Master — Campanha ${mesLabel()}</div>
+        <div class="field"><label>🏆 Prêmio da campanha</label>
+          <input type="text" id="m-premio" value="${camp?.premio||''}" placeholder="Ex: Kit Burger"></div>
+        <div class="field"><label>📝 Descrição</label>
+          <textarea id="m-desc" rows="3" placeholder="Detalhes do prêmio ou campanha">${camp?.descricao||''}</textarea></div>
+        <button class="btn btn-lime" id="btn-m-salvar" onclick="HT.salvarCampanha()">💾 Salvar campanha</button>
+      </div>
+      <div style="font-size:12px;color:var(--t2);padding:12px">
+        As infrações são aplicadas diretamente no ranking. Acesse a aba <strong>Ranking</strong> e clique no ícone ⚠️ ao lado de cada lançamento.
+      </div>
+    `
+  },
+
+  async salvarCampanha(){
+    if(!isMaster){ return }
+    const btn = document.getElementById('btn-m-salvar')
+    btn.disabled=true; btn.innerHTML='<div class="spin" style="border-top-color:#000"></div>'
+    const ref = mesRef()
+    const { error } = await db.from('ht_campanha').upsert({
+      mes_ref: ref,
+      premio:  document.getElementById('m-premio')?.value?.trim()||null,
+      descricao: document.getElementById('m-desc')?.value?.trim()||null,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'mes_ref' })
+    btn.disabled=false; btn.innerHTML='💾 Salvar campanha'
+    if(error){ toast('Erro: '+error.message,'err'); return }
+    toast('Campanha salva! ✓')
+  }
+}
+
+// ── INIT ──
+async function init(){
+  // Sessão Auth (para Master)
+  try {
+    const { data: { session } } = await db.auth.getSession()
+    if(session?.user?.email){
+      userEmail = session.user.email.toLowerCase().trim()
+      isMaster  = MASTERS.has(userEmail)
+      if(isMaster) document.getElementById('tab-master').classList.remove('hidden')
+    }
+  } catch(_){}
+
+  // Barbeiro via localStorage da Copa (sem login adicional)
+  try {
+    const saved = localStorage.getItem('copa_barbeiro')
+    if(saved){
+      const b = JSON.parse(saved)
+      if(b?.id && b?.nome){
+        const { data: barbDB } = await db.from('copa_barbeiros').select('*').eq('id', Number(b.id)).maybeSingle()
+        meuBarbeiro = barbDB || b
+      }
+    }
+  } catch(_){}
+
+  // ESC fecha modal
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') HT.fecharModal() })
+
+  await HT.render()
+}
+
+init()
+</script>
+</body>
+</html>

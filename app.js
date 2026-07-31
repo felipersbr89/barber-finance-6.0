@@ -213,11 +213,10 @@ const Layout = {
         <span class="nav-icon">${iconPerformance()}</span>
         Performance Elite
       </a>
-      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('High Ticket', 'Monitore e incentive a venda de serviços e pacotes premium para maximizar o ticket médio da barbearia.')">
+      <a href="high-ticket.html" class="nav-item" style="color:var(--tx)">
         <span class="nav-icon">${iconHighTicket()}</span>
         High Ticket
-        <span class="nav-coming-lock">${iconLock()}</span>
-      </div>
+      </a>
       <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Royal Ticket', 'O programa de fidelidade e experiência VIP da Gorilaz. Recompense seus melhores clientes com benefícios exclusivos.')">
         <span class="nav-icon">${iconRoyalTicket()}</span>
         Royal Ticket
