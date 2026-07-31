@@ -13,6 +13,84 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON)
 window.App = { user: null, db }
 window.db  = db
 
+// ── 2. PERMISSIONS — Sistema de permissões centralizado ──
+//
+// Para adicionar novos Masters no futuro:
+//   Permissions.MASTERS.add('novoemail@exemplo.com')
+//
+// Para verificar permissão em qualquer módulo:
+//   if (Permissions.can('editarCampanha')) { ... }
+//   Permissions.requireMaster(btn)  ← desabilita botão para não-masters
+//
+const Permissions = {
+  // ── Lista de usuários Master ──
+  MASTERS: new Set([
+    'felipersbr@gmail.com'   // Felipe Braga — Usuário Master
+  ]),
+
+  // ── Mapa de permissões por papel ──
+  // true  = qualquer usuário autenticado pode
+  // false = apenas Master pode
+  ACTIONS: {
+    // Visualização — todos podem
+    visualizarMetas:       true,
+    visualizarRanking:     true,
+    visualizarHistorico:   true,
+    visualizarCampanhas:   true,
+    // Edição — apenas Master
+    editarCampanhas:       false,
+    editarMetas:           false,
+    cadastrarPremiacoes:   false,
+    cadastrarHistoricos:   false,
+    aplicarInfracoes:      false,
+    aplicarBonificacoes:   false,
+  },
+
+  // Verifica se o usuário atual é Master
+  isMaster() {
+    const email = App.user?.email?.toLowerCase()?.trim() || ''
+    return this.MASTERS.has(email)
+  },
+
+  // Verifica se o usuário atual pode executar uma ação
+  // Retorna true se: ação é pública OR usuário é Master
+  can(action) {
+    const pub = this.ACTIONS[action]
+    if (pub === true)  return true   // ação pública
+    if (pub === false) return this.isMaster()  // requer Master
+    // Ação não mapeada: negar por segurança
+    console.warn('[Permissions] Ação não mapeada:', action)
+    return false
+  },
+
+  // Inicializar após login — registra papel no App
+  init() {
+    App.isMaster = this.isMaster()
+    console.log(`[Permissions] Usuário: ${App.user?.email} | Master: ${App.isMaster}`)
+  },
+
+  // Utilitário: desabilita elemento para não-Masters
+  // Uso: Permissions.requireMaster(btnElement, 'Apenas o Master pode editar')
+  requireMaster(el, tooltip = 'Apenas o administrador pode realizar esta ação') {
+    if (!el) return
+    if (!this.isMaster()) {
+      el.disabled = true
+      el.title    = tooltip
+      el.style.opacity = '0.4'
+      el.style.cursor  = 'not-allowed'
+    }
+  },
+
+  // Utilitário: esconde elemento para não-Masters
+  hiddenUnlessMaster(el) {
+    if (!el) return
+    if (!this.isMaster()) el.style.display = 'none'
+  }
+}
+
+window.Permissions = Permissions
+
+
 // ── 2. AUTH ─────────────────────────────────
 const Auth = {
   async getUser() {
@@ -53,7 +131,7 @@ const Auth = {
   async requireAuth() {
     const user = await this.getUser()
     if (!user) { window.location.href = 'index.html'; return null }
-    App.user = user; return user
+    App.user = user; Permissions.init(); return user
   },
   async redirectIfAuth(dest = 'dashboard.html') {
     const user = await this.getUser()
@@ -127,9 +205,9 @@ const Layout = {
         <span class="nav-icon">${iconCopa()}</span>
         Copa Gorilaz 🏆
       </a>
-      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Meta de Faturamento (Coletivo)', 'Defina metas coletivas de faturamento para sua equipe e acompanhe o progresso do time em tempo real.')">
+      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Faturamento Coletivo', 'Defina metas coletivas de faturamento para sua equipe e acompanhe o progresso do time em tempo real.')">
         <span class="nav-icon">${iconMetaColetiva()}</span>
-        Meta de Faturamento (Coletivo)
+        Faturamento Coletivo
         <span class="nav-coming-lock">${iconLock()}</span>
       </div>
       <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Performance Elite', 'Acompanhe a performance individual de cada barbeiro, compare evolução mensal e identifique talentos da equipe.')">
