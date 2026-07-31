@@ -217,11 +217,10 @@ const Layout = {
         <span class="nav-icon">${iconHighTicket()}</span>
         High Ticket
       </a>
-      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Royal Ticket', 'O programa de fidelidade e experiência VIP da Gorilaz. Recompense seus melhores clientes com benefícios exclusivos.')">
+      <a href="royal-ticket.html" class="nav-item" style="color:var(--tx)">
         <span class="nav-icon">${iconRoyalTicket()}</span>
         Royal Ticket
-        <span class="nav-coming-lock">${iconLock()}</span>
-      </div>`
+      </a>`
 
     const bottomItems = navItems.filter(i => !['categorias','relatorios'].includes(i.id))
     const bottomNavHTML = bottomItems.map(item => `

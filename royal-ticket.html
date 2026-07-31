@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Royal Ticket — Gorilaz</title>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#C6FF00">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#07070a;--s1:#111;--s2:#1a1a1a;--s3:#222;--s4:#2a2a2a;
+      --b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.12);
+      --tx:#f4f4f4;--t2:#a0a0a0;--t3:#555;
+      --ac:#C6FF00;--ac-dim:rgba(198,255,0,.10);--ac-bdr:rgba(198,255,0,.22);
+      --gr:#4ade80;--gr-dim:rgba(74,222,128,.10);--gr-bdr:rgba(74,222,128,.22);
+      --rd:#f87171;--rd-dim:rgba(248,113,113,.10);--rd-bdr:rgba(248,113,113,.22);
+      --gold:#fbbf24;--gold-dim:rgba(251,191,36,.12);--gold-bdr:rgba(251,191,36,.28);
+      --silver:#94a3b8;--silver-dim:rgba(148,163,184,.10);--silver-bdr:rgba(148,163,184,.25);
+      --bronze:#cd7c2f;--bronze-dim:rgba(205,124,47,.12);--bronze-bdr:rgba(205,124,47,.28);
+      --fd:'Space Grotesk',system-ui,sans-serif;--fb:'DM Sans',system-ui,sans-serif;
+      --r:12px;--r-sm:8px;--r-lg:18px;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:var(--fb);background:var(--bg);color:var(--tx);min-height:100vh;-webkit-font-smoothing:antialiased}
+    a{text-decoration:none;color:inherit}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:2px}
+
+    /* HERO */
+    .hero{background:linear-gradient(135deg,#12001a 0%,#0a0a0a 50%,#12001a 100%);border-bottom:1px solid var(--b1);padding:32px 20px 24px;text-align:center;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(167,139,250,.10) 0%,transparent 65%);pointer-events:none}
+    .hero-logo{display:inline-flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b2);border-radius:999px;padding:6px 16px 6px 8px;margin-bottom:14px;cursor:pointer;text-decoration:none;transition:opacity .15s;position:relative;z-index:1}
+    .hero-logo:hover{opacity:.85}
+    .hero-logo-mark{width:26px;height:26px;background:var(--ac);border-radius:7px;overflow:hidden}
+    .hero-logo-mark img{width:26px;height:26px;object-fit:cover;border-radius:7px;display:block}
+    .hero-logo-text{font-family:var(--fd);font-size:12px;font-weight:700;letter-spacing:1px}
+    .hero-logo-sub{font-size:8px;color:var(--ac);letter-spacing:2px;text-transform:uppercase;font-weight:600}
+    h1{font-family:var(--fd);font-size:clamp(20px,4vw,28px);font-weight:700;letter-spacing:-0.5px;margin-bottom:4px;position:relative;z-index:1}
+    h1 span{color:#a78bfa}
+    .hero-sub{font-size:13px;color:var(--t2);position:relative;z-index:1}
+
+    /* MÊS NAV */
+    .mes-nav{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 16px;background:var(--s1);border-bottom:1px solid var(--b1)}
+    .mes-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--b2);background:var(--s2);color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:.15s}
+    .mes-btn:hover{background:var(--s3)}.mes-btn:disabled{opacity:.3;cursor:not-allowed}
+    .mes-label-el{font-family:var(--fd);font-size:14px;font-weight:700;min-width:130px;text-align:center}
+    .mes-hoje-btn{font-size:11px;padding:2px 10px;border-radius:999px;background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.28);cursor:pointer;font-weight:600}
+
+    .wrap{max-width:700px;margin:0 auto;padding:20px 16px 80px}
+
+    /* PÓDIO — TOP 3 */
+    .podio{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:8px;margin-bottom:20px;align-items:end}
+    @media(max-width:460px){.podio{grid-template-columns:1fr}}
+    .podio-item{border-radius:var(--r-lg);padding:18px 14px;text-align:center;position:relative;overflow:hidden;transition:.2s}
+    .podio-item.valido:hover{transform:translateY(-2px)}
+    .podio-item.pos1{background:linear-gradient(160deg,#1a1400,#0a0a0a);border:1px solid var(--gold-bdr)}
+    .podio-item.pos2{background:linear-gradient(160deg,#10141a,#0a0a0a);border:1px solid var(--silver-bdr)}
+    .podio-item.pos3{background:linear-gradient(160deg,#140e08,#0a0a0a);border:1px solid var(--bronze-bdr)}
+    .podio-item.invalido{opacity:.55;filter:grayscale(.6)}
+    .podio-pos{font-size:28px;margin-bottom:8px}
+    .podio-av{width:52px;height:52px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;overflow:hidden;border:2px solid}
+    .podio-av.g{background:var(--gold-dim);color:var(--gold);border-color:var(--gold-bdr)}
+    .podio-av.s{background:var(--silver-dim);color:var(--silver);border-color:var(--silver-bdr)}
+    .podio-av.b{background:var(--bronze-dim);color:var(--bronze);border-color:var(--bronze-bdr)}
+    .podio-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+    .podio-nome{font-family:var(--fd);font-size:12px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .podio-valor{font-family:var(--fd);font-size:16px;font-weight:700;line-height:1}
+    .podio-valor.g{color:var(--gold)}.podio-valor.s{color:var(--silver)}.podio-valor.b{color:var(--bronze)}
+    .podio-valor.riscado{text-decoration:line-through;color:var(--t3)!important;font-size:14px}
+    .podio-data{font-size:10px;color:var(--t2);margin-top:4px}
+    .podio-infrac{font-size:10px;color:var(--rd);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:3px}
+    .podio-trofeu{position:absolute;top:10px;right:10px;font-size:18px;opacity:.2}
+    .podio-criterio{font-size:9px;color:var(--t3);margin-top:6px}
+
+    /* RANKING COMPLETO */
+    .rank-title{font-family:var(--fd);font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;margin-top:4px}
+    .rank-row{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);margin-bottom:6px;transition:.15s}
+    .rank-row.invalido{opacity:.5}
+    .rank-row:hover{border-color:var(--b2)}
+    .rank-num{font-family:var(--fd);font-size:13px;font-weight:700;min-width:24px;text-align:center;color:var(--t2)}
+    .rank-av-sm{width:32px;height:32px;border-radius:50%;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:var(--t2);overflow:hidden;flex-shrink:0}
+    .rank-av-sm img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+    .rank-info{flex:1;min-width:0}
+    .rank-nome-sm{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rank-detalhe{font-size:11px;color:var(--t2);margin-top:1px}
+    .rank-infrac-sm{font-size:10px;color:var(--rd);margin-top:2px}
+    .rank-val-sm{font-family:var(--fd);font-size:14px;font-weight:700;color:#a78bfa;text-align:right;white-space:nowrap}
+    .rank-val-sm.riscado{text-decoration:line-through;color:var(--t3)!important}
+
+    /* CRITÉRIOS BADGE */
+    .crit-badge{display:inline-flex;align-items:center;gap:4px;background:var(--s2);border:1px solid var(--b2);border-radius:999px;padding:3px 10px;font-size:11px;color:var(--t2);margin-bottom:14px}
+
+    /* LOADING */
+    .loading{text-align:center;padding:40px;color:var(--t2);display:flex;align-items:center;justify-content:center;gap:10px}
+    .spin-v{width:16px;height:16px;border:2px solid var(--b2);border-top-color:#a78bfa;border-radius:50%;animation:spin .6s linear infinite}
+    .empty{text-align:center;padding:40px;color:var(--t2);font-size:13px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s2);color:var(--tx);padding:10px 22px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;border:1px solid var(--b2);max-width:90vw;text-align:center}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .toast.ok{background:var(--ac-dim);color:var(--ac);border-color:var(--ac-bdr)}
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <a href="dashboard.html" class="hero-logo" aria-label="Voltar">
+    <div class="hero-logo-mark"><img src="icons/android-chrome-192x192.png" alt="Gorilaz"></div>
+    <div><div class="hero-logo-text">GORILAZ</div><div class="hero-logo-sub">Barber Finance</div></div>
+  </a>
+  <h1>👑 Royal <span>Ticket</span></h1>
+  <p class="hero-sub">O maior High Ticket do mês — o trono é de quem vende mais</p>
+</div>
+
+<div class="mes-nav">
+  <button class="mes-btn" onclick="RT.mesAnterior()">‹</button>
+  <div class="mes-label-el" id="mes-label">...</div>
+  <button class="mes-btn" id="btn-next" onclick="RT.mesProximo()">›</button>
+  <button class="mes-hoje-btn" id="btn-hoje" onclick="RT.mesHoje()" style="display:none">Hoje</button>
+</div>
+
+<div class="wrap">
+  <div id="conteudo"><div class="loading"><div class="spin-v"></div> Carregando...</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SURL  = 'https://ixgwhyaponyssvczcabn.supabase.co'
+const SANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4Z3doeWFwb255c3N2Y3pjYWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0MTA5NDYsImV4cCI6MjA5NDk4Njk0Nn0.uSyPDUn87ERrrZpzK4DmIepqO_Sbcvwt7RzlN4QB8FM'
+const db = supabase.createClient(SURL, SANON)
+
+let meuBarbeiro = null
+const hoje = new Date()
+let _y = hoje.getFullYear(), _m = hoje.getMonth() + 1
+
+const mesRef  = () => `${_y}-${String(_m).padStart(2,'0')}`
+const isHoje  = () => _y === hoje.getFullYear() && _m === hoje.getMonth() + 1
+const mesLabel = () => {
+  const s = new Date(_y,_m-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
+  return s.charAt(0).toUpperCase()+s.slice(1)
+}
+const fmt    = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
+const fmtDate = d => new Date(d+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'})
+const ini    = n => (n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()
+
+function toast(msg,type='ok'){
+  const el=document.getElementById('toast')
+  el.textContent=msg;el.className='toast show '+type
+  setTimeout(()=>el.className='toast',3000)
+}
+
+// ════════════════════════════════════════════════════════
+// CRITÉRIOS DE ORDENAÇÃO — ROYAL TICKET
+//
+// Para cada barbeiro, pegar seu MELHOR High Ticket do mês
+// (pode ter vários lançamentos — pegar o de maior valor)
+//
+// Ordenar por:
+// 1º CRITÉRIO: maior valor do High Ticket válido (sem infração)
+//    Se infração: mantém na lista mas marcado como inválido
+// 2º CRITÉRIO (empate): mais planos vendidos no mês (copa_lancamentos)
+// 3º CRITÉRIO (empate persistente): maior faturamento com menos serviços
+//    = maior (planos / total_extras), ou seja, mais planos por serviço
+// ════════════════════════════════════════════════════════
+function ordenarRanking(profissionais) {
+  // Separar válidos e inválidos
+  const validos   = profissionais.filter(p => !p.infracao)
+  const invalidos = profissionais.filter(p =>  p.infracao)
+
+  // Ordenar válidos pelos 3 critérios
+  validos.sort((a, b) => {
+    // 1. Maior valor
+    if (b.melhorValor !== a.melhorValor) return b.melhorValor - a.melhorValor
+    // 2. Mais planos vendidos no mês
+    if (b.planos !== a.planos) return b.planos - a.planos
+    // 3. Maior faturamento com menos serviços = planos / (extras+1)
+    const ratioA = a.planos / (a.extras + 1)
+    const ratioB = b.planos / (b.extras + 1)
+    return ratioB - ratioA
+  })
+
+  // Inválidos ordenados entre si (mesmo critério, sem promoção)
+  invalidos.sort((a, b) => b.melhorValor - a.melhorValor)
+
+  // Válidos primeiro, depois inválidos
+  return [...validos, ...invalidos]
+}
+
+const RT = {
+  mesAnterior(){ _m--;if(_m<1){_m=12;_y--};this.carregar() },
+  mesProximo(){ if(isHoje())return;_m++;if(_m>12){_m=1;_y++};this.carregar() },
+  mesHoje(){ _y=hoje.getFullYear();_m=hoje.getMonth()+1;this.carregar() },
+
+  async carregar() {
+    document.getElementById('mes-label').textContent = mesLabel()
+    document.getElementById('btn-next').disabled = isHoje()
+    document.getElementById('btn-hoje').style.display = isHoje() ? 'none' : ''
+    const el = document.getElementById('conteudo')
+    el.innerHTML = '<div class="loading"><div class="spin-v"></div> Carregando...</div>'
+
+    const ref     = mesRef()
+    const fimDia  = new Date(_y,_m,0).getDate()
+    const mesIni  = ref+'-01'
+    const mesFim  = ref+'-'+fimDia
+
+    // 1. Todos High Tickets do mês (inclui infrações)
+    const [{ data: htLancs }, { data: barbs }, { data: copaLancs }] = await Promise.all([
+      db.from('ht_lancamentos').select('*').gte('data', mesIni).lte('data', mesFim),
+      db.from('copa_barbeiros').select('id,nome,barbearia,user_id'),
+      db.from('copa_lancamentos').select('participante_id,planos,extras').gte('data', mesIni).lte('data', mesFim)
+    ])
+
+    if (!htLancs?.length) {
+      el.innerHTML = `<div class="empty">
+        <div style="font-size:40px;margin-bottom:12px">👑</div>
+        Nenhum High Ticket registrado em ${mesLabel()}.<br>
+        <a href="high-ticket.html" style="color:#a78bfa;font-size:13px;margin-top:8px;display:inline-block">→ Ir para High Ticket</a>
+      </div>`
+      return
+    }
+
+    // 2. Mapas auxiliares
+    const barbMap = {}; (barbs||[]).forEach(b => barbMap[b.id] = b)
+
+    // 3. Agregar planos/extras do mês por barbeiro (copa_lancamentos)
+    const planosMap = {}, extrasMap = {}
+    ;(copaLancs||[]).forEach(l => {
+      planosMap[l.participante_id] = (planosMap[l.participante_id]||0) + (+l.planos||0)
+      extrasMap[l.participante_id] = (extrasMap[l.participante_id]||0) + (+l.extras||0)
+    })
+
+    // 4. Para cada barbeiro: pegar o MELHOR High Ticket do mês
+    //    (maior valor individual — um lançamento, não soma)
+    const melhorMap = {}
+    ;(htLancs||[]).forEach(l => {
+      const bid = l.copa_barbeiro_id
+      if (!melhorMap[bid] || l.valor > melhorMap[bid].valor) {
+        melhorMap[bid] = l
+      }
+    })
+
+    // 5. Montar lista de profissionais
+    const profissionais = Object.values(melhorMap).map(l => {
+      const b = barbMap[l.copa_barbeiro_id] || {}
+      return {
+        id:           l.copa_barbeiro_id,
+        lancId:       l.id,
+        nome:         b.nome || 'Profissional',
+        barbearia:    b.barbearia || '',
+        user_id:      b.user_id,
+        melhorValor:  +l.valor,
+        data:         l.data,
+        observacao:   l.observacao,
+        infracao:     l.infracao,
+        infracMotivo: l.infracao_motivo,
+        planos:       planosMap[l.copa_barbeiro_id] || 0,
+        extras:       extrasMap[l.copa_barbeiro_id] || 0,
+        isEu:         meuBarbeiro && l.copa_barbeiro_id === meuBarbeiro.id,
+      }
+    })
+
+    // 6. Ordenar pelos critérios
+    const ranking = ordenarRanking(profissionais)
+
+    // 7. Buscar avatares
+    const avatarMap = {}
+    const uids = [...new Set(ranking.map(r=>r.user_id).filter(Boolean))]
+    await Promise.all(uids.map(async uid => {
+      const {data:p} = await db.from('profiles').select('user_id,avatar_url').eq('user_id',uid).maybeSingle()
+      if(p?.avatar_url) avatarMap[uid]=p.avatar_url
+    }))
+
+    // 8. Render
+    this.renderRanking(el, ranking, avatarMap)
+  },
+
+  renderRanking(el, ranking, avatarMap) {
+    const top3    = ranking.slice(0, 3)
+    const resto   = ranking.slice(3)
+    const posI    = ['🥇','🥈','🥉']
+    const posC    = ['g','s','b']
+    const posName = ['pos1','pos2','pos3']
+
+    // ── PÓDIO ──
+    // Ordenar visualmente: 2º | 1º | 3º
+    const visualOrder = [
+      top3[1] || null,
+      top3[0] || null,
+      top3[2] || null,
+    ]
+    const visualClass = ['pos2','pos1','pos3']
+    const visualColor = ['s','g','b']
+    const visualIcon  = ['🥈','🥇','🥉']
+    const visualPos   = [1,0,2]  // índice no ranking
+
+    const podioHTML = visualOrder.map((r, vi) => {
+      if (!r) return '<div></div>'
+      const av    = r.user_id ? avatarMap[r.user_id] : null
+      const pos   = visualPos[vi]
+      const valid = !r.infracao
+      const cor   = visualColor[vi]
+      // Critério de desempate exibido?
+      const showCrit = pos < ranking.length - 1 && !r.infracao
+        && ranking[pos+1] && !ranking[pos+1].infracao
+        && r.melhorValor === ranking[pos+1].melhorValor
+      return `<div class="podio-item ${posName[pos]} ${valid?'valido':'invalido'}">
+        <div class="podio-trofeu">${visualIcon[vi]}</div>
+        <div class="podio-pos">${visualIcon[vi]}</div>
+        <div class="podio-av ${cor}">
+          ${av ? `<img src="${av}" alt="${r.nome}">` : ini(r.nome)}
+        </div>
+        <div class="podio-nome" title="${r.nome}">${r.nome}${r.isEu?' 👤':''}</div>
+        <div class="podio-valor ${cor} ${!valid?'riscado':''}">${fmt(r.melhorValor)}</div>
+        <div class="podio-data">${fmtDate(r.data)}</div>
+        ${!valid ? `<div class="podio-infrac">⚠️ ${r.infracMotivo||'Infração'}</div>` : ''}
+        ${showCrit ? `<div class="podio-criterio">🎯 Desempate: planos</div>` : ''}
+      </div>`
+    }).join('')
+
+    // ── RANKING COMPLETO ──
+    const rankHTML = ranking.map((r, i) => {
+      const av    = r.user_id ? avatarMap[r.user_id] : null
+      const valid = !r.infracao
+      // Posição real no ranking válido
+      const posReal = i + 1
+      return `<div class="rank-row ${!valid?'invalido':''}">
+        <div class="rank-num">${i<3?posI[i]:posReal+'°'}</div>
+        <div class="rank-av-sm">
+          ${av ? `<img src="${av}" alt="${r.nome}">` : ini(r.nome)}
+        </div>
+        <div class="rank-info">
+          <div class="rank-nome-sm">${r.nome}${r.isEu?' <span style="font-size:10px;color:var(--ac)">(você)</span>':''}</div>
+          <div class="rank-detalhe">${r.barbearia} · ${fmtDate(r.data)} · 💎${r.planos} planos</div>
+          ${!valid ? `<div class="rank-infrac-sm">⚠️ ${r.infracMotivo||'Infração — inválido'}</div>` : ''}
+        </div>
+        <div class="rank-val-sm ${!valid?'riscado':''}">${fmt(r.melhorValor)}</div>
+      </div>`
+    }).join('')
+
+    // ── LEGENDA DOS CRITÉRIOS ──
+    const criteriosHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+        <div class="crit-badge">1° Maior valor do High Ticket</div>
+        <div class="crit-badge">2° Mais planos vendidos</div>
+        <div class="crit-badge">3° Maior fat. com menos serviços</div>
+      </div>`
+
+    el.innerHTML = `
+      ${criteriosHTML}
+
+      <!-- PÓDIO TOP 3 -->
+      <div class="podio">${podioHTML}</div>
+
+      <!-- RANKING COMPLETO -->
+      ${ranking.length > 3 ? `
+        <div class="rank-title">Classificação completa</div>
+        ${rankHTML}
+      ` : ranking.length > 0 ? `
+        <div class="rank-title">Classificação</div>
+        ${rankHTML}
+      ` : ''}
+
+      <!-- NOTA DE CRITÉRIOS -->
+      <div style="font-size:11px;color:var(--t3);margin-top:16px;line-height:1.7;padding:10px;background:var(--s1);border-radius:var(--r-sm);border:1px solid var(--b1)">
+        👑 <strong style="color:var(--t2)">Royal Ticket</strong> — Pódio baseado no maior High Ticket individual do mês.
+        Em caso de empate: mais planos vendidos na Copa Gorilaz vence.
+        Persistindo o empate: maior faturamento com menos serviços.
+        Lançamentos com infração ficam no ranking mas não ocupam o pódio.
+      </div>
+    `
+  }
+}
+
+// ── INIT ──
+async function init() {
+  // Barbeiro via localStorage da Copa (sem login adicional)
+  try {
+    const saved = localStorage.getItem('copa_barbeiro')
+    if (saved) {
+      const b = JSON.parse(saved)
+      if (b?.id) {
+        const { data: bDB } = await db.from('copa_barbeiros').select('*').eq('id', Number(b.id)).maybeSingle()
+        meuBarbeiro = bDB || b
+      }
+    }
+  } catch(_) {}
+  await RT.carregar()
+}
+
+init()
+</script>
+</body>
+</html>
