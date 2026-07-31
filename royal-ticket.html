@@ -93,6 +93,16 @@
     /* CRITÉRIOS BADGE */
     .crit-badge{display:inline-flex;align-items:center;gap:4px;background:var(--s2);border:1px solid var(--b2);border-radius:999px;padding:3px 10px;font-size:11px;color:var(--t2);margin-bottom:14px}
 
+    /* REGRAS — Como perder o Royal Ticket */
+    .regra-section{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r-lg);padding:18px;margin-top:16px}
+    .regra-section-title{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+    .regra-row{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b1);gap:12px}
+    .regra-row:last-child{border-bottom:none}
+    .regra-desc strong{display:block;font-size:13px;font-weight:700;margin-bottom:2px}
+    .regra-desc span{font-size:12px;color:var(--t2);line-height:1.4}
+    .regra-badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap;flex-shrink:0}
+    .regra-badge.neg{background:var(--rd-dim);color:var(--rd);border:1px solid var(--rd-bdr)}
+
     /* LOADING */
     .loading{text-align:center;padding:40px;color:var(--t2);display:flex;align-items:center;justify-content:center;gap:10px}
     .spin-v{width:16px;height:16px;border:2px solid var(--b2);border-top-color:#a78bfa;border-radius:50%;animation:spin .6s linear infinite}
@@ -124,6 +134,62 @@
 
 <div class="wrap">
   <div id="conteudo"><div class="loading"><div class="spin-v"></div> Carregando...</div></div>
+
+  <div class="regra-section">
+    <div class="regra-section-title">❌ Como perder o Royal Ticket (mensal)</div>
+    <div style="font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:10px">
+      Assim como no High Ticket, o profissional perde o direito ao Royal Ticket caso ocorra qualquer uma das situações abaixo — aqui, porém, o acompanhamento é feito ao longo de <strong style="color:var(--tx)">todo o mês</strong>, não apenas na semana:
+    </div>
+    <div class="regra-row">
+      <div class="regra-desc">
+        <strong>Não utilizar o rádio</strong>
+        <span>Deixar de utilizar o rádio durante o expediente.</span>
+      </div>
+      <div class="regra-badge neg">Perde o direito</div>
+    </div>
+    <div class="regra-row">
+      <div class="regra-desc">
+        <strong>Atraso</strong>
+        <span>Chegar atrasado em qualquer dia do mês.</span>
+      </div>
+      <div class="regra-badge neg">Perde o direito</div>
+    </div>
+    <div class="regra-row">
+      <div class="regra-desc">
+        <strong>Saída antecipada</strong>
+        <span>Sair mais cedo sem alinhamento prévio.</span>
+      </div>
+      <div class="regra-badge neg">Perde o direito</div>
+    </div>
+    <div class="regra-row">
+      <div class="regra-desc">
+        <strong>Não cumprir acordos internos</strong>
+        <span>Descumprir combinados feitos com a equipe ou gestão.</span>
+      </div>
+      <div class="regra-badge neg">Perde o direito</div>
+    </div>
+    <div class="regra-row">
+      <div class="regra-desc">
+        <strong>Não se engajar em ajudar o colega</strong>
+        <span>Não colaborar com um colega que esteja com dificuldade.</span>
+      </div>
+      <div class="regra-badge neg">Perde o direito</div>
+    </div>
+    <div class="regra-row">
+      <div class="regra-desc">
+        <strong>Faltar a aula do Pódium PRO</strong>
+        <span>Não comparecer à aula do Pódium PRO no mês.</span>
+      </div>
+      <div class="regra-badge neg">Perde o direito</div>
+    </div>
+    <div class="regra-row">
+      <div class="regra-desc">
+        <strong>Não seguir os procedimentos padrão</strong>
+        <span>Deixar de seguir os procedimentos padrão da barbearia.</span>
+      </div>
+      <div class="regra-badge neg">Perde o direito</div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
