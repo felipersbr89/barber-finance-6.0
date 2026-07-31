@@ -234,10 +234,18 @@ function toast(msg, type='ok') {
 }
 
 // ── Calcular metas a partir da média ──
-function calcMetas(mediaAvulso, mediaProdutos) {
-  const cadeira = Number(mediaAvulso||0) + Number(mediaProdutos||0)
+function calcMetas(mediaAvulso, mediaProdutos, mediaAssinatura, comAvulso, comAssinatura) {
+  const av  = Number(mediaAvulso   ||0)
+  const pr  = Number(mediaProdutos ||0)
+  const ass = Number(mediaAssinatura||0)
+  const pctAv  = Number(comAvulso      ||40) / 100
+  const pctAss = Number(comAssinatura  ||30) / 100
+  // Faturamento da cadeira = comissão avulso + comissão assinatura + produtos
+  const cadeira = +(av * pctAv + ass * pctAss + pr).toFixed(2)
   return {
     cadeira,
+    comAvulso:   +(av  * pctAv ).toFixed(2),
+    comAssinatura:+(ass * pctAss).toFixed(2),
     meta:      +(cadeira * 1.05).toFixed(2),
     meta_turbo:+(cadeira * 1.10).toFixed(2),
     super_meta:+(cadeira * 1.15).toFixed(2),
@@ -321,7 +329,10 @@ const Perf = {
       return
     }
 
-    const metas = calcMetas(media.media_avulso, media.media_produtos)
+    const metas = calcMetas(
+      media.media_avulso, media.media_produtos, media.media_assinatura,
+      media.comissao_avulso, media.comissao_assinatura
+    )
     const totalAvulso   = (realizados||[]).reduce((s,r) => s + Number(r.avulso||0), 0)
     const totalProdutos = (realizados||[]).reduce((s,r) => s + Number(r.produtos||0), 0)
     const totalCadeira  = totalAvulso + totalProdutos
@@ -343,7 +354,9 @@ const Perf = {
             <div class="cadeira-label">Faturamento da cadeira</div>
             <div class="cadeira-val">${fmt(totalCadeira)}</div>
             <div class="cadeira-breakdown">
-              Avulso: <span>${fmt(totalAvulso)}</span>
+              Com. Avulso: <span>${fmt(metas.comAvulso)}</span>
+              &nbsp;·&nbsp;
+              Com. Assinatura: <span>${fmt(metas.comAssinatura)}</span>
               &nbsp;·&nbsp;
               Produtos: <span>${fmt(totalProdutos)}</span>
             </div>
@@ -374,7 +387,10 @@ const Perf = {
 
         <!-- Médias base (info discreta) -->
         <div style="font-size:11px;color:var(--t3);margin-top:4px">
-          Base: Avulso ${fmt(media.media_avulso)} · Produtos ${fmt(media.media_produtos)} · Cadeira ${fmt(metas.cadeira)}
+          Avulso: ${fmt(media.media_avulso)} (${media.comissao_avulso||40}%) → ${fmt(metas.comAvulso)}
+          &nbsp;·&nbsp;Assinatura: ${fmt(media.media_assinatura||0)} (${media.comissao_assinatura||30}%) → ${fmt(metas.comAssinatura)}
+          &nbsp;·&nbsp;Produtos: ${fmt(media.media_produtos)}
+          &nbsp;·&nbsp;<strong>Cadeira: ${fmt(metas.cadeira)}</strong>
         </div>
       </div>
 
@@ -492,7 +508,7 @@ const Perf = {
 
     // Montar ranking
     const ranking = medias.map(m => {
-      const metas  = calcMetas(m.media_avulso, m.media_produtos)
+      const metas  = calcMetas(m.media_avulso, m.media_produtos, m.media_assinatura, m.comissao_avulso, m.comissao_assinatura)
       const real   = realMap[m.user_id] || 0
       const p      = pct(real, metas.meta)
       const prof   = profMap[m.user_id]
@@ -556,24 +572,43 @@ const Perf = {
 
         ${profiles.map(p => {
           const m = mediaMap[p.user_id] || {}
-          const metas = calcMetas(m.media_avulso||0, m.media_produtos||0)
+          const metas = calcMetas(m.media_avulso||0, m.media_produtos||0, m.media_assinatura||0, m.comissao_avulso||40, m.comissao_assinatura||30)
           return `
           <div style="background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:14px;margin-bottom:10px">
-            <div style="font-weight:700;font-size:13px;margin-bottom:10px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:12px">
               👤 ${p.full_name||'Sem nome'}
               ${p.barbershop_name ? `<span style="font-size:11px;color:var(--t2);font-weight:400"> · ${p.barbershop_name}</span>` : ''}
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+
+            <div style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Faturamento</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
               <div class="field">
-                <label>💈 Média avulso (R$)</label>
+                <label>💈 Avulso (R$)</label>
                 <input type="number" id="m-avulso-${p.user_id}" value="${m.media_avulso||0}" step="0.01" min="0">
               </div>
               <div class="field">
-                <label>📦 Média produtos (R$)</label>
+                <label>📋 Assinatura (R$)</label>
+                <input type="number" id="m-assinatura-${p.user_id}" value="${m.media_assinatura||0}" step="0.01" min="0">
+              </div>
+              <div class="field">
+                <label>📦 Produtos (R$)</label>
                 <input type="number" id="m-produtos-${p.user_id}" value="${m.media_produtos||0}" step="0.01" min="0">
               </div>
             </div>
-            <div style="font-size:11px;color:var(--t3);margin-bottom:10px" id="preview-${p.user_id}">
+
+            <div style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Comissionamento</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+              <div class="field">
+                <label>💈 % Comissão avulso</label>
+                <input type="number" id="m-com-avulso-${p.user_id}" value="${m.comissao_avulso||40}" step="0.1" min="0" max="100">
+              </div>
+              <div class="field">
+                <label>📋 % Comissão assinatura</label>
+                <input type="number" id="m-com-assinatura-${p.user_id}" value="${m.comissao_assinatura||30}" step="0.1" min="0" max="100">
+              </div>
+            </div>
+
+            <div style="font-size:11px;color:var(--t3);margin-bottom:10px;padding:8px;background:var(--s1);border-radius:var(--r-sm)" id="preview-${p.user_id}">
               Cadeira: ${fmt(metas.cadeira)} → 🎯 ${fmt(metas.meta)} / 🔥 ${fmt(metas.meta_turbo)} / 🚀 ${fmt(metas.super_meta)}
             </div>
             <button class="btn btn-lime" style="padding:7px 14px;font-size:12px" onclick="Perf.salvarMedia('${p.user_id}')">
@@ -586,30 +621,46 @@ const Perf = {
 
     // Preview ao alterar valores
     profiles.forEach(p => {
-      const av = document.getElementById(`m-avulso-${p.user_id}`)
-      const pr = document.getElementById(`m-produtos-${p.user_id}`)
-      const pv = document.getElementById(`preview-${p.user_id}`)
+      const av  = document.getElementById(`m-avulso-${p.user_id}`)
+      const ass = document.getElementById(`m-assinatura-${p.user_id}`)
+      const pr  = document.getElementById(`m-produtos-${p.user_id}`)
+      const cav = document.getElementById(`m-com-avulso-${p.user_id}`)
+      const cas = document.getElementById(`m-com-assinatura-${p.user_id}`)
+      const pv  = document.getElementById(`preview-${p.user_id}`)
       const updatePreview = () => {
-        const m = calcMetas(parseFloat(av.value)||0, parseFloat(pr.value)||0)
+        const m = calcMetas(
+          parseFloat(av.value)||0,  parseFloat(pr.value)||0,
+          parseFloat(ass.value)||0, parseFloat(cav.value)||40,
+          parseFloat(cas.value)||30
+        )
         pv.textContent = `Cadeira: ${fmt(m.cadeira)} → 🎯 ${fmt(m.meta)} / 🔥 ${fmt(m.meta_turbo)} / 🚀 ${fmt(m.super_meta)}`
       }
       av?.addEventListener('input', updatePreview)
+      ass?.addEventListener('input', updatePreview)
       pr?.addEventListener('input', updatePreview)
+      cav?.addEventListener('input', updatePreview)
+      cas?.addEventListener('input', updatePreview)
     })
   },
 
   async salvarMedia(uid) {
     if (!isMaster) { toast('Sem permissão.','err'); return }
-    const avulso  = parseFloat(document.getElementById(`m-avulso-${uid}`)?.value) || 0
-    const produtos = parseFloat(document.getElementById(`m-produtos-${uid}`)?.value) || 0
-    const ref     = getMesRef()
+    const avulso     = parseFloat(document.getElementById(`m-avulso-${uid}`)?.value)        || 0
+    const assinatura = parseFloat(document.getElementById(`m-assinatura-${uid}`)?.value)    || 0
+    const produtos   = parseFloat(document.getElementById(`m-produtos-${uid}`)?.value)      || 0
+    const comAv      = parseFloat(document.getElementById(`m-com-avulso-${uid}`)?.value)    || 40
+    const comAss     = parseFloat(document.getElementById(`m-com-assinatura-${uid}`)?.value)|| 30
+    const ref        = getMesRef()
 
     const { error } = await db.from('perf_medias').upsert({
-      user_id:        uid,
-      mes_ref:        ref,
-      media_avulso:   avulso,
-      media_produtos: produtos,
-      updated_at:     new Date().toISOString()
+      user_id:             uid,
+      mes_ref:             ref,
+      media_avulso:        avulso,
+      media_assinatura:    assinatura,
+      media_produtos:      produtos,
+      comissao_avulso:     comAv,
+      comissao_assinatura: comAss,
+      updated_at:          new Date().toISOString()
     }, { onConflict: 'user_id,mes_ref' })
 
     if (error) { toast('Erro: '+error.message,'err') }
