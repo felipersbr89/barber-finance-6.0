@@ -118,35 +118,35 @@ const Layout = {
     const iconHighTicket   = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`
     const iconRoyalTicket  = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
 
-    const barberMetasHTML = \`
+    const barberMetasHTML = `
       <div class="nav-section-label nav-section-premium">
         BARBER METAS
         <span class="nav-section-badge">NOVO</span>
       </div>
       <a href="copa-gorilaz.html" class="nav-item nav-item-copa" style="color:var(--ac);background:var(--ac-dim);border-color:var(--ac-bdr)">
-        <span class="nav-icon">\${iconCopa()}</span>
+        <span class="nav-icon">${iconCopa()}</span>
         Copa Gorilaz 🏆
       </a>
       <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Meta de Faturamento (Coletivo)', 'Defina metas coletivas de faturamento para sua equipe e acompanhe o progresso do time em tempo real.')">
-        <span class="nav-icon">\${iconMetaColetiva()}</span>
+        <span class="nav-icon">${iconMetaColetiva()}</span>
         Meta de Faturamento (Coletivo)
-        <span class="nav-coming-lock">\${iconLock()}</span>
+        <span class="nav-coming-lock">${iconLock()}</span>
       </div>
       <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Performance Elite', 'Acompanhe a performance individual de cada barbeiro, compare evolução mensal e identifique talentos da equipe.')">
-        <span class="nav-icon">\${iconPerformance()}</span>
+        <span class="nav-icon">${iconPerformance()}</span>
         Performance Elite
-        <span class="nav-coming-lock">\${iconLock()}</span>
+        <span class="nav-coming-lock">${iconLock()}</span>
       </div>
       <div class="nav-item nav-item-coming" onclick="ComingSoon.show('High Ticket', 'Monitore e incentive a venda de serviços e pacotes premium para maximizar o ticket médio da barbearia.')">
-        <span class="nav-icon">\${iconHighTicket()}</span>
+        <span class="nav-icon">${iconHighTicket()}</span>
         High Ticket
-        <span class="nav-coming-lock">\${iconLock()}</span>
+        <span class="nav-coming-lock">${iconLock()}</span>
       </div>
       <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Royal Ticket', 'O programa de fidelidade e experiência VIP da Gorilaz. Recompense seus melhores clientes com benefícios exclusivos.')">
-        <span class="nav-icon">\${iconRoyalTicket()}</span>
+        <span class="nav-icon">${iconRoyalTicket()}</span>
         Royal Ticket
-        <span class="nav-coming-lock">\${iconLock()}</span>
-      </div>\`
+        <span class="nav-coming-lock">${iconLock()}</span>
+      </div>`
 
     const bottomItems = navItems.filter(i => !['categorias','relatorios'].includes(i.id))
     const bottomNavHTML = bottomItems.map(item => `
