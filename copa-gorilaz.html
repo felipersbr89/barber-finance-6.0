@@ -133,6 +133,37 @@
     .hist-table tr:hover td{background:var(--s2)}
     .hist-pts{font-family:var(--fd);font-weight:700;color:var(--ac)}
     .hist-empty{text-align:center;padding:32px;color:var(--t2);font-size:13px}
+    /* Ajustes / bonificações */
+    .ajuste-btn{padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid;font-family:var(--fb);transition:.15s;white-space:nowrap}
+    .ajuste-btn.bonif{background:var(--gr-dim);color:var(--gr);border-color:var(--gr-bdr)}
+    .ajuste-btn.bonif:hover{background:var(--gr);color:#000}
+    .ajuste-btn.infrac{background:var(--rd-dim);color:var(--rd);border-color:var(--rd-bdr)}
+    .ajuste-btn.infrac:hover{background:var(--rd);color:#fff}
+    .ajuste-chip{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px}
+    .ajuste-chip.pos{background:var(--gr-dim);color:var(--gr)}
+    .ajuste-chip.neg{background:var(--rd-dim);color:var(--rd)}
+    /* Modal de ajuste */
+    .ajuste-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+    .ajuste-modal-box{background:var(--s1);border:1px solid var(--b2);border-radius:var(--r-lg);padding:22px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto}
+    .ajuste-modal-title{font-family:var(--fd);font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .regra-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b1)}
+    .regra-item:last-child{border-bottom:none}
+    .regra-item label{display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;font-size:13px}
+    .regra-item input[type=radio]{accent-color:var(--ac);width:16px;height:16px;cursor:pointer}
+    .regra-pts{font-family:var(--fd);font-size:13px;font-weight:700;min-width:48px;text-align:right}
+    .regra-pts.pos{color:var(--gr)}.regra-pts.neg{color:var(--rd)}
+    /* Regras aba */
+    .regra-section{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r-lg);padding:18px;margin-bottom:14px}
+    .regra-section-title{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .regra-row{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b1);gap:12px}
+    .regra-row:last-child{border-bottom:none}
+    .regra-desc{flex:1}
+    .regra-desc strong{display:block;font-size:13px;font-weight:700;margin-bottom:2px}
+    .regra-desc span{font-size:12px;color:var(--t2);line-height:1.4}
+    .regra-badge{font-family:var(--fd);font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap;flex-shrink:0}
+    .regra-badge.pos{background:var(--gr-dim);color:var(--gr);border:1px solid var(--gr-bdr)}
+    .regra-badge.neg{background:var(--rd-dim);color:var(--rd);border:1px solid var(--rd-bdr)}
+    .regra-badge.neu{background:var(--ac-dim);color:var(--ac);border:1px solid var(--ac-bdr)}
     .created-at-info{font-size:11px;opacity:.55;margin-top:4px;color:inherit;display:block}
     .chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 7px;border-radius:999px;background:var(--s3);color:var(--t2)}
     .edit-row-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--r-sm);border:1px solid var(--b2);background:var(--s2);color:var(--t2);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s}
@@ -201,6 +232,7 @@
   <div class="tabs">
     <button class="tab active" id="tab-rank" onclick="Copa.setTab('rank')">🏆 Ranking</button>
     <button class="tab" id="tab-meu" onclick="Copa.setTab('meu')">⚡ Meu Painel</button>
+    <button class="tab" id="tab-regras" onclick="Copa.setTab('regras')">📋 Regras</button>
   </div>
 
   <!-- RANKING -->
@@ -345,6 +377,19 @@
           </div>
         </div>
 
+        <!-- Feed / Reels -->
+        <div class="counter-row" style="margin-bottom:4px">
+          <div class="counter-info">
+            <div class="counter-emoji">📱</div>
+            <div><div class="counter-label">Feed / Reels</div><div class="counter-pts">+10 pts cada</div></div>
+          </div>
+          <div class="counter-controls">
+            <button class="counter-btn" onclick="Copa.dec('feed')">−</button>
+            <div class="counter-num" id="cnt-feed">0</div>
+            <button class="counter-btn" onclick="Copa.inc('feed')">+</button>
+          </div>
+        </div>
+
         <div class="day-pts" id="day-pts-preview">→ 0 pontos neste dia</div>
 
         <div id="save-err" class="field-error"></div>
@@ -362,6 +407,133 @@
 
     </div><!-- /estado-painel -->
   </div><!-- /panel-meu -->
+
+  <!-- REGRAS DA CAMPANHA -->
+  <div class="panel" id="panel-regras">
+    <div style="max-width:700px;margin:0 auto">
+
+      <!-- Pontuação de vendas -->
+      <div class="regra-section">
+        <div class="regra-section-title">💎 Pontuação — Vendas</div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Plano vendido</strong>
+            <span>Cada plano mensal assinado por um cliente conta 30 pontos.</span>
+          </div>
+          <div class="regra-badge neu">+30 pts</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Serviço extra</strong>
+            <span>Serviços adicionais realizados além do plano: barba, progressiva, hidratação etc.</span>
+          </div>
+          <div class="regra-badge neu">+20 pts</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Produto vendido</strong>
+            <span>Venda de produtos da linha Gorilaz ou parceiros cadastrados.</span>
+          </div>
+          <div class="regra-badge neu">+10 pts</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Feed / Reels</strong>
+            <span>Publicação de conteúdo no feed ou reels marcando a barbearia e usando as hashtags oficiais.</span>
+          </div>
+          <div class="regra-badge neu">+10 pts</div>
+        </div>
+      </div>
+
+      <!-- Bonificações de comportamento -->
+      <div class="regra-section">
+        <div class="regra-section-title">✅ Bonificações — Comportamento</div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Chegar no horário</strong>
+            <span>Presença registrada antes ou exatamente no horário de início do turno.</span>
+          </div>
+          <div class="regra-badge pos">+20 pts</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Assistir aula Podium PRO</strong>
+            <span>Participação completa na aula de desenvolvimento profissional Podium PRO.</span>
+          </div>
+          <div class="regra-badge pos">+100 pts</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Sair no horário</strong>
+            <span>Permanência até o encerramento do turno conforme escala.</span>
+          </div>
+          <div class="regra-badge pos">+20 pts</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Engajar nas reuniões</strong>
+            <span>Participação ativa com contribuições, sugestões ou perguntas durante a reunião de equipe.</span>
+          </div>
+          <div class="regra-badge pos">+20 pts</div>
+        </div>
+      </div>
+
+      <!-- Punições -->
+      <div class="regra-section">
+        <div class="regra-section-title">⚠️ Punições — Comportamento</div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Chegar atrasado</strong>
+            <span>Presença registrada após o horário de início do turno, sem justificativa prévia.</span>
+          </div>
+          <div class="regra-badge neg">−10 pts</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Perder aula Podium PRO</strong>
+            <span>Ausência na aula de desenvolvimento sem justificativa antecipada.</span>
+          </div>
+          <div class="regra-badge neg">−200 pts</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Sair mais cedo</strong>
+            <span>Saída antes do encerramento do turno sem autorização da gestão.</span>
+          </div>
+          <div class="regra-badge neg">−10 pts</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Não utilizar rádio</strong>
+            <span>Ausência do rádio de comunicação durante o turno de trabalho.</span>
+          </div>
+          <div class="regra-badge neg">−20 pts</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Não seguir procedimentos</strong>
+            <span>Descumprimento dos protocolos operacionais ou de atendimento definidos pela gestão.</span>
+          </div>
+          <div class="regra-badge neg">−20 pts</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Não engajar nas reuniões</strong>
+            <span>Presença passiva sem contribuição durante a reunião de equipe.</span>
+          </div>
+          <div class="regra-badge neg">−10 pts</div>
+        </div>
+      </div>
+
+      <!-- Aviso -->
+      <div style="background:var(--or-dim);border:1px solid var(--or-bdr);border-radius:var(--r);padding:14px;font-size:12px;color:var(--or);line-height:1.6">
+        ⚠️ <strong>Importante:</strong> Bonificações e infrações são aplicadas exclusivamente pelo Usuário Master
+        e ficam registradas no histórico de cada lançamento diário.
+        Os pontos de ajuste somam diretamente ao total do mês no ranking.
+      </div>
+
+    </div>
+  </div><!-- /panel-regras -->
 </div>
 
 <script>
@@ -394,13 +566,20 @@ const MES_REF   = MES_REF_ATUAL
 const MES_END   = MES_END_ATUAL
 const MES_LABEL = (() => { const nm=hoje.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); return nm.charAt(0).toUpperCase()+nm.slice(1) })()
 
-const PTS = { planos: 30, extras: 20, produtos: 10 }
-const calcPts = (p,e,pr) => p*PTS.planos + e*PTS.extras + pr*PTS.produtos
+const PTS = { planos: 30, extras: 20, produtos: 10, feed: 10 }
+const calcPts = (p,e,pr,f=0) => p*PTS.planos + e*PTS.extras + pr*PTS.produtos + f*PTS.feed
 
 // ── Estado ──
 let barbeiro   = JSON.parse(localStorage.getItem('copa_barbeiro') || 'null')
 let rankFiltro = 'gorilaz'
-let cnts       = { planos:0, extras:0, produtos:0 }
+let cnts       = { planos:0, extras:0, produtos:0, feed:0 }
+
+// Identificação Master (sessão Supabase Auth)
+const COPA_MASTERS = new Set(['felipersbr@gmail.com'])
+let copaIsMaster   = false
+let copaUserEmail  = ''
+// Estado ajuste modal
+let _ajuste = { tipo:null, pid:null, nome:'', data:'', regra:null }
 let lancExisteId = null  // id do lançamento da data selecionada (se existir)
 let todosLancs = []      // cache do histórico do mês
 
@@ -409,6 +588,23 @@ document.getElementById('hero-period').textContent  = '📅 ' + MES_LABEL
 document.getElementById('painel-mes').textContent   = '📅 ' + MES_LABEL
 document.getElementById('rank-mes-label').textContent = '— ' + MES_LABEL
 document.getElementById('lanc-data').value = DATA_HOJE
+
+
+// ── Regras de bonificação/infração ──
+const REGRAS_BONIF = [
+  { id:'horario',   label:'Chegar no horário',       pts:+20  },
+  { id:'podium',    label:'Assistir aula Podium PRO', pts:+100 },
+  { id:'saida_ok',  label:'Sair no horário',         pts:+20  },
+  { id:'reuniao_ok',label:'Engajar nas reuniões',    pts:+20  },
+]
+const REGRAS_INFRAC = [
+  { id:'atraso',    label:'Chegar atrasado',          pts:-10  },
+  { id:'podium_f',  label:'Perder aula Podium PRO',   pts:-200 },
+  { id:'saida_c',   label:'Sair mais cedo',           pts:-10  },
+  { id:'radio',     label:'Não utilizar rádio',       pts:-20  },
+  { id:'proc',      label:'Não seguir procedimentos', pts:-20  },
+  { id:'reuniao_n', label:'Não engajar nas reuniões', pts:-10  },
+]
 
 const Copa = {
 
@@ -420,6 +616,7 @@ const Copa = {
     document.getElementById('panel-'+tab).classList.add('active')
     if (tab==='rank') { this._atualizarSeletorMes(); this.carregarRanking() }
     if (tab==='meu' && barbeiro) this.atualizarKpisMes()
+    if (tab==='regras') { /* estático */ }
   },
 
   // ── CADASTRO ──
@@ -479,6 +676,13 @@ const Copa = {
     document.getElementById('estado-cadastro').style.display='none'
     document.getElementById('estado-painel').style.display=''
     document.getElementById('painel-nome').textContent = barbeiro.nome
+    // Verificar Master via Auth
+    db.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) {
+        copaUserEmail  = session.user.email.toLowerCase().trim()
+        copaIsMaster   = COPA_MASTERS.has(copaUserEmail)
+      }
+    }).catch(()=>{})
     document.getElementById('painel-barb').textContent = '✂️ '+barbeiro.barbearia
     document.getElementById('lanc-data').value = DATA_HOJE
 
@@ -530,13 +734,13 @@ const Copa = {
 
     if (lanc) {
       lancExisteId = lanc.id
-      cnts = { planos:lanc.planos, extras:lanc.extras, produtos:lanc.produtos }
+      cnts = { planos:lanc.planos, extras:lanc.extras, produtos:lanc.produtos, feed:lanc.feed||0 }
       statusEl.className='date-status exists'
       statusEl.textContent='✓ Já lançado — editando'
       statusEl.style.display=''
       document.getElementById('edit-badge').style.display=''
     } else {
-      cnts = { planos:0, extras:0, produtos:0 }
+      cnts = { planos:0, extras:0, produtos:0, feed:0 }
       statusEl.className='date-status new'
       statusEl.textContent='+ Novo lançamento'
       statusEl.style.display=''
@@ -550,10 +754,10 @@ const Copa = {
   dec(k){ if(cnts[k]>0){cnts[k]--; this.atualizarContadoresUI()} },
 
   atualizarContadoresUI() {
-    ;['planos','extras','produtos'].forEach(k=>{
+    ;['planos','extras','produtos','feed'].forEach(k=>{
       document.getElementById('cnt-'+k).textContent = cnts[k]
     })
-    const pts = calcPts(cnts.planos, cnts.extras, cnts.produtos)
+    const pts = calcPts(cnts.planos, cnts.extras, cnts.produtos, cnts.feed)
     document.getElementById('day-pts-preview').textContent = `→ ${pts} pontos neste dia`
   },
 
@@ -576,7 +780,7 @@ const Copa = {
     if (!barbeiro){ toast('Faça login primeiro.','err'); return }
 
     const btn = document.getElementById('save-btn')
-    const pts = calcPts(cnts.planos, cnts.extras, cnts.produtos)
+    const pts = calcPts(cnts.planos, cnts.extras, cnts.produtos, cnts.feed)
     btn.disabled=true; btn.innerHTML='<div class="spin"></div> Salvando...'
 
     const pid = Number(barbeiro.id)
@@ -605,6 +809,7 @@ const Copa = {
         planos:   cnts.planos,
         extras:   cnts.extras,
         produtos: cnts.produtos,
+        feed:     cnts.feed,
         pontos:   pts,
         updated_at: new Date().toISOString()
       }
@@ -719,6 +924,7 @@ const Copa = {
             <th style="text-align:center">💎 Planos</th>
             <th style="text-align:center">✂️ Serviços</th>
             <th style="text-align:center">🛍️ Produtos</th>
+            <th style="text-align:center">📱 Feed</th>
             <th style="text-align:right">Pontos</th>
             <th></th>
           </tr></thead>
@@ -733,16 +939,25 @@ const Copa = {
                     return `Criado em ${data} às ${hora}`
                   })()
                 : ''
+              const ajPts = (l.ajuste_pts||0)
               return `<tr>
-                <td style="font-weight:500">${dt}${createdAt ? `<span class="created-at-info">${createdAt}</span>` : ''}</td>
+                <td style="font-weight:500">${dt}${createdAt ? `<span class="created-at-info">${createdAt}</span>` : ''}
+                  ${ajPts!==0 ? `<span class="ajuste-chip ${ajPts>0?'pos':'neg'}">${ajPts>0?'+':''}${ajPts} adj</span>` : ''}
+                  ${l.ajuste_motivo ? `<div style="font-size:10px;color:var(--t2);margin-top:2px">${l.ajuste_motivo}</div>` : ''}
+                </td>
                 <td style="text-align:center"><span class="chip">${l.planos}</span></td>
                 <td style="text-align:center"><span class="chip">${l.extras}</span></td>
                 <td style="text-align:center"><span class="chip">${l.produtos}</span></td>
+                <td style="text-align:center"><span class="chip">${l.feed||0}</span></td>
                 <td style="text-align:right"><span class="hist-pts">${l.pontos}</span></td>
                 <td style="text-align:right">
-                  <button class="edit-row-btn" onclick="Copa.editarLancamento('${l.data}',${l.planos},${l.extras},${l.produtos})">
-                    ✏️ Editar
-                  </button>
+                  <div style="display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap">
+                    <button class="edit-row-btn" onclick="Copa.editarLancamento('${l.data}',${l.planos},${l.extras},${l.produtos},${l.feed||0})">✏️ Editar</button>
+                    ${copaIsMaster ? `
+                      <button class="ajuste-btn bonif" onclick="Copa.abrirModalAjuste('bonificacao','${l.data}')">✅ Bonif</button>
+                      <button class="ajuste-btn infrac" onclick="Copa.abrirModalAjuste('infracao','${l.data}')">⚠️ Infração</button>
+                    ` : ''}
+                  </div>
                 </td>
               </tr>`
             }).join('')}
@@ -752,9 +967,9 @@ const Copa = {
   },
 
   // ── EDITAR LANÇAMENTO DO HISTÓRICO ──
-  editarLancamento(data, planos, extras, produtos) {
+  editarLancamento(data, planos, extras, produtos, feed=0) {
     document.getElementById('lanc-data').value = data
-    cnts = { planos, extras, produtos }
+    cnts = { planos, extras, produtos, feed }
     this.atualizarContadoresUI()
     this.onDataChange()  // atualiza status da data
     // Scroll até o formulário
@@ -915,6 +1130,93 @@ const Copa = {
     }).join('')
   },
 
+
+  // ── AJUSTES MASTER ────────────────────────────────────
+
+  abrirModalAjuste(tipo, data) {
+    if (!copaIsMaster) { toast('Acesso restrito ao Master.','err'); return }
+    _ajuste.tipo  = tipo
+    _ajuste.data  = data
+    _ajuste.pid   = Number(barbeiro.id)
+    _ajuste.nome  = barbeiro.nome
+    _ajuste.regra = null
+
+    const regras  = tipo === 'bonificacao' ? REGRAS_BONIF : REGRAS_INFRAC
+    const isPos   = tipo === 'bonificacao'
+    const titulo  = isPos ? '✅ Bonificação' : '⚠️ Infração'
+    const corTxt  = isPos ? 'var(--gr)' : 'var(--rd)'
+
+    document.getElementById('ajuste-modal-title').innerHTML = `<span style="color:${corTxt}">${titulo}</span>`
+    document.getElementById('ajuste-prof-nome').textContent  = barbeiro.nome
+    document.getElementById('ajuste-data-label').textContent = new Date(data+'T12:00').toLocaleDateString('pt-BR')
+
+    const listEl = document.getElementById('ajuste-regras-list')
+    listEl.innerHTML = regras.map(r => `
+      <div class="regra-item">
+        <label>
+          <input type="radio" name="regra_sel" value="${r.id}" onchange="_ajuste.regra='${r.id}'">
+          ${r.label}
+        </label>
+        <span class="regra-pts ${r.pts>0?'pos':'neg'}">${r.pts>0?'+':''}${r.pts}</span>
+      </div>`).join('')
+
+    document.getElementById('modal-ajuste').classList.remove('hidden')
+  },
+
+  fecharModalAjuste() {
+    document.getElementById('modal-ajuste').classList.add('hidden')
+    _ajuste = { tipo:null, pid:null, nome:'', data:'', regra:null }
+  },
+
+  async aplicarAjuste() {
+    if (!copaIsMaster) { toast('Acesso restrito.','err'); return }
+    const regras = _ajuste.tipo === 'bonificacao' ? REGRAS_BONIF : REGRAS_INFRAC
+    const regra  = regras.find(r => r.id === _ajuste.regra)
+    if (!regra) { toast('Selecione uma regra.','err'); return }
+
+    const btn = document.getElementById('btn-aplicar-ajuste')
+    btn.disabled = true; btn.innerHTML = '<div class="spin"></div>'
+
+    // 1. Registrar em copa_ajustes (histórico rastreável)
+    const { error: e1 } = await db.from('copa_ajustes').insert({
+      participante_id: _ajuste.pid,
+      data:            _ajuste.data,
+      tipo:            _ajuste.tipo,
+      motivo:          regra.label,
+      pontos:          regra.pts,
+      registrado_por:  copaUserEmail
+    })
+    if (e1) { toast('Erro: '+e1.message,'err'); btn.disabled=false; btn.innerHTML='✓ Aplicar'; return }
+
+    // 2. Atualizar ajuste_pts e pontos no lançamento do dia
+    //    Buscar lançamento existente para acumular ajustes anteriores
+    const { data: lanc } = await db.from('copa_lancamentos')
+      .select('id,pontos,ajuste_pts').eq('participante_id', _ajuste.pid).eq('data', _ajuste.data).maybeSingle()
+
+    if (lanc) {
+      const novoAjuste = (lanc.ajuste_pts||0) + regra.pts
+      const novoTotal  = lanc.pontos + regra.pts
+      await db.from('copa_lancamentos')
+        .update({ ajuste_pts: novoAjuste, ajuste_motivo: regra.label, pontos: novoTotal, updated_at: new Date().toISOString() })
+        .eq('id', lanc.id)
+    } else {
+      // Lançamento não existe nesta data — criar apenas com ajuste
+      await db.from('copa_lancamentos').insert({
+        participante_id: _ajuste.pid, data: _ajuste.data,
+        planos:0, extras:0, produtos:0, feed:0,
+        ajuste_pts: regra.pts, ajuste_motivo: regra.label,
+        pontos: regra.pts
+      })
+    }
+
+    btn.disabled = false; btn.innerHTML = '✓ Aplicar'
+    this.fecharModalAjuste()
+    toast(`${regra.label}: ${regra.pts>0?'+':''}${regra.pts} pts aplicado!`, regra.pts>0?'ok':'err')
+    await this.carregarHistorico()
+    await this.carregarRanking()
+    await this.atualizarKpisMes()
+  },
+
   sair() {
     localStorage.removeItem('copa_barbeiro')
     barbeiro=null; cnts={planos:0,extras:0,produtos:0}
@@ -942,5 +1244,24 @@ function toast(msg,type='ok'){
 
 Copa.init()
 </script>
+
+<!-- MODAL AJUSTE MASTER -->
+<div class="ajuste-modal-overlay hidden" id="modal-ajuste">
+  <div class="ajuste-modal-box">
+    <div class="ajuste-modal-title" id="ajuste-modal-title">⚡ Ajuste de Pontos</div>
+
+    <div style="font-size:12px;color:var(--t2);margin-bottom:14px">
+      Profissional: <strong id="ajuste-prof-nome">—</strong> &nbsp;·&nbsp; Data: <strong id="ajuste-data-label">—</strong>
+    </div>
+
+    <!-- Lista de regras -->
+    <div id="ajuste-regras-list"></div>
+
+    <div style="margin-top:14px;display:flex;gap:10px">
+      <button class="btn btn-lime" id="btn-aplicar-ajuste" onclick="Copa.aplicarAjuste()" style="flex:1">✓ Aplicar</button>
+      <button class="btn btn-ghost" onclick="Copa.fecharModalAjuste()">Cancelar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
