@@ -132,6 +132,7 @@
     .hist-table tr:last-child td{border-bottom:none}
     .hist-table tr:hover td{background:var(--s2)}
     .hist-pts{font-family:var(--fd);font-weight:700;color:var(--ac)}
+    .hidden{display:none!important}
     .hist-empty{text-align:center;padding:32px;color:var(--t2);font-size:13px}
     /* Ajustes / bonificações */
     .ajuste-btn{padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid;font-family:var(--fb);transition:.15s;white-space:nowrap}
@@ -1243,12 +1244,19 @@ function toast(msg,type='ok'){
 }
 
 Copa.init()
+// ESC fecha modal de ajuste
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') Copa.fecharModalAjuste()
+})
 </script>
 
 <!-- MODAL AJUSTE MASTER -->
-<div class="ajuste-modal-overlay hidden" id="modal-ajuste">
+<div class="ajuste-modal-overlay hidden" id="modal-ajuste" onclick="if(event.target===this)Copa.fecharModalAjuste()">
   <div class="ajuste-modal-box">
-    <div class="ajuste-modal-title" id="ajuste-modal-title">⚡ Ajuste de Pontos</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="ajuste-modal-title" id="ajuste-modal-title" style="margin-bottom:0">⚡ Ajuste de Pontos</div>
+      <button onclick="Copa.fecharModalAjuste()" style="background:none;border:none;color:var(--t2);font-size:20px;cursor:pointer;padding:4px;line-height:1" title="Fechar">✕</button>
+    </div>
 
     <div style="font-size:12px;color:var(--t2);margin-bottom:14px">
       Profissional: <strong id="ajuste-prof-nome">—</strong> &nbsp;·&nbsp; Data: <strong id="ajuste-data-label">—</strong>
