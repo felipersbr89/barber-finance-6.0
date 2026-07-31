@@ -71,14 +71,19 @@
     /* METAS GRID */
     .metas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
     @media(max-width:500px){.metas-grid{grid-template-columns:1fr}}
-    .meta-card{background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:14px;position:relative;overflow:hidden}
-    .meta-card.atingida{border-color:var(--gr-bdr);background:var(--gr-dim)}
+    .meta-card{background:var(--s2);border:1px solid var(--b2);border-left:3px solid var(--b2);border-radius:var(--r);padding:14px;position:relative;overflow:hidden;transition:.15s}
+    .meta-card.atingida{border-color:var(--gr-bdr);border-left-color:var(--gr);background:var(--gr-dim);box-shadow:0 0 0 1px var(--gr-bdr),0 6px 20px -8px rgba(74,222,128,.35)}
+    .meta-card.pendente{opacity:.94}
     .meta-card.vigente-nivel{border-color:var(--ac-bdr);background:var(--ac-dim)}
+    .meta-card-status{position:absolute;top:10px;right:10px;font-size:9px;font-weight:700;letter-spacing:.3px;padding:2px 7px;border-radius:999px;text-transform:uppercase}
+    .meta-card-status.on{background:rgba(74,222,128,.15);color:var(--gr);border:1px solid var(--gr-bdr)}
+    .meta-card-status.off{background:var(--s3);color:var(--t2);border:1px solid var(--b2)}
     .meta-card-icon{font-size:20px;margin-bottom:6px}
     .meta-card-nome{font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
     .meta-card-valor{font-family:var(--fd);font-size:16px;font-weight:700;margin-bottom:8px}
     .meta-card-pct{font-size:12px;font-weight:600}
     .meta-card-falta{font-size:11px;color:var(--t2);margin-top:2px}
+    .meta-card-falta-dia{font-size:11px;font-weight:600;margin-top:2px}
     .meta-bar-wrap{height:4px;background:var(--b1);border-radius:2px;overflow:hidden;margin-top:8px}
     .meta-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
 
@@ -108,15 +113,19 @@
     .historico-section{margin-top:24px}
     .historico-title{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
     .timeline{display:flex;flex-direction:column;gap:8px}
-    .timeline-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);cursor:pointer;transition:.15s;opacity:.7}
+    .timeline-item{display:flex;flex-direction:column;gap:7px;padding:11px 14px;background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--b2);border-radius:var(--r);cursor:pointer;transition:.15s;opacity:.88}
     .timeline-item:hover{opacity:1;border-color:var(--b2)}
     .timeline-item.selected{opacity:1;border-color:var(--ac-bdr);background:var(--ac-dim)}
-    .timeline-mes{font-family:var(--fd);font-size:12px;font-weight:700;min-width:60px;color:var(--t2)}
+    .timeline-top{display:flex;align-items:center;gap:10px}
+    .timeline-mes{font-family:var(--fd);font-size:12px;font-weight:700;min-width:56px;color:var(--t2)}
     .timeline-item.selected .timeline-mes{color:var(--ac)}
+    .timeline-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+    .timeline-valor{font-family:var(--fd);font-size:13px;font-weight:700;margin-left:auto;white-space:nowrap}
+    .timeline-bottom{display:flex;align-items:center;gap:10px}
     .timeline-bar-wrap{flex:1;height:4px;background:var(--b1);border-radius:2px;overflow:hidden}
-    .timeline-bar-fill{height:100%;border-radius:2px}
-    .timeline-pct{font-size:11px;font-weight:600;min-width:36px;text-align:right}
-    .timeline-status{font-size:14px;margin-left:4px}
+    .timeline-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+    .timeline-super-pct{font-size:10px;font-weight:600;color:var(--t2);white-space:nowrap;min-width:98px;text-align:right}
+
 
     /* FORMULÁRIO MASTER */
     .master-section{background:var(--s1);border:1px solid var(--or-bdr);border-radius:var(--r-lg);padding:20px;margin-bottom:16px}
@@ -273,12 +282,15 @@ async function renderConteudo(dados, premiacoes) {
     const p = pct(realizado, m.valor)
     const atingida = realizado >= m.valor
     const isNivelAtual = nivel === m.key && !atingida
-    return `<div class="meta-card${atingida?' atingida':''}${isNivelAtual?' vigente-nivel':''}">
+    const porDiaCard = (vigente && dias > 0 && m.falta > 0) ? m.falta / dias : 0
+    return `<div class="meta-card${atingida?' atingida':' pendente'}${isNivelAtual?' vigente-nivel':''}">
+      <div class="meta-card-status ${atingida?'on':'off'}">${atingida?'Atingida':'Pendente'}</div>
       <div class="meta-card-icon">${m.icon}</div>
       <div class="meta-card-nome">${m.nome}</div>
       <div class="meta-card-valor" style="color:${m.cor}">${fmt(m.valor)}</div>
       <div class="meta-card-pct" style="color:${atingida?'var(--gr)':m.cor}">${p}%${atingida?' ✓':''}</div>
       ${!atingida ? `<div class="meta-card-falta">Faltam ${fmt(m.falta)}</div>` : ''}
+      ${!atingida && porDiaCard > 0 ? `<div class="meta-card-falta-dia" style="color:${m.cor}">${fmt(porDiaCard)}/dia</div>` : ''}
       <div class="meta-bar-wrap"><div class="meta-bar-fill" style="width:${Math.min(p,100)}%;background:${m.corBar}"></div></div>
     </div>`
   }).join('')
@@ -386,20 +398,35 @@ function bindFormMaster() {
 
 // ── Carregar timeline ──
 async function carregarTimeline() {
-  const { data } = await db.from('fat_metas').select('mes_ref,meta,realizado').order('mes_ref', { ascending: false })
+  const { data } = await db.from('fat_metas').select('mes_ref,meta,meta_turbo,super_meta,realizado').order('mes_ref', { ascending: false })
   const el = document.getElementById('timeline-list')
   if (!data?.length) { el.innerHTML = '<div style="color:var(--t3);font-size:12px;padding:8px">Nenhum histórico ainda.</div>'; return }
   const ref = getMesRef()
+  const NIVEIS = {
+    super: { label:'🚀 Super Meta', cor:'#60a5fa', dim:'rgba(96,165,250,.14)',  bdr:'rgba(96,165,250,.4)'  },
+    turbo: { label:'🔥 Meta Turbo', cor:'#fb923c', dim:'rgba(251,146,60,.14)',  bdr:'rgba(251,146,60,.4)'  },
+    meta:  { label:'🎯 Meta',       cor:'#C6FF00', dim:'rgba(198,255,0,.14)',   bdr:'rgba(198,255,0,.4)'   },
+    nenhum:{ label:'Não atingida',  cor:'#7a7a7a', dim:'rgba(255,255,255,.05)', bdr:'rgba(255,255,255,.14)' },
+  }
   el.innerHTML = data.map(row => {
-    const p = pct(row.realizado, row.meta)
-    const ok = row.realizado >= row.meta
+    const nivelKey = row.realizado >= row.super_meta ? 'super'
+                    : row.realizado >= row.meta_turbo ? 'turbo'
+                    : row.realizado >= row.meta ? 'meta'
+                    : 'nenhum'
+    const n = NIVEIS[nivelKey]
+    const pSuper = pct(row.realizado, row.super_meta)
     const [y,m] = row.mes_ref.split('-').map(Number)
     const label = new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'short',year:'2-digit'})
-    return `<div class="timeline-item${row.mes_ref===ref?' selected':''}" onclick="Fat.irPara('${row.mes_ref}')">
-      <div class="timeline-mes">${label.charAt(0).toUpperCase()+label.slice(1)}</div>
-      <div class="timeline-bar-wrap"><div class="timeline-bar-fill" style="width:${Math.min(p,100)}%;background:${ok?'#4ade80':'#C6FF00'}"></div></div>
-      <div class="timeline-pct" style="color:${ok?'var(--gr)':'var(--t2)'}">${p}%</div>
-      <div class="timeline-status">${ok?'✅':''}</div>
+    return `<div class="timeline-item${row.mes_ref===ref?' selected':''}" style="border-left-color:${n.cor}" onclick="Fat.irPara('${row.mes_ref}')">
+      <div class="timeline-top">
+        <div class="timeline-mes">${label.charAt(0).toUpperCase()+label.slice(1)}</div>
+        <div class="timeline-badge" style="color:${n.cor};background:${n.dim};border:1px solid ${n.bdr}">${n.label}</div>
+        <div class="timeline-valor" style="color:${n.cor}">${fmt(row.realizado)}</div>
+      </div>
+      <div class="timeline-bottom">
+        <div class="timeline-bar-wrap"><div class="timeline-bar-fill" style="width:${Math.min(pSuper,100)}%;background:${n.cor}"></div></div>
+        <div class="timeline-super-pct">${pSuper}% da Super Meta</div>
+      </div>
     </div>`
   }).join('')
 }
