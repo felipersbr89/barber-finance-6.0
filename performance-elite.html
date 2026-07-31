@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Performance Elite — Gorilaz</title>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#C6FF00">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#07070a;--s1:#111;--s2:#1a1a1a;--s3:#222;--s4:#2a2a2a;
+      --b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.12);--b3:rgba(255,255,255,.18);
+      --tx:#f4f4f4;--t2:#a0a0a0;--t3:#555;
+      --ac:#C6FF00;--ac2:#d4ff33;--ac-dim:rgba(198,255,0,.10);--ac-bdr:rgba(198,255,0,.22);
+      --gr:#4ade80;--gr-dim:rgba(74,222,128,.10);--gr-bdr:rgba(74,222,128,.22);
+      --rd:#f87171;--rd-dim:rgba(248,113,113,.10);--rd-bdr:rgba(248,113,113,.22);
+      --or:#fb923c;--or-dim:rgba(251,146,60,.10);--or-bdr:rgba(251,146,60,.22);
+      --bl:#60a5fa;--bl-dim:rgba(96,165,250,.10);--bl-bdr:rgba(96,165,250,.22);
+      --fd:'Space Grotesk',system-ui,sans-serif;
+      --fb:'DM Sans',system-ui,sans-serif;
+      --r:12px;--r-sm:8px;--r-lg:18px;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:var(--fb);background:var(--bg);color:var(--tx);min-height:100vh;-webkit-font-smoothing:antialiased}
+    a{text-decoration:none;color:inherit}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:2px}
+
+    /* HERO */
+    .hero{background:linear-gradient(135deg,#0a001a 0%,#0a0a0a 50%,#0a001a 100%);border-bottom:1px solid var(--b1);padding:32px 20px 24px;text-align:center;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(96,165,250,.08) 0%,transparent 65%);pointer-events:none}
+    .hero-logo{display:inline-flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b2);border-radius:999px;padding:6px 16px 6px 8px;margin-bottom:14px;cursor:pointer;text-decoration:none;transition:opacity .15s;position:relative;z-index:1}
+    .hero-logo:hover{opacity:.85}
+    .hero-logo-mark{width:26px;height:26px;background:var(--ac);border-radius:7px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .hero-logo-mark img{width:26px;height:26px;object-fit:cover;border-radius:7px;display:block}
+    .hero-logo-text{font-family:var(--fd);font-size:12px;font-weight:700;letter-spacing:1px}
+    .hero-logo-sub{font-size:8px;color:var(--ac);letter-spacing:2px;text-transform:uppercase;font-weight:600}
+    h1{font-family:var(--fd);font-size:clamp(20px,4vw,28px);font-weight:700;letter-spacing:-0.5px;margin-bottom:4px;position:relative;z-index:1}
+    h1 span{color:var(--bl)}
+    .hero-sub{font-size:13px;color:var(--t2);position:relative;z-index:1}
+
+    /* LAYOUT */
+    .wrap{max-width:800px;margin:0 auto;padding:20px 16px 80px}
+
+    /* TABS */
+    .tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--b1);overflow-x:auto;gap:0}
+    .tab{padding:14px 20px;font-size:13px;font-weight:600;color:var(--t2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;white-space:nowrap;transition:.15s;font-family:var(--fb)}
+    .tab.active{color:var(--bl);border-bottom-color:var(--bl)}
+    .tab:hover:not(.active){color:var(--tx)}
+
+    /* MÊS NAV */
+    .mes-nav{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 16px;background:var(--s1);border-bottom:1px solid var(--b1)}
+    .mes-nav-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--b2);background:var(--s2);color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:.15s}
+    .mes-nav-btn:hover{background:var(--s3)}
+    .mes-nav-btn:disabled{opacity:.3;cursor:not-allowed}
+    .mes-nav-label{font-family:var(--fd);font-size:14px;font-weight:700;min-width:130px;text-align:center}
+    .mes-nav-hoje{font-size:11px;padding:2px 10px;border-radius:999px;background:var(--bl-dim);color:var(--bl);border:1px solid var(--bl-bdr);cursor:pointer;font-weight:600}
+    .mes-nav-hoje:hover{background:var(--bl);color:#000}
+
+    /* CARD PROFISSIONAL (meu painel) */
+    .card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r-lg);padding:18px;margin-bottom:14px}
+    .card.vigente{border-color:var(--bl-bdr);box-shadow:0 0 0 1px var(--bl-bdr),0 8px 28px rgba(96,165,250,.05)}
+    .card-title{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700}
+    .badge-vigente{background:var(--bl);color:#000}
+    .badge-master{background:var(--or-dim);color:var(--or);border:1px solid var(--or-bdr)}
+
+    /* CADEIRA HERO */
+    .cadeira-hero{background:linear-gradient(135deg,var(--s2),var(--s3));border:1px solid var(--b2);border-radius:var(--r);padding:18px;margin-bottom:14px;display:flex;gap:16px;align-items:center}
+    .cadeira-val{font-family:var(--fd);font-size:clamp(24px,5vw,36px);font-weight:700;color:var(--bl);line-height:1}
+    .cadeira-info{flex:1}
+    .cadeira-label{font-size:11px;color:var(--t2);margin-bottom:4px}
+    .cadeira-breakdown{font-size:12px;color:var(--t2);margin-top:6px}
+    .cadeira-breakdown span{color:var(--tx);font-weight:600}
+
+    /* METAS GRID */
+    .metas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+    @media(max-width:500px){.metas-grid{grid-template-columns:1fr}}
+    .meta-card{background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:14px}
+    .meta-card.atingida{border-color:var(--gr-bdr);background:var(--gr-dim)}
+    .meta-card.proxima{border-color:var(--bl-bdr);background:var(--bl-dim)}
+    .meta-card-icon{font-size:18px;margin-bottom:5px}
+    .meta-card-nome{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+    .meta-card-pct-label{font-size:9px;color:var(--t2);margin-bottom:3px}
+    .meta-card-valor{font-family:var(--fd);font-size:14px;font-weight:700;margin-bottom:6px}
+    .meta-card-pct{font-size:13px;font-weight:700}
+    .meta-card-falta{font-size:11px;color:var(--t2);margin-top:2px}
+    .bar-wrap{height:4px;background:var(--b1);border-radius:2px;overflow:hidden;margin-top:8px}
+    .bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+
+    /* CÁLCULOS */
+    .calcs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    @media(max-width:400px){.calcs-grid{grid-template-columns:1fr}}
+    .calc-card{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:12px}
+    .calc-label{font-size:11px;color:var(--t2);margin-bottom:3px}
+    .calc-val{font-family:var(--fd);font-size:15px;font-weight:700}
+
+    /* LANÇAMENTO DIÁRIO */
+    .lanc-section{background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:16px;margin-bottom:14px}
+    .lanc-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+    .lanc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+    @media(max-width:400px){.lanc-grid{grid-template-columns:1fr}}
+    .field label{display:block;font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+    .field input{width:100%;background:var(--s1);border:1px solid var(--b2);border-radius:var(--r-sm);color:var(--tx);font-family:var(--fb);font-size:13px;padding:8px 11px;outline:none;transition:.15s}
+    .field input:focus{border-color:var(--bl-bdr);box-shadow:0 0 0 2px var(--bl-dim)}
+
+    /* HISTÓRICO PROFISSIONAL */
+    .hist-table{width:100%;border-collapse:collapse;font-size:12px}
+    .hist-table th{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.4px;padding:6px 8px;border-bottom:1px solid var(--b1);text-align:left}
+    .hist-table td{padding:8px;border-bottom:1px solid var(--b1);vertical-align:middle}
+    .hist-table tr:last-child td{border-bottom:none}
+    .hist-table tr:hover td{background:var(--s2)}
+
+    /* PAINEL MASTER */
+    .master-section{background:var(--s1);border:1px solid var(--or-bdr);border-radius:var(--r-lg);padding:18px;margin-bottom:14px}
+    .master-badge{display:inline-flex;align-items:center;gap:6px;background:var(--or-dim);border:1px solid var(--or-bdr);border-radius:999px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+    .prof-selector{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:var(--r-sm);color:var(--tx);font-family:var(--fb);font-size:13px;padding:8px 11px;outline:none;margin-bottom:14px}
+    .prof-selector:focus{border-color:var(--or-bdr)}
+
+    /* RANKING MASTER */
+    .ranking-card{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:default}
+    .ranking-pos{font-family:var(--fd);font-size:16px;font-weight:700;min-width:28px;color:var(--t2);text-align:center}
+    .ranking-pos.gold{color:var(--gold)}
+    .ranking-pos.silver{color:#94a3b8}
+    .ranking-pos.bronze{color:#cd7c2f}
+    .ranking-avatar{width:36px;height:36px;border-radius:50%;background:var(--bl-dim);border:2px solid var(--bl-bdr);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--bl);font-size:14px;flex-shrink:0;overflow:hidden}
+    .ranking-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+    .ranking-info{flex:1}
+    .ranking-nome{font-weight:700;font-size:13px;margin-bottom:2px}
+    .ranking-sub{font-size:11px;color:var(--t2)}
+    .ranking-val{font-family:var(--fd);font-size:16px;font-weight:700;color:var(--bl);text-align:right}
+    .ranking-pct{font-size:11px;color:var(--t2);text-align:right}
+
+    /* BOTÕES */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);font-family:var(--fb);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+    .btn-blue{background:var(--bl);color:#000}
+    .btn-blue:hover{opacity:.9}
+    .btn-lime{background:var(--ac);color:#000}
+    .btn-lime:hover{background:var(--ac2)}
+    .btn-ghost{background:var(--s3);color:var(--tx);border:1px solid var(--b2)}
+    .btn-ghost:hover{background:var(--s4)}
+    .btn:disabled{opacity:.4;cursor:not-allowed}
+    .spin{width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s2);color:var(--tx);padding:10px 22px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;border:1px solid var(--b2);word-break:break-word;max-width:90vw;text-align:center}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .toast.ok{background:var(--ac-dim);color:var(--ac);border-color:var(--ac-bdr)}
+    .toast.err{background:var(--rd-dim);color:var(--rd);border-color:var(--rd-bdr)}
+    .loading{text-align:center;padding:40px;color:var(--t2);font-size:13px;display:flex;align-items:center;justify-content:center;gap:10px}
+    .spin-bl{width:16px;height:16px;border:2px solid var(--b2);border-top-color:var(--bl);border-radius:50%;animation:spin .6s linear infinite}
+    .empty{text-align:center;padding:32px;color:var(--t2);font-size:13px}
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <a href="dashboard.html" class="hero-logo" aria-label="Voltar ao Dashboard">
+    <div class="hero-logo-mark">
+      <img src="icons/android-chrome-192x192.png" alt="Gorilaz">
+    </div>
+    <div>
+      <div class="hero-logo-text">GORILAZ</div>
+      <div class="hero-logo-sub">Barber Finance</div>
+    </div>
+  </a>
+  <h1>📈 Performance <span>Elite</span></h1>
+  <p class="hero-sub">Acompanhe sua evolução e supere seus limites</p>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" id="tab-meu" onclick="Perf.setTab('meu',this)">⚡ Meu Painel</button>
+  <button class="tab" id="tab-ranking" onclick="Perf.setTab('ranking',this)">🏆 Ranking</button>
+  <button class="tab" id="tab-master" style="display:none" onclick="Perf.setTab('master',this)">⚙️ Painel Master</button>
+</div>
+
+<!-- MÊS NAV (visível em Meu Painel e Ranking) -->
+<div class="mes-nav" id="mes-nav">
+  <button class="mes-nav-btn" onclick="Perf.mesAnterior()">‹</button>
+  <div class="mes-nav-label" id="mes-label">Carregando...</div>
+  <button class="mes-nav-btn" id="btn-next" onclick="Perf.mesProximo()">›</button>
+  <button class="mes-nav-hoje" id="btn-hoje" onclick="Perf.mesHoje()" style="display:none">Hoje</button>
+</div>
+
+<div class="wrap">
+  <div id="conteudo"><div class="loading"><div class="spin-bl"></div> Carregando...</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL  = 'https://ixgwhyaponyssvczcabn.supabase.co'
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4Z3doeWFwb255c3N2Y3pjYWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0MTA5NDYsImV4cCI6MjA5NDk4Njk0Nn0.uSyPDUn87ERrrZpzK4DmIepqO_Sbcvwt7RzlN4QB8FM'
+const { createClient } = supabase
+const db = createClient(SUPABASE_URL, SUPABASE_ANON)
+
+// ── Permissões ──
+const MASTERS = new Set(['felipersbr@gmail.com'])
+let currentUser = null
+let isMaster    = false
+let abaAtiva    = 'meu'
+
+// ── Estado de mês ──
+const hoje    = new Date()
+let _year     = hoje.getFullYear()
+let _month    = hoje.getMonth() + 1
+
+const getMesRef  = () => `${_year}-${String(_month).padStart(2,'0')}`
+const isHoje     = () => _year === hoje.getFullYear() && _month === hoje.getMonth()+1
+const diasNoMes  = () => new Date(_year, _month, 0).getDate()
+const diasDecorridos = () => isHoje() ? hoje.getDate() : diasNoMes()
+const diasRestantes  = () => isHoje() ? Math.max(1, diasNoMes() - hoje.getDate() + 1) : 1
+
+function getMesLabel(y, m) {
+  if (!y) y = _year; if (!m) m = _month
+  const d = new Date(y, m-1, 1)
+  const s = d.toLocaleDateString('pt-BR', { month:'long', year:'numeric' })
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+// ── Formatação ──
+const fmt = v => 'R$ ' + Number(v||0).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 })
+const pct = (real, meta) => meta > 0 ? Math.min(Math.round((real/meta)*100), 999) : 0
+const ini = name => (name||'?').split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase()
+
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast')
+  el.textContent = msg; el.className = 'toast show ' + type
+  setTimeout(() => el.className = 'toast', type === 'err' ? 5000 : 3000)
+}
+
+// ── Calcular metas a partir da média ──
+function calcMetas(mediaAvulso, mediaProdutos) {
+  const cadeira = Number(mediaAvulso||0) + Number(mediaProdutos||0)
+  return {
+    cadeira,
+    meta:      +(cadeira * 1.05).toFixed(2),
+    meta_turbo:+(cadeira * 1.10).toFixed(2),
+    super_meta:+(cadeira * 1.15).toFixed(2),
+  }
+}
+
+// ── Renderizar card de meta ──
+function renderMetaCard(icon, nome, pctLabel, meta, realizado, cor, corBar) {
+  const p    = pct(realizado, meta)
+  const ok   = realizado >= meta
+  const falta = Math.max(0, meta - realizado)
+  return `<div class="meta-card ${ok ? 'atingida' : ''}">
+    <div class="meta-card-icon">${icon}</div>
+    <div class="meta-card-nome">${nome}</div>
+    <div class="meta-card-pct-label">${pctLabel}</div>
+    <div class="meta-card-valor" style="color:${cor}">${fmt(meta)}</div>
+    <div class="meta-card-pct" style="color:${ok?'var(--gr)':cor}">${p}%${ok?' ✓':''}</div>
+    ${!ok ? `<div class="meta-card-falta">Faltam ${fmt(falta)}</div>` : ''}
+    <div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(p,100)}%;background:${corBar}"></div></div>
+  </div>`
+}
+
+// ════════════════════════════════════════════════
+// OBJETO PRINCIPAL
+// ════════════════════════════════════════════════
+const Perf = {
+
+  setTab(tab, btn) {
+    abaAtiva = tab
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+    const mesNav = document.getElementById('mes-nav')
+    mesNav.style.display = tab === 'master' ? 'none' : ''
+    this.render()
+  },
+
+  mesAnterior() { _month--; if(_month<1){_month=12;_year--}; this.render() },
+  mesProximo()  { if(isHoje()) return; _month++; if(_month>12){_month=1;_year++}; this.render() },
+  mesHoje()     { _year=hoje.getFullYear(); _month=hoje.getMonth()+1; this.render() },
+
+  async render() {
+    // Atualizar seletor de mês
+    document.getElementById('mes-label').textContent = getMesLabel()
+    document.getElementById('btn-next').disabled = isHoje()
+    document.getElementById('btn-hoje').style.display = isHoje() ? 'none' : ''
+
+    const el = document.getElementById('conteudo')
+    el.innerHTML = '<div class="loading"><div class="spin-bl"></div> Carregando...</div>'
+
+    if (abaAtiva === 'meu')     await this.renderMeuPainel(el)
+    if (abaAtiva === 'ranking') await this.renderRanking(el)
+    if (abaAtiva === 'master')  await this.renderMaster(el)
+  },
+
+  // ── MEU PAINEL ──
+  async renderMeuPainel(el) {
+    if (!currentUser) {
+      el.innerHTML = '<div class="empty">Faça login no sistema para ver seu painel.</div>'
+      return
+    }
+    const uid = currentUser.id
+    const ref = getMesRef()
+    const vigente = isHoje()
+
+    // Buscar média e realizado
+    const [{ data: media }, { data: realizados }] = await Promise.all([
+      db.from('perf_medias').select('*').eq('user_id', uid).eq('mes_ref', ref).maybeSingle(),
+      db.from('perf_realizado').select('*').eq('user_id', uid).eq('mes_ref', ref).order('data')
+    ])
+
+    if (!media) {
+      el.innerHTML = `<div class="card">
+        <div class="empty">
+          <div style="font-size:36px;margin-bottom:10px">📭</div>
+          <div>Nenhuma média cadastrada para ${getMesLabel()}.</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:6px">Solicite ao administrador.</div>
+        </div>
+      </div>
+      ${vigente ? this._renderLancamento(null) : ''}`
+      if (vigente) this._bindLancamento(null, realizados||[], uid, ref)
+      return
+    }
+
+    const metas = calcMetas(media.media_avulso, media.media_produtos)
+    const totalAvulso   = (realizados||[]).reduce((s,r) => s + Number(r.avulso||0), 0)
+    const totalProdutos = (realizados||[]).reduce((s,r) => s + Number(r.produtos||0), 0)
+    const totalCadeira  = totalAvulso + totalProdutos
+
+    const diasRest = diasRestantes()
+    const faltaMeta = Math.max(0, metas.meta - totalCadeira)
+    const porDia = diasRest > 0 && faltaMeta > 0 ? faltaMeta / diasRest : 0
+
+    el.innerHTML = `
+      <div class="card ${vigente ? 'vigente' : ''}">
+        <div class="card-title">
+          📊 ${getMesLabel()}
+          ${vigente ? '<span class="badge badge-vigente">● Vigente</span>' : ''}
+        </div>
+
+        <!-- Faturamento da cadeira realizado -->
+        <div class="cadeira-hero">
+          <div>
+            <div class="cadeira-label">Faturamento da cadeira</div>
+            <div class="cadeira-val">${fmt(totalCadeira)}</div>
+            <div class="cadeira-breakdown">
+              Avulso: <span>${fmt(totalAvulso)}</span>
+              &nbsp;·&nbsp;
+              Produtos: <span>${fmt(totalProdutos)}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metas calculadas -->
+        <div class="metas-grid">
+          ${renderMetaCard('🎯','Meta','Média +5%', metas.meta, totalCadeira, 'var(--ac)', '#C6FF00')}
+          ${renderMetaCard('🔥','Meta Turbo','Média +10%', metas.meta_turbo, totalCadeira, 'var(--or)', '#fb923c')}
+          ${renderMetaCard('🚀','Super Meta','Média +15%', metas.super_meta, totalCadeira, 'var(--bl)', '#60a5fa')}
+        </div>
+
+        <!-- Cálculos automáticos (só mês atual) -->
+        ${vigente ? `
+        <div class="calcs-grid">
+          <div class="calc-card">
+            <div class="calc-label">📅 Dias restantes</div>
+            <div class="calc-val">${diasRest} dia${diasRest!==1?'s':''}</div>
+          </div>
+          <div class="calc-card">
+            <div class="calc-label">⚡ Por dia para atingir a Meta</div>
+            <div class="calc-val" style="color:${porDia>0?'var(--or)':'var(--gr)'}">
+              ${porDia > 0 ? fmt(porDia) : '✓ Meta atingida'}
+            </div>
+          </div>
+        </div>` : ''}
+
+        <!-- Médias base (info discreta) -->
+        <div style="font-size:11px;color:var(--t3);margin-top:4px">
+          Base: Avulso ${fmt(media.media_avulso)} · Produtos ${fmt(media.media_produtos)} · Cadeira ${fmt(metas.cadeira)}
+        </div>
+      </div>
+
+      <!-- Lançar realizado do dia (só mês atual) -->
+      ${vigente ? this._renderLancamento(realizados||[]) : ''}
+
+      <!-- Histórico de lançamentos -->
+      ${(realizados||[]).length > 0 ? this._renderHistorico(realizados) : ''}
+    `
+    if (vigente) this._bindLancamento(metas, realizados||[], uid, ref)
+  },
+
+  _renderLancamento(realizados) {
+    const hoje_str = hoje.toISOString().split('T')[0]
+    const hojeReg  = (realizados||[]).find(r => r.data === hoje_str)
+    return `
+      <div class="lanc-section">
+        <div class="lanc-title">📝 Lançamento de hoje
+          ${hojeReg ? '<span class="badge" style="background:var(--gr-dim);color:var(--gr);border:1px solid var(--gr-bdr)">✓ Já lançado</span>' : ''}
+        </div>
+        <div class="lanc-grid">
+          <div class="field"><label>💈 Avulso (R$)</label>
+            <input type="number" id="l-avulso" step="0.01" min="0" value="${hojeReg ? hojeReg.avulso : 0}" placeholder="0,00">
+          </div>
+          <div class="field"><label>📦 Produtos (R$)</label>
+            <input type="number" id="l-produtos" step="0.01" min="0" value="${hojeReg ? hojeReg.produtos : 0}" placeholder="0,00">
+          </div>
+        </div>
+        <button class="btn btn-blue" id="btn-lancar" onclick="Perf.lancar()">
+          💾 ${hojeReg ? 'Atualizar lançamento' : 'Salvar lançamento'}
+        </button>
+      </div>`
+  },
+
+  _renderHistorico(realizados) {
+    if (!realizados.length) return ''
+    const rows = [...realizados].reverse().map(r => {
+      const cadeira = Number(r.avulso||0) + Number(r.produtos||0)
+      const d = new Date(r.data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})
+      return `<tr>
+        <td>${d}</td>
+        <td style="color:var(--gr)">${fmt(r.avulso)}</td>
+        <td style="color:var(--bl)">${fmt(r.produtos)}</td>
+        <td style="font-weight:700">${fmt(cadeira)}</td>
+      </tr>`
+    }).join('')
+    return `<div class="card">
+      <div class="card-title">📋 Histórico do mês</div>
+      <div style="overflow-x:auto">
+        <table class="hist-table">
+          <thead><tr><th>Data</th><th>Avulso</th><th>Produtos</th><th>Cadeira</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`
+  },
+
+  _bindLancamento(metas, realizados, uid, ref) {
+    // sem side effects extras — onclick no btn já está no HTML
+  },
+
+  async lancar() {
+    if (!currentUser) { toast('Faça login primeiro.','err'); return }
+    const btn = document.getElementById('btn-lancar')
+    if (!btn) return
+    btn.disabled = true; btn.innerHTML = '<div class="spin" style="border-top-color:#000"></div> Salvando...'
+
+    const avulso   = parseFloat(document.getElementById('l-avulso')?.value) || 0
+    const produtos = parseFloat(document.getElementById('l-produtos')?.value) || 0
+    const ref      = getMesRef()
+    const data_str = hoje.toISOString().split('T')[0]
+
+    const { error } = await db.from('perf_realizado').upsert({
+      user_id:   currentUser.id,
+      mes_ref:   ref,
+      data:      data_str,
+      avulso,
+      produtos,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id,data' })
+
+    if (error) { toast('Erro: '+error.message,'err') }
+    else { toast('Lançamento salvo! ✓') }
+    btn.disabled = false
+    await this.render()
+  },
+
+  // ── RANKING ──
+  async renderRanking(el) {
+    const ref = getMesRef()
+    // Buscar todos os profissionais com média no mês
+    const [{ data: medias }, { data: realizados }] = await Promise.all([
+      db.from('perf_medias').select('*').eq('mes_ref', ref),
+      db.from('perf_realizado').select('*').eq('mes_ref', ref)
+    ])
+
+    if (!medias?.length) {
+      el.innerHTML = '<div class="empty">Nenhuma performance registrada para este mês.</div>'
+      return
+    }
+
+    // Buscar profiles para nome e avatar
+    const uids = [...new Set(medias.map(m => m.user_id))]
+    const profMap = {}
+    await Promise.all(uids.map(async uid => {
+      const { data: p } = await db.from('profiles').select('user_id,full_name,avatar_url').eq('user_id', uid).maybeSingle()
+      if (p) profMap[uid] = p
+    }))
+
+    // Calcular total realizado por profissional
+    const realMap = {}
+    ;(realizados||[]).forEach(r => {
+      realMap[r.user_id] = (realMap[r.user_id]||0) + Number(r.avulso||0) + Number(r.produtos||0)
+    })
+
+    // Montar ranking
+    const ranking = medias.map(m => {
+      const metas  = calcMetas(m.media_avulso, m.media_produtos)
+      const real   = realMap[m.user_id] || 0
+      const p      = pct(real, metas.meta)
+      const prof   = profMap[m.user_id]
+      return { ...m, metas, real, pct:p, nome: prof?.full_name||'Profissional', avatar: prof?.avatar_url }
+    }).sort((a,b) => b.pct - a.pct)
+
+    const posClass = ['gold','silver','bronze']
+    const posIcon  = ['🥇','🥈','🥉']
+
+    el.innerHTML = `
+      <div style="margin-bottom:6px;font-size:12px;color:var(--t2);text-align:center">
+        Classificação por % da Meta atingida
+      </div>
+      ${ranking.map((r, i) => {
+        const ok = r.real >= r.metas.meta
+        return `<div class="ranking-card">
+          <div class="ranking-pos ${posClass[i]||''}">${i < 3 ? posIcon[i] : (i+1)+'°'}</div>
+          <div class="ranking-avatar">
+            ${r.avatar
+              ? `<img src="${r.avatar}" alt="${r.nome}">`
+              : ini(r.nome)
+            }
+          </div>
+          <div class="ranking-info">
+            <div class="ranking-nome">${r.nome}${r.user_id===currentUser?.id?' <span style="font-size:10px;color:var(--ac)">(você)</span>':''}</div>
+            <div class="ranking-sub">Cadeira: ${fmt(r.real)} / ${fmt(r.metas.meta)}</div>
+          </div>
+          <div>
+            <div class="ranking-val" style="color:${ok?'var(--gr)':'var(--bl)'}">${r.pct}%</div>
+            <div class="ranking-pct">${ok?'✅ Meta':''}</div>
+          </div>
+        </div>`
+      }).join('')}
+    `
+  },
+
+  // ── PAINEL MASTER ──
+  async renderMaster(el) {
+    if (!isMaster) { el.innerHTML = '<div class="empty">Acesso restrito.</div>'; return }
+
+    // Buscar todos os profiles (profissionais cadastrados)
+    const { data: profiles } = await db.from('profiles').select('user_id,full_name,barbershop_name').order('full_name')
+
+    if (!profiles?.length) {
+      el.innerHTML = '<div class="empty">Nenhum profissional cadastrado ainda.</div>'
+      return
+    }
+
+    // Buscar médias do mês atual para pré-preencher
+    const ref = getMesRef()
+    const { data: medias } = await db.from('perf_medias').select('*').eq('mes_ref', ref)
+    const mediaMap = {}
+    ;(medias||[]).forEach(m => mediaMap[m.user_id] = m)
+
+    el.innerHTML = `
+      <div class="master-section">
+        <div class="master-badge">⚙️ Painel Master — Médias dos Profissionais</div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:14px">
+          Mês de referência: <strong style="color:var(--tx)">${getMesLabel()}</strong>
+        </div>
+
+        ${profiles.map(p => {
+          const m = mediaMap[p.user_id] || {}
+          const metas = calcMetas(m.media_avulso||0, m.media_produtos||0)
+          return `
+          <div style="background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:14px;margin-bottom:10px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:10px">
+              👤 ${p.full_name||'Sem nome'}
+              ${p.barbershop_name ? `<span style="font-size:11px;color:var(--t2);font-weight:400"> · ${p.barbershop_name}</span>` : ''}
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <div class="field">
+                <label>💈 Média avulso (R$)</label>
+                <input type="number" id="m-avulso-${p.user_id}" value="${m.media_avulso||0}" step="0.01" min="0">
+              </div>
+              <div class="field">
+                <label>📦 Média produtos (R$)</label>
+                <input type="number" id="m-produtos-${p.user_id}" value="${m.media_produtos||0}" step="0.01" min="0">
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--t3);margin-bottom:10px" id="preview-${p.user_id}">
+              Cadeira: ${fmt(metas.cadeira)} → 🎯 ${fmt(metas.meta)} / 🔥 ${fmt(metas.meta_turbo)} / 🚀 ${fmt(metas.super_meta)}
+            </div>
+            <button class="btn btn-lime" style="padding:7px 14px;font-size:12px" onclick="Perf.salvarMedia('${p.user_id}')">
+              💾 Salvar médias
+            </button>
+          </div>`
+        }).join('')}
+      </div>
+    `
+
+    // Preview ao alterar valores
+    profiles.forEach(p => {
+      const av = document.getElementById(`m-avulso-${p.user_id}`)
+      const pr = document.getElementById(`m-produtos-${p.user_id}`)
+      const pv = document.getElementById(`preview-${p.user_id}`)
+      const updatePreview = () => {
+        const m = calcMetas(parseFloat(av.value)||0, parseFloat(pr.value)||0)
+        pv.textContent = `Cadeira: ${fmt(m.cadeira)} → 🎯 ${fmt(m.meta)} / 🔥 ${fmt(m.meta_turbo)} / 🚀 ${fmt(m.super_meta)}`
+      }
+      av?.addEventListener('input', updatePreview)
+      pr?.addEventListener('input', updatePreview)
+    })
+  },
+
+  async salvarMedia(uid) {
+    if (!isMaster) { toast('Sem permissão.','err'); return }
+    const avulso  = parseFloat(document.getElementById(`m-avulso-${uid}`)?.value) || 0
+    const produtos = parseFloat(document.getElementById(`m-produtos-${uid}`)?.value) || 0
+    const ref     = getMesRef()
+
+    const { error } = await db.from('perf_medias').upsert({
+      user_id:        uid,
+      mes_ref:        ref,
+      media_avulso:   avulso,
+      media_produtos: produtos,
+      updated_at:     new Date().toISOString()
+    }, { onConflict: 'user_id,mes_ref' })
+
+    if (error) { toast('Erro: '+error.message,'err') }
+    else { toast('Médias salvas! ✓') }
+  }
+}
+
+// ── Init ──
+async function init() {
+  const { data: { session } } = await db.auth.getSession()
+  if (session?.user) {
+    currentUser = session.user
+    isMaster = MASTERS.has(currentUser.email?.toLowerCase()?.trim()||'')
+    if (isMaster) document.getElementById('tab-master').style.display = ''
+  }
+  await Perf.render()
+}
+
+init()
+</script>
+</body>
+</html>

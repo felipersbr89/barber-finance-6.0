@@ -209,11 +209,10 @@ const Layout = {
         <span class="nav-icon">${iconMetaColetiva()}</span>
         Faturamento Coletivo
       </a>
-      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Performance Elite', 'Acompanhe a performance individual de cada barbeiro, compare evolução mensal e identifique talentos da equipe.')">
+      <a href="performance-elite.html" class="nav-item" style="color:var(--tx)">
         <span class="nav-icon">${iconPerformance()}</span>
         Performance Elite
-        <span class="nav-coming-lock">${iconLock()}</span>
-      </div>
+      </a>
       <div class="nav-item nav-item-coming" onclick="ComingSoon.show('High Ticket', 'Monitore e incentive a venda de serviços e pacotes premium para maximizar o ticket médio da barbearia.')">
         <span class="nav-icon">${iconHighTicket()}</span>
         High Ticket
