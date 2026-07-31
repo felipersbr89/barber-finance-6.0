@@ -205,11 +205,10 @@ const Layout = {
         <span class="nav-icon">${iconCopa()}</span>
         Copa Gorilaz 🏆
       </a>
-      <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Faturamento Coletivo', 'Defina metas coletivas de faturamento para sua equipe e acompanhe o progresso do time em tempo real.')">
+      <a href="faturamento-coletivo.html" class="nav-item" style="color:var(--tx)">
         <span class="nav-icon">${iconMetaColetiva()}</span>
         Faturamento Coletivo
-        <span class="nav-coming-lock">${iconLock()}</span>
-      </div>
+      </a>
       <div class="nav-item nav-item-coming" onclick="ComingSoon.show('Performance Elite', 'Acompanhe a performance individual de cada barbeiro, compare evolução mensal e identifique talentos da equipe.')">
         <span class="nav-icon">${iconPerformance()}</span>
         Performance Elite

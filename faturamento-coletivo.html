@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faturamento Coletivo — Gorilaz</title>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#C6FF00">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#07070a;--s1:#111;--s2:#1a1a1a;--s3:#222;--s4:#2a2a2a;
+      --b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.12);--b3:rgba(255,255,255,.18);
+      --tx:#f4f4f4;--t2:#a0a0a0;--t3:#555;--t4:#333;
+      --ac:#C6FF00;--ac2:#d4ff33;--ac-dim:rgba(198,255,0,.10);--ac-bdr:rgba(198,255,0,.22);
+      --gr:#4ade80;--gr-dim:rgba(74,222,128,.10);--gr-bdr:rgba(74,222,128,.22);
+      --rd:#f87171;--rd-dim:rgba(248,113,113,.10);--rd-bdr:rgba(248,113,113,.22);
+      --or:#fb923c;--or-dim:rgba(251,146,60,.10);--or-bdr:rgba(251,146,60,.22);
+      --bl:#60a5fa;--bl-dim:rgba(96,165,250,.10);--bl-bdr:rgba(96,165,250,.22);
+      --gold:#fbbf24;--gold-dim:rgba(251,191,36,.12);--gold-bdr:rgba(251,191,36,.28);
+      --fd:'Space Grotesk',system-ui,sans-serif;
+      --fb:'DM Sans',system-ui,sans-serif;
+      --r:12px;--r-sm:8px;--r-lg:18px;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:var(--fb);background:var(--bg);color:var(--tx);min-height:100vh;-webkit-font-smoothing:antialiased}
+    a{text-decoration:none;color:inherit}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:2px}
+
+    /* HERO */
+    .hero{background:linear-gradient(135deg,#0d1a00 0%,#0a0a0a 50%,#0d1a00 100%);border-bottom:1px solid var(--b1);padding:32px 20px 24px;text-align:center;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(198,255,0,.08) 0%,transparent 65%);pointer-events:none}
+    .hero-logo{display:inline-flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b2);border-radius:999px;padding:6px 16px 6px 8px;margin-bottom:14px;cursor:pointer;text-decoration:none;transition:opacity .15s;position:relative;z-index:1}
+    .hero-logo:hover{opacity:.85}
+    .hero-logo-mark{width:26px;height:26px;background:var(--ac);border-radius:7px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .hero-logo-mark img{width:26px;height:26px;object-fit:cover;border-radius:7px;display:block}
+    .hero-logo-text{font-family:var(--fd);font-size:12px;font-weight:700;letter-spacing:1px}
+    .hero-logo-sub{font-size:8px;color:var(--ac);letter-spacing:2px;text-transform:uppercase;font-weight:600}
+    h1{font-family:var(--fd);font-size:clamp(20px,4vw,30px);font-weight:700;letter-spacing:-0.5px;margin-bottom:4px;position:relative;z-index:1}
+    h1 span{color:var(--ac)}
+    .hero-sub{font-size:13px;color:var(--t2);position:relative;z-index:1}
+
+    /* LAYOUT */
+    .wrap{max-width:800px;margin:0 auto;padding:20px 16px 80px}
+
+    /* MÊS SELECTOR */
+    .mes-nav{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;background:var(--s1);border-bottom:1px solid var(--b1);position:sticky;top:0;z-index:10}
+    .mes-nav-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--b2);background:var(--s2);color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.15s}
+    .mes-nav-btn:hover{background:var(--s3)}
+    .mes-nav-btn:disabled{opacity:.3;cursor:not-allowed}
+    .mes-nav-label{font-family:var(--fd);font-size:15px;font-weight:700;min-width:140px;text-align:center}
+    .mes-nav-hoje{font-size:11px;padding:2px 10px;border-radius:999px;background:var(--ac-dim);color:var(--ac);border:1px solid var(--ac-bdr);cursor:pointer;font-weight:600;transition:.15s}
+    .mes-nav-hoje:hover{background:var(--ac);color:#000}
+
+    /* VIGENTE badge */
+    .badge-vigente{display:inline-flex;align-items:center;gap:4px;background:var(--ac);color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:middle}
+
+    /* CARD PRINCIPAL */
+    .card-main{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r-lg);padding:20px;margin-bottom:16px}
+    .card-main.vigente{border-color:var(--ac-bdr);box-shadow:0 0 0 1px var(--ac-bdr),0 8px 32px rgba(198,255,0,.06)}
+    .card-title{font-family:var(--fd);font-size:13px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+    /* REALIZADO HERO */
+    .realizado-hero{background:linear-gradient(135deg,var(--s2),var(--s3));border:1px solid var(--b2);border-radius:var(--r);padding:20px;margin-bottom:16px;text-align:center}
+    .realizado-valor{font-family:var(--fd);font-size:clamp(28px,6vw,42px);font-weight:700;color:var(--ac);line-height:1}
+    .realizado-label{font-size:12px;color:var(--t2);margin-top:6px}
+
+    /* METAS GRID */
+    .metas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    @media(max-width:500px){.metas-grid{grid-template-columns:1fr}}
+    .meta-card{background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:14px;position:relative;overflow:hidden}
+    .meta-card.atingida{border-color:var(--gr-bdr);background:var(--gr-dim)}
+    .meta-card.vigente-nivel{border-color:var(--ac-bdr);background:var(--ac-dim)}
+    .meta-card-icon{font-size:20px;margin-bottom:6px}
+    .meta-card-nome{font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+    .meta-card-valor{font-family:var(--fd);font-size:16px;font-weight:700;margin-bottom:8px}
+    .meta-card-pct{font-size:12px;font-weight:600}
+    .meta-card-falta{font-size:11px;color:var(--t2);margin-top:2px}
+    .meta-bar-wrap{height:4px;background:var(--b1);border-radius:2px;overflow:hidden;margin-top:8px}
+    .meta-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+
+    /* CÁLCULOS */
+    .calcs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    @media(max-width:400px){.calcs-grid{grid-template-columns:1fr}}
+    .calc-card{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:14px}
+    .calc-card-label{font-size:11px;color:var(--t2);margin-bottom:4px}
+    .calc-card-val{font-family:var(--fd);font-size:16px;font-weight:700}
+
+    /* PREMIAÇÕES */
+    .premiacoes-section{margin-bottom:16px}
+    .section-title{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+    .premiacoes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    @media(max-width:500px){.premiacoes-grid{grid-template-columns:1fr}}
+    .premiacao-card{background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:14px}
+    .premiacao-card.gold{border-color:var(--gold-bdr);background:var(--gold-dim)}
+    .premiacao-card.silver{border-color:rgba(148,163,184,.25);background:rgba(148,163,184,.06)}
+    .premiacao-card.super{border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.06)}
+    .premiacao-icon{font-size:22px;margin-bottom:6px}
+    .premiacao-nivel{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+    .premiacao-titulo{font-size:13px;font-weight:700;margin-bottom:4px}
+    .premiacao-desc{font-size:12px;color:var(--t2);line-height:1.4}
+    .premiacao-vazia{font-size:12px;color:var(--t3);font-style:italic}
+
+    /* TIMELINE HISTÓRICO */
+    .historico-section{margin-top:24px}
+    .historico-title{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+    .timeline{display:flex;flex-direction:column;gap:8px}
+    .timeline-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);cursor:pointer;transition:.15s;opacity:.7}
+    .timeline-item:hover{opacity:1;border-color:var(--b2)}
+    .timeline-item.selected{opacity:1;border-color:var(--ac-bdr);background:var(--ac-dim)}
+    .timeline-mes{font-family:var(--fd);font-size:12px;font-weight:700;min-width:60px;color:var(--t2)}
+    .timeline-item.selected .timeline-mes{color:var(--ac)}
+    .timeline-bar-wrap{flex:1;height:4px;background:var(--b1);border-radius:2px;overflow:hidden}
+    .timeline-bar-fill{height:100%;border-radius:2px}
+    .timeline-pct{font-size:11px;font-weight:600;min-width:36px;text-align:right}
+    .timeline-status{font-size:14px;margin-left:4px}
+
+    /* FORMULÁRIO MASTER */
+    .master-section{background:var(--s1);border:1px solid var(--or-bdr);border-radius:var(--r-lg);padding:20px;margin-bottom:16px}
+    .master-badge{display:inline-flex;align-items:center;gap:6px;background:var(--or-dim);border:1px solid var(--or-bdr);border-radius:999px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+    .field{margin-bottom:12px}
+    .field label{display:block;font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px}
+    .field input,.field textarea{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:var(--r-sm);color:var(--tx);font-family:var(--fb);font-size:13px;padding:8px 11px;outline:none;transition:.15s}
+    .field input:focus,.field textarea:focus{border-color:var(--ac-bdr);box-shadow:0 0 0 2px var(--ac-dim)}
+    .field textarea{resize:vertical;min-height:54px}
+    .metas-form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    @media(max-width:500px){.metas-form-grid{grid-template-columns:1fr}}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);font-family:var(--fb);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+    .btn-lime{background:var(--ac);color:#000}
+    .btn-lime:hover{background:var(--ac2)}
+    .btn-ghost{background:var(--s3);color:var(--tx);border:1px solid var(--b2)}
+    .btn-ghost:hover{background:var(--s4)}
+    .btn:disabled{opacity:.4;cursor:not-allowed}
+    .spin{width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s2);color:var(--tx);padding:10px 22px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;border:1px solid var(--b2);white-space:nowrap}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .toast.ok{background:var(--ac-dim);color:var(--ac);border-color:var(--ac-bdr)}
+    .toast.err{background:var(--rd-dim);color:var(--rd);border-color:var(--rd-bdr)}
+    .loading-state{text-align:center;padding:40px;color:var(--t2);font-size:13px;display:flex;align-items:center;justify-content:center;gap:10px}
+    .spin-tx{width:16px;height:16px;border:2px solid var(--b2);border-top-color:var(--ac);border-radius:50%;animation:spin .6s linear infinite}
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <a href="dashboard.html" class="hero-logo" aria-label="Voltar ao Dashboard">
+    <div class="hero-logo-mark">
+      <img src="icons/android-chrome-192x192.png" alt="Gorilaz">
+    </div>
+    <div>
+      <div class="hero-logo-text">GORILAZ</div>
+      <div class="hero-logo-sub">Barber Finance</div>
+    </div>
+  </a>
+  <h1>💰 Faturamento <span>Coletivo</span></h1>
+  <p class="hero-sub">Acompanhe as metas da equipe e celebre cada conquista</p>
+</div>
+
+<!-- SELETOR DE MÊS -->
+<div class="mes-nav">
+  <button class="mes-nav-btn" id="btn-prev" onclick="Fat.mesAnterior()">‹</button>
+  <div class="mes-nav-label" id="mes-label">Carregando...</div>
+  <button class="mes-nav-btn" id="btn-next" onclick="Fat.mesProximo()">›</button>
+  <button class="mes-nav-hoje" id="btn-hoje" onclick="Fat.mesHoje()" style="display:none">Hoje</button>
+</div>
+
+<div class="wrap">
+  <!-- CONTEÚDO DINÂMICO -->
+  <div id="conteudo"><div class="loading-state"><div class="spin-tx"></div> Carregando...</div></div>
+
+  <!-- HISTÓRICO TIMELINE -->
+  <div class="historico-section">
+    <div class="historico-title">📅 Histórico mensal</div>
+    <div class="timeline" id="timeline-list"><div class="loading-state"><div class="spin-tx"></div></div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL  = 'https://ixgwhyaponyssvczcabn.supabase.co'
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4Z3doeWFwb255c3N2Y3pjYWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0MTA5NDYsImV4cCI6MjA5NDk4Njk0Nn0.uSyPDUn87ERrrZpzK4DmIepqO_Sbcvwt7RzlN4QB8FM'
+const { createClient } = supabase
+const db = createClient(SUPABASE_URL, SUPABASE_ANON)
+
+// ── Permissões Master ──
+const MASTERS = new Set(['felipersbr@gmail.com'])
+let isMaster = false
+
+// ── Estado ──
+const hoje    = new Date()
+let _year     = hoje.getFullYear()
+let _month    = hoje.getMonth() + 1
+let _mesAtual = { year: _year, month: _month }
+
+const getMesRef  = () => `${_year}-${String(_month).padStart(2,'0')}`
+const isHoje     = () => _year === _mesAtual.year && _month === _mesAtual.month
+const diasNoMes  = (y,m) => new Date(y, m, 0).getDate()
+const diasRestantes = () => {
+  const fim = new Date(_year, _month, 0)
+  const ini = new Date()
+  if (_year !== hoje.getFullYear() || _month !== hoje.getMonth()+1) return 0
+  return Math.max(1, Math.ceil((fim - ini) / 86400000) + 1)
+}
+
+function getMesLabel(y, m) {
+  const d = new Date(y, m-1, 1)
+  const nm = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
+  return nm.charAt(0).toUpperCase() + nm.slice(1)
+}
+function fmt(v) {
+  return 'R$ ' + Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
+}
+function pct(real, meta) {
+  if (!meta || meta <= 0) return 0
+  return Math.min(Math.round((real/meta)*100), 999)
+}
+
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast')
+  el.textContent = msg; el.className = 'toast show ' + type
+  setTimeout(() => el.className = 'toast', type==='err' ? 5000 : 3000)
+}
+
+// ── Funções de nível ──
+function nivelAtingido(real, meta, turbo, super_) {
+  if (real >= super_)  return 'super'
+  if (real >= turbo)   return 'turbo'
+  if (real >= meta)    return 'meta'
+  return null
+}
+
+// ── Renderizar conteúdo principal ──
+async function renderConteudo(dados, premiacoes) {
+  const el = document.getElementById('conteudo')
+  const ref = getMesRef()
+  const vigente = isHoje()
+
+  if (!dados) {
+    // Mês sem dados — exibir form de criação (só Master)
+    if (isMaster) {
+      el.innerHTML = renderFormMaster(null, [])
+      bindFormMaster()
+    } else {
+      el.innerHTML = `<div class="card-main" style="text-align:center;padding:40px">
+        <div style="font-size:40px;margin-bottom:12px">📭</div>
+        <div style="color:var(--t2);font-size:14px">Nenhuma meta cadastrada para este mês.</div>
+      </div>`
+    }
+    return
+  }
+
+  const { meta, meta_turbo, super_meta, realizado } = dados
+  const nivel = nivelAtingido(realizado, meta, meta_turbo, super_meta)
+  const faltaMeta  = Math.max(0, meta - realizado)
+  const faltaTurbo = Math.max(0, meta_turbo - realizado)
+  const faltaSuper = Math.max(0, super_meta - realizado)
+  const dias       = diasRestantes()
+  const porDia     = dias > 0 && faltaMeta > 0 ? faltaMeta / dias : 0
+
+  const metaCards = [
+    { key:'meta',      icon:'🎯', nome:'Meta',       valor:meta,       falta:faltaMeta,  cor:'var(--ac)',   corBar:'#C6FF00' },
+    { key:'meta_turbo',icon:'🔥', nome:'Meta Turbo', valor:meta_turbo, falta:faltaTurbo, cor:'var(--or)',   corBar:'#fb923c' },
+    { key:'super_meta',icon:'🚀', nome:'Super Meta', valor:super_meta, falta:faltaSuper, cor:'var(--bl)',   corBar:'#60a5fa' },
+  ]
+
+  const metaCardsHTML = metaCards.map(m => {
+    const p = pct(realizado, m.valor)
+    const atingida = realizado >= m.valor
+    const isNivelAtual = nivel === m.key && !atingida
+    return `<div class="meta-card${atingida?' atingida':''}${isNivelAtual?' vigente-nivel':''}">
+      <div class="meta-card-icon">${m.icon}</div>
+      <div class="meta-card-nome">${m.nome}</div>
+      <div class="meta-card-valor" style="color:${m.cor}">${fmt(m.valor)}</div>
+      <div class="meta-card-pct" style="color:${atingida?'var(--gr)':m.cor}">${p}%${atingida?' ✓':''}</div>
+      ${!atingida ? `<div class="meta-card-falta">Faltam ${fmt(m.falta)}</div>` : ''}
+      <div class="meta-bar-wrap"><div class="meta-bar-fill" style="width:${Math.min(p,100)}%;background:${m.corBar}"></div></div>
+    </div>`
+  }).join('')
+
+  // Premiações
+  const premMap = {}
+  ;(premiacoes||[]).forEach(p => premMap[p.nivel] = p)
+  const premCardsHTML = [
+    { key:'meta',       icon:'🥈', classe:'silver', nome:'Meta'        },
+    { key:'meta_turbo', icon:'🥇', classe:'gold',   nome:'Meta Turbo'  },
+    { key:'super_meta', icon:'🏆', classe:'super',  nome:'Super Meta'  },
+  ].map(n => {
+    const p = premMap[n.key]
+    return `<div class="premiacao-card ${n.classe}">
+      <div class="premiacao-icon">${n.icon}</div>
+      <div class="premiacao-nivel">${n.nome}</div>
+      ${p
+        ? `<div class="premiacao-titulo">${p.titulo}</div><div class="premiacao-desc">${p.descricao||''}</div>`
+        : `<div class="premiacao-vazia">A definir</div>`}
+    </div>`
+  }).join('')
+
+  el.innerHTML = `
+    <!-- CARD PRINCIPAL -->
+    <div class="card-main ${vigente?'vigente':''}">
+      <div class="card-title">
+        📊 ${getMesLabel(_year,_month)}
+        ${vigente ? '<span class="badge-vigente">● Vigente</span>' : ''}
+      </div>
+
+      <!-- Realizado -->
+      <div class="realizado-hero">
+        <div class="realizado-valor">${fmt(realizado)}</div>
+        <div class="realizado-label">Total realizado no mês</div>
+      </div>
+
+      <!-- Metas -->
+      <div class="metas-grid">${metaCardsHTML}</div>
+
+      <!-- Cálculos -->
+      ${vigente ? `
+      <div class="calcs-grid">
+        <div class="calc-card">
+          <div class="calc-card-label">📅 Dias restantes</div>
+          <div class="calc-card-val">${dias} dia${dias!==1?'s':''}</div>
+        </div>
+        <div class="calc-card">
+          <div class="calc-card-label">⚡ Necessário por dia (meta)</div>
+          <div class="calc-card-val" style="color:${porDia>0?'var(--or)':'var(--gr)'}">
+            ${porDia > 0 ? fmt(porDia) : '✓ Meta atingida'}
+          </div>
+        </div>
+      </div>` : ''}
+    </div>
+
+    <!-- PREMIAÇÕES -->
+    <div class="premiacoes-section">
+      <div class="section-title">🏅 Premiações da campanha</div>
+      <div class="premiacoes-grid">${premCardsHTML}</div>
+    </div>
+
+    <!-- FORMULÁRIO MASTER -->
+    ${isMaster ? renderFormMaster(dados, premiacoes||[]) : ''}
+  `
+
+  if (isMaster) bindFormMaster()
+}
+
+function renderFormMaster(dados, premiacoes) {
+  const d = dados || { meta:0, meta_turbo:0, super_meta:0, realizado:0 }
+  const pm = {}; (premiacoes||[]).forEach(p => pm[p.nivel] = p)
+  return `
+  <div class="master-section">
+    <div class="master-badge">⚙️ Painel Master</div>
+
+    <div class="section-title">Valores do mês</div>
+    <div class="metas-form-grid">
+      <div class="field"><label>🎯 Meta</label><input type="number" id="f-meta" value="${d.meta||0}" step="0.01" min="0"></div>
+      <div class="field"><label>🔥 Meta Turbo</label><input type="number" id="f-turbo" value="${d.meta_turbo||0}" step="0.01" min="0"></div>
+      <div class="field"><label>🚀 Super Meta</label><input type="number" id="f-super" value="${d.super_meta||0}" step="0.01" min="0"></div>
+    </div>
+    <div class="field"><label>💰 Realizado</label><input type="number" id="f-real" value="${d.realizado||0}" step="0.01" min="0"></div>
+    <button class="btn btn-lime" id="btn-salvar-meta" onclick="Fat.salvarMeta()" style="margin-bottom:20px">💾 Salvar valores</button>
+
+    <div class="section-title">🏅 Premiações</div>
+    ${['meta','meta_turbo','super_meta'].map((nivel, i) => {
+      const icons = ['🎯','🔥','🚀']
+      const nomes = ['Meta','Meta Turbo','Super Meta']
+      const p = pm[nivel] || {}
+      return `<div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;margin-bottom:6px">${icons[i]} ${nomes[i]}</div>
+        <div class="metas-form-grid">
+          <div class="field"><label>Título</label><input type="text" id="f-prem-titulo-${nivel}" value="${p.titulo||''}" placeholder="Ex: Viagem para Cancún"></div>
+          <div class="field" style="grid-column:span 2"><label>Descrição</label><input type="text" id="f-prem-desc-${nivel}" value="${p.descricao||''}" placeholder="Detalhes da premiação"></div>
+        </div>
+      </div>`
+    }).join('')}
+    <button class="btn btn-lime" id="btn-salvar-prem" onclick="Fat.salvarPremiacoes()">🏅 Salvar premiações</button>
+  </div>`
+}
+
+function bindFormMaster() {
+  // Sem side effects — eventos via onclick inline já estão configurados
+}
+
+// ── Carregar timeline ──
+async function carregarTimeline() {
+  const { data } = await db.from('fat_metas').select('mes_ref,meta,realizado').order('mes_ref', { ascending: false })
+  const el = document.getElementById('timeline-list')
+  if (!data?.length) { el.innerHTML = '<div style="color:var(--t3);font-size:12px;padding:8px">Nenhum histórico ainda.</div>'; return }
+  const ref = getMesRef()
+  el.innerHTML = data.map(row => {
+    const p = pct(row.realizado, row.meta)
+    const ok = row.realizado >= row.meta
+    const [y,m] = row.mes_ref.split('-').map(Number)
+    const label = new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'short',year:'2-digit'})
+    return `<div class="timeline-item${row.mes_ref===ref?' selected':''}" onclick="Fat.irPara('${row.mes_ref}')">
+      <div class="timeline-mes">${label.charAt(0).toUpperCase()+label.slice(1)}</div>
+      <div class="timeline-bar-wrap"><div class="timeline-bar-fill" style="width:${Math.min(p,100)}%;background:${ok?'#4ade80':'#C6FF00'}"></div></div>
+      <div class="timeline-pct" style="color:${ok?'var(--gr)':'var(--t2)'}">${p}%</div>
+      <div class="timeline-status">${ok?'✅':''}</div>
+    </div>`
+  }).join('')
+}
+
+// ── Objeto principal ──
+const Fat = {
+  async carregar() {
+    const ref = getMesRef()
+    document.getElementById('mes-label').textContent = getMesLabel(_year, _month)
+    document.getElementById('btn-next').disabled = isHoje()
+    document.getElementById('btn-hoje').style.display = isHoje() ? 'none' : ''
+
+    const el = document.getElementById('conteudo')
+    el.innerHTML = '<div class="loading-state"><div class="spin-tx"></div> Carregando...</div>'
+
+    const [{ data: dadosMeta }, { data: premiacoes }] = await Promise.all([
+      db.from('fat_metas').select('*').eq('mes_ref', ref).maybeSingle(),
+      db.from('fat_premiacoes').select('*').eq('mes_ref', ref)
+    ])
+    await renderConteudo(dadosMeta, premiacoes || [])
+    await carregarTimeline()
+  },
+
+  mesAnterior() { _month--; if(_month<1){_month=12;_year--}; this.carregar() },
+  mesProximo()  { if(isHoje()) return; _month++; if(_month>12){_month=1;_year++}; this.carregar() },
+  mesHoje()     { _year=_mesAtual.year; _month=_mesAtual.month; this.carregar() },
+
+  irPara(ref) {
+    const [y,m] = ref.split('-').map(Number)
+    _year = y; _month = m; this.carregar()
+  },
+
+  async salvarMeta() {
+    if (!isMaster) { toast('Sem permissão.','err'); return }
+    const btn = document.getElementById('btn-salvar-meta')
+    btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Salvando...'
+    const payload = {
+      mes_ref:    getMesRef(),
+      meta:       parseFloat(document.getElementById('f-meta').value)||0,
+      meta_turbo: parseFloat(document.getElementById('f-turbo').value)||0,
+      super_meta: parseFloat(document.getElementById('f-super').value)||0,
+      realizado:  parseFloat(document.getElementById('f-real').value)||0,
+      updated_at: new Date().toISOString()
+    }
+    const { error } = await db.from('fat_metas').upsert(payload, { onConflict: 'mes_ref' })
+    btn.disabled = false; btn.innerHTML = '💾 Salvar valores'
+    if (error) { toast('Erro: ' + error.message, 'err'); return }
+    toast('Valores salvos! ✓')
+    await this.carregar()
+  },
+
+  async salvarPremiacoes() {
+    if (!isMaster) { toast('Sem permissão.','err'); return }
+    const btn = document.getElementById('btn-salvar-prem')
+    btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Salvando...'
+    const ref = getMesRef()
+    const niveis = ['meta','meta_turbo','super_meta']
+    const ops = niveis.map(n => ({
+      mes_ref:   ref,
+      nivel:     n,
+      titulo:    document.getElementById(`f-prem-titulo-${n}`)?.value?.trim() || '',
+      descricao: document.getElementById(`f-prem-desc-${n}`)?.value?.trim()  || ''
+    })).filter(p => p.titulo)
+    let error = null
+    for (const p of ops) {
+      const r = await db.from('fat_premiacoes').upsert(p, { onConflict: 'mes_ref,nivel' })
+      if (r.error) { error = r.error; break }
+    }
+    btn.disabled = false; btn.innerHTML = '🏅 Salvar premiações'
+    if (error) { toast('Erro: ' + error.message, 'err'); return }
+    toast('Premiações salvas! ✓')
+    await this.carregar()
+  }
+}
+
+// ── Init ──
+async function init() {
+  // Verificar sessão
+  const { data: { session } } = await db.auth.getSession()
+  if (session?.user?.email) {
+    isMaster = MASTERS.has(session.user.email.toLowerCase().trim())
+  }
+  await Fat.carregar()
+}
+
+init()
+</script>
+</body>
+</html>
