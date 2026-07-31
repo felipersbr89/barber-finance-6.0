@@ -409,9 +409,9 @@ const HT = {
       <div class="regra-section">
         <div class="regra-section-title">🎫 O que é High Ticket?</div>
         <div style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:0">
-          High Ticket é qualquer serviço ou venda de valor superior à média da barbearia.
-          Registre cada atendimento premium realizado e dispute o ranking mensal.
-          O profissional com maior valor acumulado de High Tickets no mês é o campeão.
+          Comandas acima de <strong style="color:var(--tx)">R$ 300,00</strong> que contenham um <strong style="color:var(--tx)">serviço avulso</strong> e pelo menos <strong style="color:var(--tx)">um serviço extra</strong> se tornam um High Ticket.
+          Bebidas não contam para o valor do High Ticket.
+          O profissional que atingir essa meta ganha automaticamente um <strong style="color:var(--tx)">Kit Burguer</strong>, que deverá ser entregue na quarta-feira seguinte à data da semana da comanda.
         </div>
       </div>
 
@@ -433,15 +433,72 @@ const HT = {
         </div>
         <div class="regra-row">
           <div class="regra-desc">
-            <strong>Valor mínimo para qualificar</strong>
-            <span>Apenas serviços e vendas que se enquadrem como premium são válidos. O Master define o valor mínimo da campanha vigente.</span>
+            <strong>Comanda acima de R$ 300,00</strong>
+            <span>Deve conter serviço avulso + ao menos um serviço extra. Bebidas não entram no cálculo do valor.</span>
           </div>
-          <div class="regra-badge obrig">Verificado</div>
+          <div class="regra-badge obrig">Critério</div>
+        </div>
+      </div>
+
+      <div class="regra-section">
+        <div class="regra-section-title">❌ Como perder o High Ticket (semanal)</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:10px">
+          Ao longo da semana, o profissional perde o direito ao High Ticket registrado caso ocorra qualquer uma das situações abaixo:
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Não utilizar o rádio</strong>
+            <span>Deixar de utilizar o rádio durante o expediente.</span>
+          </div>
+          <div class="regra-badge neg">Perde o direito</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Atraso</strong>
+            <span>Chegar atrasado em qualquer dia da semana.</span>
+          </div>
+          <div class="regra-badge neg">Perde o direito</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Saída antecipada</strong>
+            <span>Sair mais cedo sem alinhamento prévio.</span>
+          </div>
+          <div class="regra-badge neg">Perde o direito</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Não cumprir acordos internos</strong>
+            <span>Descumprir combinados feitos com a equipe ou gestão.</span>
+          </div>
+          <div class="regra-badge neg">Perde o direito</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Não se engajar em ajudar o colega</strong>
+            <span>Não colaborar com um colega que esteja com dificuldade.</span>
+          </div>
+          <div class="regra-badge neg">Perde o direito</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Faltar a aula do Pódium PRO</strong>
+            <span>Não comparecer à aula do Pódium PRO daquela semana.</span>
+          </div>
+          <div class="regra-badge neg">Perde o direito</div>
+        </div>
+        <div class="regra-row">
+          <div class="regra-desc">
+            <strong>Não seguir os procedimentos padrão</strong>
+            <span>Deixar de seguir os procedimentos padrão da barbearia.</span>
+          </div>
+          <div class="regra-badge neg">Perde o direito</div>
         </div>
       </div>
 
       <div class="regra-section">
         <div class="regra-section-title">⚠️ Infrações — Master</div>
+
         <div class="regra-row">
           <div class="regra-desc">
             <strong>Não enviar foto da comanda</strong>
@@ -456,11 +513,6 @@ const HT = {
           </div>
           <div class="regra-badge neg">Invalidado</div>
         </div>
-      </div>
-
-      <div style="background:var(--gold-dim);border:1px solid var(--gold-bdr);border-radius:var(--r);padding:14px;font-size:12px;color:var(--gold);line-height:1.6">
-        🏆 <strong>Prêmio:</strong> O profissional com maior valor de High Ticket válido ao final do mês recebe a premiação definida pelo Master para a campanha vigente.
-        Apenas lançamentos sem infração contam para o prêmio.
       </div>
     `
   },
