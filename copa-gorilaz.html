@@ -186,6 +186,15 @@
     .rank-pos.gold{color:var(--gold)}.rank-pos.silver{color:var(--silver)}.rank-pos.bronze{color:var(--bronze)}.rank-pos.other{color:var(--t3)}
     .rank-medal{font-size:18px;flex-shrink:0}
     .rank-avatar{width:38px;height:38px;border-radius:50%;background:var(--ac-dim);border:1.5px solid var(--ac-bdr);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:14px;font-weight:700;color:var(--ac);flex-shrink:0}
+    .rank-actions{display:flex;gap:6px;margin-top:7px}
+    .rank-icon-btn{width:26px;height:26px;border-radius:50%;border:1px solid;background:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:.15s;padding:0;font-family:var(--fb)}
+    .rank-icon-btn.report{border-color:var(--b2);color:var(--t2)}
+    .rank-icon-btn.report:hover{background:var(--s3);color:var(--tx)}
+    .rank-icon-btn.bonif{border-color:var(--gr-bdr);color:var(--gr)}
+    .rank-icon-btn.bonif:hover{background:var(--gr);color:#000}
+    .rank-icon-btn.infrac{border-color:var(--rd-bdr);color:var(--rd)}
+    .rank-icon-btn.infrac:hover{background:var(--rd);color:#fff}
+    .custom-fields{margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)}
     .rank-info{flex:1;min-width:0}
     .rank-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .rank-barb{font-size:11px;color:var(--t2);margin-top:1px}
@@ -479,9 +488,9 @@
         </div>
       </div>
 
-      <!-- Punições -->
+      <!-- Infrações -->
       <div class="regra-section">
-        <div class="regra-section-title">⚠️ Punições — Comportamento</div>
+        <div class="regra-section-title">⚠️ Infrações — Comportamento</div>
         <div class="regra-row">
           <div class="regra-desc">
             <strong>Chegar atrasado</strong>
@@ -581,6 +590,7 @@ let copaIsMaster   = false
 let copaUserEmail  = ''
 // Estado ajuste modal
 let _ajuste = { tipo:null, pid:null, nome:'', data:'', regra:null }
+let rankNomeMap = {}  // copa_barbeiros.id -> nome (evita escapar aspas em onclick)
 let lancExisteId = null  // id do lançamento da data selecionada (se existir)
 let todosLancs = []      // cache do histórico do mês
 
@@ -597,6 +607,7 @@ const REGRAS_BONIF = [
   { id:'podium',    label:'Assistir aula Podium PRO', pts:+100 },
   { id:'saida_ok',  label:'Sair no horário',         pts:+20  },
   { id:'reuniao_ok',label:'Engajar nas reuniões',    pts:+20  },
+  { id:'custom',    label:'Personalizado (informar motivo)', pts:0, custom:true },
 ]
 const REGRAS_INFRAC = [
   { id:'atraso',    label:'Chegar atrasado',          pts:-10  },
@@ -605,6 +616,7 @@ const REGRAS_INFRAC = [
   { id:'radio',     label:'Não utilizar rádio',       pts:-20  },
   { id:'proc',      label:'Não seguir procedimentos', pts:-20  },
   { id:'reuniao_n', label:'Não engajar nas reuniões', pts:-10  },
+  { id:'custom',    label:'Personalizado (informar motivo)', pts:0, custom:true },
 ]
 
 const Copa = {
@@ -1096,6 +1108,10 @@ const Copa = {
       .map(p=>({ ...p, pts:totais[p.id]||0, ...det[p.id] }))
       .sort((a,b)=>b.pts-a.pts)
 
+    // Atualiza mapa de nomes (usado pelos botões de ajuste/relatório, evita escapar aspas em onclick)
+    rankNomeMap = {}
+    rankeados.forEach(r => { rankNomeMap[r.id] = r.nome })
+
     const medals=['🥇','🥈','🥉']
     const posClass=['gold','silver','bronze']
 
@@ -1122,6 +1138,13 @@ const Copa = {
             <div class="rank-name">${r.nome}${isOwn?' <span style="font-size:10px;color:var(--ac)">(você)</span>':''}</div>
             <div class="rank-barb">✂️ ${r.barbearia}</div>
             <div class="rank-detail">💎${r.planos} planos · ✂️${r.extras} serviços · 🛍️${r.produtos} produtos</div>
+            <div class="rank-actions">
+              <button class="rank-icon-btn report" onclick="Copa.abrirRelatorio(${r.id})" title="Relatório de ajustes">📄</button>
+              ${copaIsMaster ? `
+                <button class="rank-icon-btn bonif" onclick="Copa.abrirModalAjuste('bonificacao','${DATA_HOJE}',${r.id})" title="Bonificar">✅</button>
+                <button class="rank-icon-btn infrac" onclick="Copa.abrirModalAjuste('infracao','${DATA_HOJE}',${r.id})" title="Aplicar infração">⚠️</button>
+              ` : ''}
+            </div>
           </div>
           <div style="text-align:right">
             <div class="rank-pts">${r.pts}</div>
@@ -1134,12 +1157,12 @@ const Copa = {
 
   // ── AJUSTES MASTER ────────────────────────────────────
 
-  abrirModalAjuste(tipo, data) {
+  abrirModalAjuste(tipo, data, pid=null) {
     if (!copaIsMaster) { toast('Acesso restrito ao Master.','err'); return }
     _ajuste.tipo  = tipo
     _ajuste.data  = data
-    _ajuste.pid   = Number(barbeiro.id)
-    _ajuste.nome  = barbeiro.nome
+    _ajuste.pid   = pid != null ? Number(pid) : Number(barbeiro.id)
+    _ajuste.nome  = pid != null ? (rankNomeMap[pid] || '—') : barbeiro.nome
     _ajuste.regra = null
 
     const regras  = tipo === 'bonificacao' ? REGRAS_BONIF : REGRAS_INFRAC
@@ -1148,20 +1171,29 @@ const Copa = {
     const corTxt  = isPos ? 'var(--gr)' : 'var(--rd)'
 
     document.getElementById('ajuste-modal-title').innerHTML = `<span style="color:${corTxt}">${titulo}</span>`
-    document.getElementById('ajuste-prof-nome').textContent  = barbeiro.nome
-    document.getElementById('ajuste-data-label').textContent = new Date(data+'T12:00').toLocaleDateString('pt-BR')
+    document.getElementById('ajuste-prof-nome').textContent  = _ajuste.nome
+    document.getElementById('ajuste-data-input').value = data
 
     const listEl = document.getElementById('ajuste-regras-list')
     listEl.innerHTML = regras.map(r => `
       <div class="regra-item">
         <label>
-          <input type="radio" name="regra_sel" value="${r.id}" onchange="_ajuste.regra='${r.id}'">
+          <input type="radio" name="regra_sel" value="${r.id}" onchange="Copa._selecionarRegra('${r.id}')">
           ${r.label}
         </label>
-        <span class="regra-pts ${r.pts>0?'pos':'neg'}">${r.pts>0?'+':''}${r.pts}</span>
+        ${r.custom ? '' : `<span class="regra-pts ${r.pts>0?'pos':'neg'}">${r.pts>0?'+':''}${r.pts}</span>`}
       </div>`).join('')
 
+    document.getElementById('ajuste-custom-fields').classList.add('hidden')
+    document.getElementById('ajuste-custom-pts').value = ''
+    document.getElementById('ajuste-custom-motivo').value = ''
+
     document.getElementById('modal-ajuste').classList.remove('hidden')
+  },
+
+  _selecionarRegra(id) {
+    _ajuste.regra = id
+    document.getElementById('ajuste-custom-fields').classList.toggle('hidden', id !== 'custom')
   },
 
   fecharModalAjuste() {
@@ -1171,20 +1203,39 @@ const Copa = {
 
   async aplicarAjuste() {
     if (!copaIsMaster) { toast('Acesso restrito.','err'); return }
-    const regras = _ajuste.tipo === 'bonificacao' ? REGRAS_BONIF : REGRAS_INFRAC
-    const regra  = regras.find(r => r.id === _ajuste.regra)
-    if (!regra) { toast('Selecione uma regra.','err'); return }
+
+    let pts, motivo, tipoFinal
+
+    if (_ajuste.regra === 'custom') {
+      const rawPts = document.getElementById('ajuste-custom-pts').value.trim()
+      motivo = document.getElementById('ajuste-custom-motivo').value.trim()
+      pts = parseInt(rawPts, 10)
+      if (!motivo)                    { toast('Informe o motivo.','err'); return }
+      if (!rawPts || isNaN(pts) || pts === 0) { toast('Informe uma pontuação válida (ex: -15 ou 25).','err'); return }
+      tipoFinal = pts > 0 ? 'bonificacao' : 'infracao'
+    } else {
+      const regras = _ajuste.tipo === 'bonificacao' ? REGRAS_BONIF : REGRAS_INFRAC
+      const regra  = regras.find(r => r.id === _ajuste.regra)
+      if (!regra) { toast('Selecione uma regra.','err'); return }
+      pts       = regra.pts
+      motivo    = regra.label
+      tipoFinal = _ajuste.tipo
+    }
+
+    const dataSel = document.getElementById('ajuste-data-input').value
+    if (!dataSel) { toast('Selecione uma data.','err'); return }
+    _ajuste.data = dataSel
 
     const btn = document.getElementById('btn-aplicar-ajuste')
     btn.disabled = true; btn.innerHTML = '<div class="spin"></div>'
 
-    // 1. Registrar em copa_ajustes (histórico rastreável)
+    // 1. Registrar em copa_ajustes (histórico rastreável — usado no botão "Relatório")
     const { error: e1 } = await db.from('copa_ajustes').insert({
       participante_id: _ajuste.pid,
       data:            _ajuste.data,
-      tipo:            _ajuste.tipo,
-      motivo:          regra.label,
-      pontos:          regra.pts,
+      tipo:            tipoFinal,
+      motivo:          motivo,
+      pontos:          pts,
       registrado_por:  copaUserEmail
     })
     if (e1) { toast('Erro: '+e1.message,'err'); btn.disabled=false; btn.innerHTML='✓ Aplicar'; return }
@@ -1195,27 +1246,67 @@ const Copa = {
       .select('id,pontos,ajuste_pts').eq('participante_id', _ajuste.pid).eq('data', _ajuste.data).maybeSingle()
 
     if (lanc) {
-      const novoAjuste = (lanc.ajuste_pts||0) + regra.pts
-      const novoTotal  = lanc.pontos + regra.pts
+      const novoAjuste = (lanc.ajuste_pts||0) + pts
+      const novoTotal  = lanc.pontos + pts
       await db.from('copa_lancamentos')
-        .update({ ajuste_pts: novoAjuste, ajuste_motivo: regra.label, pontos: novoTotal, updated_at: new Date().toISOString() })
+        .update({ ajuste_pts: novoAjuste, ajuste_motivo: motivo, pontos: novoTotal, updated_at: new Date().toISOString() })
         .eq('id', lanc.id)
     } else {
       // Lançamento não existe nesta data — criar apenas com ajuste
       await db.from('copa_lancamentos').insert({
         participante_id: _ajuste.pid, data: _ajuste.data,
         planos:0, extras:0, produtos:0, feed:0,
-        ajuste_pts: regra.pts, ajuste_motivo: regra.label,
-        pontos: regra.pts
+        ajuste_pts: pts, ajuste_motivo: motivo,
+        pontos: pts
       })
     }
 
     btn.disabled = false; btn.innerHTML = '✓ Aplicar'
     this.fecharModalAjuste()
-    toast(`${regra.label}: ${regra.pts>0?'+':''}${regra.pts} pts aplicado!`, regra.pts>0?'ok':'err')
+    toast(`${motivo}: ${pts>0?'+':''}${pts} pts aplicado!`, pts>0?'ok':'err')
     await this.carregarHistorico()
     await this.carregarRanking()
     await this.atualizarKpisMes()
+  },
+
+  // ── RELATÓRIO (visível para todos — histórico de ajustes de um profissional) ──
+  async abrirRelatorio(pid) {
+    const nome = rankNomeMap[pid] || '—'
+    document.getElementById('rel-prof-nome').textContent = nome
+    document.getElementById('rel-lista').innerHTML = '<div class="loading-state"><div class="spin"></div></div>'
+    document.getElementById('modal-relatorio').classList.remove('hidden')
+
+    const { data, error } = await db.from('copa_ajustes')
+      .select('*')
+      .eq('participante_id', Number(pid))
+      .order('data', { ascending:false })
+
+    const listEl = document.getElementById('rel-lista')
+    if (error) {
+      listEl.innerHTML = '<div class="hist-empty">Não foi possível carregar o relatório.</div>'
+      return
+    }
+    if (!data?.length) {
+      listEl.innerHTML = '<div class="hist-empty">Nenhuma bonificação ou infração registrada.</div>'
+      return
+    }
+
+    listEl.innerHTML = data.map(a => {
+      const dt    = new Date(a.data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'})
+      const isPos = a.pontos > 0
+      return `
+        <div class="regra-item" style="align-items:flex-start">
+          <div>
+            <div style="font-size:13px;font-weight:600">${dt}</div>
+            <div style="font-size:12px;color:var(--t2);margin-top:2px">${a.motivo || '—'}</div>
+          </div>
+          <span class="regra-pts ${isPos?'pos':'neg'}" style="white-space:nowrap">${isPos?'+':''}${a.pontos}</span>
+        </div>`
+    }).join('')
+  },
+
+  fecharRelatorio() {
+    document.getElementById('modal-relatorio').classList.add('hidden')
   },
 
   sair() {
@@ -1244,9 +1335,9 @@ function toast(msg,type='ok'){
 }
 
 Copa.init()
-// ESC fecha modal de ajuste
+// ESC fecha modais de ajuste/relatório
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') Copa.fecharModalAjuste()
+  if (e.key === 'Escape') { Copa.fecharModalAjuste(); Copa.fecharRelatorio() }
 })
 </script>
 
@@ -1258,17 +1349,44 @@ document.addEventListener('keydown', e => {
       <button onclick="Copa.fecharModalAjuste()" style="background:none;border:none;color:var(--t2);font-size:20px;cursor:pointer;padding:4px;line-height:1" title="Fechar">✕</button>
     </div>
 
-    <div style="font-size:12px;color:var(--t2);margin-bottom:14px">
-      Profissional: <strong id="ajuste-prof-nome">—</strong> &nbsp;·&nbsp; Data: <strong id="ajuste-data-label">—</strong>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:6px">
+      Profissional: <strong id="ajuste-prof-nome">—</strong>
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label>Data</label>
+      <input type="date" id="ajuste-data-input">
     </div>
 
     <!-- Lista de regras -->
     <div id="ajuste-regras-list"></div>
 
+    <!-- Campos do item "Personalizado" -->
+    <div id="ajuste-custom-fields" class="custom-fields hidden">
+      <div class="field">
+        <label>Pontos (negativo p/ infração, ex: -15 ou 25)</label>
+        <input type="text" id="ajuste-custom-pts" placeholder="Ex: -15 ou 25" inputmode="numeric">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Motivo</label>
+        <input type="text" id="ajuste-custom-motivo" placeholder="Descreva o motivo">
+      </div>
+    </div>
+
     <div style="margin-top:14px;display:flex;gap:10px">
       <button class="btn btn-lime" id="btn-aplicar-ajuste" onclick="Copa.aplicarAjuste()" style="flex:1">✓ Aplicar</button>
       <button class="btn btn-ghost" onclick="Copa.fecharModalAjuste()">Cancelar</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL RELATÓRIO (visível para todos) -->
+<div class="ajuste-modal-overlay hidden" id="modal-relatorio" onclick="if(event.target===this)Copa.fecharRelatorio()">
+  <div class="ajuste-modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="ajuste-modal-title" style="margin-bottom:0">📄 Relatório — <span id="rel-prof-nome">—</span></div>
+      <button onclick="Copa.fecharRelatorio()" style="background:none;border:none;color:var(--t2);font-size:20px;cursor:pointer;padding:4px;line-height:1" title="Fechar">✕</button>
+    </div>
+    <div id="rel-lista" style="max-height:50vh;overflow-y:auto"></div>
   </div>
 </div>
 </body>
