@@ -195,15 +195,12 @@ function toast(msg, type='ok') {
 }
 
 // ── Cálculo central ──
-// média_cadeira = (avulso × com_av%) + (assinatura × com_ass%) + produtos
-// Metas: +5%, +10%, +15% sobre média_cadeira
-function calcular(av, ass, pr, comAv, comAss) {
-  const a = +av, b = +ass, c = +pr, ca = +comAv/100, cb = +comAss/100
-  const cadeira = +(a*ca + b*cb + c).toFixed(2)
+// faturamento_cadeira = avulso bruto + assinatura bruta + produtos
+// Metas: +5%, +10%, +15% sobre o faturamento da cadeira
+function calcular(av, ass, pr) {
+  const cadeira = +((+av) + (+ass) + (+pr)).toFixed(2)
   return {
     cadeira,
-    comAv:   +(a*ca).toFixed(2),
-    comAss:  +(b*cb).toFixed(2),
     meta:      +(cadeira * 1.05).toFixed(2),
     metaTurbo: +(cadeira * 1.10).toFixed(2),
     superMeta: +(cadeira * 1.15).toFixed(2),
@@ -294,11 +291,11 @@ const Perf = {
       return
     }
 
-    const m = calcular(media.media_avulso, media.media_assinatura, media.media_produtos, media.comissao_avulso, media.comissao_assinatura)
+    const m = calcular(media.media_avulso, media.media_assinatura, media.media_produtos)
     const totalAv  = (reals||[]).reduce((s,r) => s + (+r.avulso||0), 0)
     const totalAss = (reals||[]).reduce((s,r) => s + (+r.assinatura||0), 0)
     const totalPr  = (reals||[]).reduce((s,r) => s + (+r.produtos||0), 0)
-    const totalCom = +(totalAv * +media.comissao_avulso/100 + totalAss * +media.comissao_assinatura/100 + totalPr).toFixed(2)
+    const totalCom = +(totalAv + totalAss + totalPr).toFixed(2)
     const dr = diasRest()
 
     el.innerHTML = `
@@ -322,8 +319,8 @@ const Perf = {
           ${metaCard('🚀','Super Meta','Média +15%', m.superMeta, totalCom, 'var(--bl)', '#60a5fa', dr, media.premiacao_super_meta)}
         </div>
         <div style="font-size:11px;color:var(--t3);line-height:1.8">
-          Base (últimos 6 meses): Avulso ${fmt(media.media_avulso)} (${media.comissao_avulso}%)
-          · Assinatura ${fmt(media.media_assinatura)} (${media.comissao_assinatura}%)
+          Base (últimos 6 meses): Avulso ${fmt(media.media_avulso)}
+          · Assinatura ${fmt(media.media_assinatura)}
           · Produtos ${fmt(media.media_produtos)}
           · <strong style="color:var(--t2)">Cadeira: ${fmt(m.cadeira)}</strong>
         </div>
@@ -358,7 +355,7 @@ const Perf = {
 
   _historico(reals) {
     const rows = [...reals].reverse().map(r => {
-      const cadeira = +(+r.avulso * (+meuBarbeiro._comAv||0.4) + +r.assinatura * (+meuBarbeiro._comAss||0.3) + +r.produtos).toFixed(2)
+      const cadeira = +((+r.avulso) + (+r.assinatura) + (+r.produtos)).toFixed(2)
       const d = new Date(r.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})
       return `<tr>
         <td>${d}</td>
@@ -416,7 +413,7 @@ const Perf = {
     // Mapas
     const mediaMap = {}; (medias||[]).forEach(m => mediaMap[m.copa_barbeiro_id] = m)
     const realMap  = {}; (reals||[]).forEach(r => {
-      realMap[r.copa_barbeiro_id] = (realMap[r.copa_barbeiro_id]||0) + (+r.avulso*((mediaMap[r.copa_barbeiro_id]?.comissao_avulso||40)/100)) + (+r.assinatura*((mediaMap[r.copa_barbeiro_id]?.comissao_assinatura||30)/100)) + +r.produtos
+      realMap[r.copa_barbeiro_id] = (realMap[r.copa_barbeiro_id]||0) + (+r.avulso||0) + (+r.assinatura||0) + (+r.produtos||0)
     })
 
     // Avatar de profiles
@@ -431,7 +428,7 @@ const Perf = {
       .filter(b => mediaMap[b.id])
       .map(b => {
         const med = mediaMap[b.id]
-        const m   = calcular(med.media_avulso, med.media_assinatura, med.media_produtos, med.comissao_avulso, med.comissao_assinatura)
+        const m   = calcular(med.media_avulso, med.media_assinatura, med.media_produtos)
         const real = +(realMap[b.id]||0).toFixed(2)
         return { ...b, metas:m, real, pct: pct(real, m.meta) }
       })
@@ -479,7 +476,7 @@ const Perf = {
       <div class="master-badge">⚙️ Painel Master — ${mesLabel()}</div>
       ${barbeiros.map(b => {
         const med = mMap[b.id] || {}
-        const m = calcular(med.media_avulso||0, med.media_assinatura||0, med.media_produtos||0, med.comissao_avulso||40, med.comissao_assinatura||30)
+        const m = calcular(med.media_avulso||0, med.media_assinatura||0, med.media_produtos||0)
         const bid = b.id
         return `<div class="prof-card" id="prof-${bid}">
           <div class="prof-nome">👤 ${b.nome} <span style="font-size:11px;color:var(--t2);font-weight:400">· ${b.barbearia}</span></div>
@@ -492,14 +489,6 @@ const Perf = {
               <input type="number" id="ass-${bid}" value="${med.media_assinatura||0}" step="0.01" min="0"></div>
             <div class="field"><label>📦 Produtos</label>
               <input type="number" id="pr-${bid}" value="${med.media_produtos||0}" step="0.01" min="0"></div>
-          </div>
-
-          <div class="section-label">💰 Comissionamento</div>
-          <div class="grid-2" style="margin-bottom:12px">
-            <div class="field"><label>% Comissão avulso</label>
-              <input type="number" id="cav-${bid}" value="${med.comissao_avulso||40}" step="0.1" min="0" max="100"></div>
-            <div class="field"><label>% Comissão assinatura</label>
-              <input type="number" id="cass-${bid}" value="${med.comissao_assinatura||30}" step="0.1" min="0" max="100"></div>
           </div>
 
           <div class="preview-box" id="prev-${bid}">
@@ -525,7 +514,7 @@ const Perf = {
 
     // Preview em tempo real
     barbeiros.forEach(b => {
-      const ids = ['av','ass','pr','cav','cass'].map(k => document.getElementById(`${k}-${b.id}`))
+      const ids = ['av','ass','pr'].map(k => document.getElementById(`${k}-${b.id}`))
       const pv  = document.getElementById(`prev-${b.id}`)
       const upd = () => {
         const m = calcular(...ids.map(el => parseFloat(el?.value)||0))
@@ -540,8 +529,8 @@ const Perf = {
     const g = id => parseFloat(document.getElementById(`${id}-${bid}`)?.value) || 0
     const t = id => document.getElementById(`${id}-${bid}`)?.value?.trim() || null
     const ref = mesRef()
-    const av = g('av'), ass = g('ass'), pr = g('pr'), cav = g('cav'), cass = g('cass')
-    const m = calcular(av, ass, pr, cav, cass)
+    const av = g('av'), ass = g('ass'), pr = g('pr')
+    const m = calcular(av, ass, pr)
 
     const { error } = await db.from('perf_medias').upsert({
       copa_barbeiro_id:    bid,
@@ -549,8 +538,6 @@ const Perf = {
       media_avulso:        av,
       media_assinatura:    ass,
       media_produtos:      pr,
-      comissao_avulso:     cav,
-      comissao_assinatura: cass,
       media_cadeira:       m.cadeira,
       premiacao_meta:       t('pm'),
       premiacao_meta_turbo: t('pt'),
@@ -587,15 +574,7 @@ async function init() {
         const { data: barbDB } = await db.from('copa_barbeiros')
           .select('*').eq('id', Number(barb.id)).maybeSingle()
         const b = barbDB || barb
-        // Cache das comissões
-        const { data: med } = await db.from('perf_medias')
-          .select('comissao_avulso,comissao_assinatura')
-          .eq('copa_barbeiro_id', b.id).eq('mes_ref', mesRef()).maybeSingle()
-        meuBarbeiro = {
-          ...b,
-          _comAv:  (med?.comissao_avulso  || 40) / 100,
-          _comAss: (med?.comissao_assinatura || 30) / 100
-        }
+        meuBarbeiro = b
         console.log('[Perf] Barbeiro identificado:', meuBarbeiro.nome)
       }
     } catch(e) { console.warn('[Perf] localStorage inválido:', e) }
@@ -606,14 +585,7 @@ async function init() {
     const { data: barb } = await db.from('copa_barbeiros')
       .select('*').eq('user_id', me.id).maybeSingle()
     if (barb) {
-      const { data: med } = await db.from('perf_medias')
-        .select('comissao_avulso,comissao_assinatura')
-        .eq('copa_barbeiro_id', barb.id).eq('mes_ref', mesRef()).maybeSingle()
-      meuBarbeiro = {
-        ...barb,
-        _comAv:  (med?.comissao_avulso  || 40) / 100,
-        _comAss: (med?.comissao_assinatura || 30) / 100
-      }
+      meuBarbeiro = barb
     }
   }
 
