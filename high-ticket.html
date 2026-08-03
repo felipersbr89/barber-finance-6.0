@@ -92,6 +92,8 @@
     .remover-infrac-btn:hover{background:var(--s4)}
     .edit-btn{padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--b2);background:var(--s3);color:var(--t2);font-family:var(--fb);transition:.15s;white-space:nowrap}
     .edit-btn:hover{background:var(--gold-dim);color:var(--gold);border-color:var(--gold-bdr)}
+    .del-btn{padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--rd-bdr);background:var(--rd-dim);color:var(--rd);font-family:var(--fb);transition:.15s;white-space:nowrap}
+    .del-btn:hover{background:var(--rd);color:#fff}
 
     /* REGRAS */
     .regra-section{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r-lg);padding:18px;margin-bottom:14px}
@@ -317,6 +319,7 @@ const HT = {
             <div class="rank-valor ${l.infracao?'riscado':''}">${fmt(l.valor)}</div>
             ${isMaster ? `
               <button class="edit-btn" onclick="HT.abrirEdicao(${l.id},${l.valor},'${l.data}','${(l.observacao||'').replace(/'/g,"\\'")}','${nome.replace(/'/g,"\\'")}')">✏️</button>
+              <button class="del-btn" onclick="HT.excluirLancamento(${l.id},'${nome.replace(/'/g,"\\'")}')">🗑️</button>
               ${!l.infracao
                 ? `<button class="infrac-btn" onclick="HT.abrirInfracao(${l.id},'${nome.replace(/'/g,"\\'")}')">⚠️</button>`
                 : `<button class="remover-infrac-btn" onclick="HT.removerInfracao(${l.id})">↩</button>`
@@ -392,7 +395,10 @@ const HT = {
               <div style="font-size:11px;color:var(--t2)">${fmtDate(l.data)}${l.observacao?' · '+l.observacao:''}</div>
               ${l.infracao?`<div style="font-size:10px;color:var(--rd)">⚠️ ${l.infracao_motivo||'Infração'}</div>`:''}
             </div>
-            ${isMaster ? `<button class="edit-btn" onclick="HT.abrirEdicao(${l.id},${l.valor},'${l.data}','${(l.observacao||'').replace(/'/g,"\\'")}','${targetNome.replace(/'/g,"\\'")}')">✏️</button>` : ''}
+            ${isMaster ? `<div style="display:flex;gap:6px;flex-shrink:0">
+              <button class="edit-btn" onclick="HT.abrirEdicao(${l.id},${l.valor},'${l.data}','${(l.observacao||'').replace(/'/g,"\\'")}','${targetNome.replace(/'/g,"\\'")}')">✏️</button>
+              <button class="del-btn" onclick="HT.excluirLancamento(${l.id},'${targetNome.replace(/'/g,"\\'")}')">🗑️</button>
+            </div>` : ''}
           </div>`).join('')}
       </div>` : ''}
     `
@@ -440,6 +446,15 @@ const HT = {
   fecharModalEdicao(){
     document.getElementById('modal-editar-ht').classList.add('hidden')
     _editTarget = null
+  },
+  async excluirLancamento(id, nome=''){
+    if(!isMaster){ toast('Acesso restrito.','err'); return }
+    const ok = confirm(`Excluir este High Ticket${nome ? ' de '+nome : ''}? Essa ação não pode ser desfeita.`)
+    if(!ok) return
+    const { error } = await db.from('ht_lancamentos').delete().eq('id', id)
+    if(error){ toast('Erro: '+error.message,'err'); return }
+    toast('Lançamento excluído.')
+    await this.render()
   },
   async salvarEdicao(){
     if(!isMaster || !_editTarget){ return }
