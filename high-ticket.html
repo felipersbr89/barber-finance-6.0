@@ -274,7 +274,7 @@ const HT = {
   async renderRanking(el){
     const ref = mesRef()
     const [{ data: lancs }, { data: camp }, { data: barbs }] = await Promise.all([
-      db.from('ht_lancamentos').select('*').eq('mes_ref' in {} ? 'mes_ref' : 'id', ref)
+      db.from('ht_lancamentos').select('*')
         .gte('data', ref+'-01').lte('data', ref+'-'+new Date(_y,_m,0).getDate()).order('valor',{ascending:false}),
       db.from('ht_campanha').select('*').eq('mes_ref', ref).maybeSingle(),
       db.from('copa_barbeiros').select('id,nome,barbearia,user_id')
@@ -422,7 +422,6 @@ const HT = {
       copa_barbeiro_id: targetId,
       valor,
       data,
-      mes_ref: `${data.slice(0,7)}`,
       observacao: document.getElementById('ht-obs')?.value?.trim()||null
     })
     btn.disabled=false; btn.innerHTML='💾 Registrar High Ticket'
@@ -466,7 +465,6 @@ const HT = {
     btn.disabled=true; btn.innerHTML='<div class="spin" style="border-top-color:#000"></div>'
     const { error } = await db.from('ht_lancamentos').update({
       valor, data,
-      mes_ref: data.slice(0,7),
       observacao: document.getElementById('edit-ht-obs')?.value?.trim()||null
     }).eq('id', _editTarget.id)
     btn.disabled=false; btn.innerHTML='💾 Salvar alterações'
