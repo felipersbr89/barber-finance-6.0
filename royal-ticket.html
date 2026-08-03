@@ -220,36 +220,27 @@ function toast(msg,type='ok'){
 }
 
 // ════════════════════════════════════════════════════════
-// CRITÉRIOS DE ORDENAÇÃO — ROYAL TICKET
+// ORDENAÇÃO — ROYAL TICKET
 //
 // Para cada barbeiro, pegar seu MELHOR High Ticket do mês
 // (pode ter vários lançamentos — pegar o de maior valor)
 //
-// Ordenar por:
-// 1º CRITÉRIO: maior valor do High Ticket válido (sem infração)
-//    Se infração: mantém na lista mas marcado como inválido
-// 2º CRITÉRIO (empate): mais planos vendidos no mês (copa_lancamentos)
-// 3º CRITÉRIO (empate persistente): maior faturamento com menos serviços
-//    = maior (planos / total_extras), ou seja, mais planos por serviço
+// O pódio é baseado apenas no maior valor de High Ticket do mês.
+// Caso seja registrada alguma infração no mês vigente, o profissional
+// perde o direito ao Royal Ticket (fica no ranking, mas fora do pódio).
+//
+// Os critérios de desempate (planos vendidos, volume de serviços extras
+// e ticket médio geral) são tratados externamente pelo Master — o app
+// apenas exibe o texto com os critérios para os profissionais, sem
+// calcular ou aplicar o desempate automaticamente.
 // ════════════════════════════════════════════════════════
 function ordenarRanking(profissionais) {
   // Separar válidos e inválidos
   const validos   = profissionais.filter(p => !p.infracao)
   const invalidos = profissionais.filter(p =>  p.infracao)
 
-  // Ordenar válidos pelos 3 critérios
-  validos.sort((a, b) => {
-    // 1. Maior valor
-    if (b.melhorValor !== a.melhorValor) return b.melhorValor - a.melhorValor
-    // 2. Mais planos vendidos no mês
-    if (b.planos !== a.planos) return b.planos - a.planos
-    // 3. Maior faturamento com menos serviços = planos / (extras+1)
-    const ratioA = a.planos / (a.extras + 1)
-    const ratioB = b.planos / (b.extras + 1)
-    return ratioB - ratioA
-  })
-
-  // Inválidos ordenados entre si (mesmo critério, sem promoção)
+  // Ordenar apenas pelo valor do High Ticket
+  validos.sort((a, b) => b.melhorValor - a.melhorValor)
   invalidos.sort((a, b) => b.melhorValor - a.melhorValor)
 
   // Válidos primeiro, depois inválidos
@@ -293,6 +284,7 @@ const RT = {
     const barbMap = {}; (barbs||[]).forEach(b => barbMap[b.id] = b)
 
     // 3. Agregar planos/extras do mês por barbeiro (copa_lancamentos)
+    //    Exibidos apenas como informação — o desempate é tratado externamente pelo Master
     const planosMap = {}, extrasMap = {}
     ;(copaLancs||[]).forEach(l => {
       planosMap[l.participante_id] = (planosMap[l.participante_id]||0) + (+l.planos||0)
@@ -383,7 +375,7 @@ const RT = {
         <div class="podio-valor ${cor} ${!valid?'riscado':''}">${fmt(r.melhorValor)}</div>
         <div class="podio-data">${fmtDate(r.data)}</div>
         ${!valid ? `<div class="podio-infrac">⚠️ ${r.infracMotivo||'Infração'}</div>` : ''}
-        ${showCrit ? `<div class="podio-criterio">🎯 Desempate: planos</div>` : ''}
+        ${showCrit ? `<div class="podio-criterio">⚖️ Empate — desempate manual</div>` : ''}
       </div>`
     }).join('')
 
@@ -407,17 +399,7 @@ const RT = {
       </div>`
     }).join('')
 
-    // ── LEGENDA DOS CRITÉRIOS ──
-    const criteriosHTML = `
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
-        <div class="crit-badge">1° Maior valor do High Ticket</div>
-        <div class="crit-badge">2° Mais planos vendidos</div>
-        <div class="crit-badge">3° Maior fat. com menos serviços</div>
-      </div>`
-
     el.innerHTML = `
-      ${criteriosHTML}
-
       <!-- PÓDIO TOP 3 -->
       <div class="podio">${podioHTML}</div>
 
@@ -432,10 +414,13 @@ const RT = {
 
       <!-- NOTA DE CRITÉRIOS -->
       <div style="font-size:11px;color:var(--t3);margin-top:16px;line-height:1.7;padding:10px;background:var(--s1);border-radius:var(--r-sm);border:1px solid var(--b1)">
-        👑 <strong style="color:var(--t2)">Royal Ticket</strong> — Pódio baseado no maior High Ticket individual do mês.
-        Em caso de empate: mais planos vendidos na Copa Gorilaz vence.
-        Persistindo o empate: maior faturamento com menos serviços.
-        Lançamentos com infração ficam no ranking mas não ocupam o pódio.
+        👑 <strong style="color:var(--t2)">Royal Ticket</strong> — O pódio é baseado no maior High Ticket do mês.
+        Caso seja registrada alguma das infrações listadas abaixo no mês vigente, o profissional perde o direito ao Royal Ticket
+        (permanece no ranking, mas fora do pódio).<br>
+        <strong style="color:var(--t2)">Critérios de desempate:</strong>
+        1º — profissional que vendeu mais planos no mês;
+        2º — profissional com maior volume bruto de serviços extras vendidos no mês;
+        3º — profissional com maior ticket médio geral (avulsos e assinantes) no mês vigente.
       </div>
     `
   }
