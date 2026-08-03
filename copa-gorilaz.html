@@ -1096,12 +1096,13 @@ const Copa = {
 
     // 4. Agrupa pontos
     const totais = {}, det = {}
-    parts.forEach(p=>{ totais[p.id]=0; det[p.id]={planos:0,extras:0,produtos:0} })
+    parts.forEach(p=>{ totais[p.id]=0; det[p.id]={planos:0,extras:0,produtos:0,feed:0} })
     lancs.forEach(l=>{
       totais[l.participante_id]=(totais[l.participante_id]||0)+l.pontos
       det[l.participante_id].planos  =(det[l.participante_id].planos||0)+l.planos
       det[l.participante_id].extras  =(det[l.participante_id].extras||0)+l.extras
       det[l.participante_id].produtos=(det[l.participante_id].produtos||0)+l.produtos
+      det[l.participante_id].feed    =(det[l.participante_id].feed||0)+(l.feed||0)
     })
 
     const rankeados = parts
@@ -1137,7 +1138,7 @@ const Copa = {
           <div class="rank-info">
             <div class="rank-name">${r.nome}${isOwn?' <span style="font-size:10px;color:var(--ac)">(você)</span>':''}</div>
             <div class="rank-barb">✂️ ${r.barbearia}</div>
-            <div class="rank-detail">💎${r.planos} planos · ✂️${r.extras} serviços · 🛍️${r.produtos} produtos</div>
+            <div class="rank-detail">💎${r.planos} planos · ✂️${r.extras} serviços · 🛍️${r.produtos} produtos · 📱${r.feed||0} feed/reels</div>
             <div class="rank-actions">
               <button class="rank-icon-btn report" onclick="Copa.abrirRelatorio(${r.id})" title="Relatório de ajustes">📄</button>
               ${copaIsMaster ? `
