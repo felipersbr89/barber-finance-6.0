@@ -90,6 +90,8 @@
     .infrac-btn:hover{background:var(--rd);color:#fff}
     .remover-infrac-btn{padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--b2);background:var(--s3);color:var(--t2);font-family:var(--fb);transition:.15s}
     .remover-infrac-btn:hover{background:var(--s4)}
+    .edit-btn{padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--b2);background:var(--s3);color:var(--t2);font-family:var(--fb);transition:.15s;white-space:nowrap}
+    .edit-btn:hover{background:var(--gold-dim);color:var(--gold);border-color:var(--gold-bdr)}
 
     /* REGRAS */
     .regra-section{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r-lg);padding:18px;margin-bottom:14px}
@@ -184,6 +186,29 @@
   </div>
 </div>
 
+<!-- MODAL EDITAR (MASTER) -->
+<div class="modal-overlay hidden" id="modal-editar-ht" onclick="if(event.target===this)HT.fecharModalEdicao()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--gold)">✏️ Editar High Ticket</div>
+      <button class="modal-close" onclick="HT.fecharModalEdicao()">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:14px" id="modal-editar-info"></div>
+    <div class="form-grid">
+      <div class="field"><label>💰 Valor (R$)</label>
+        <input type="number" id="edit-ht-valor" step="0.01" min="0"></div>
+      <div class="field"><label>📅 Data</label>
+        <input type="date" id="edit-ht-data"></div>
+    </div>
+    <div class="field"><label>📝 Observação</label>
+      <input type="text" id="edit-ht-obs" placeholder="Ex: Progressiva completa + produtos"></div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn btn-gold" id="btn-salvar-edicao" onclick="HT.salvarEdicao()" style="flex:1">💾 Salvar alterações</button>
+      <button class="btn btn-ghost" onclick="HT.fecharModalEdicao()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -197,6 +222,8 @@ let userEmail  = ''
 let meuBarbeiro = null  // via localStorage copa_barbeiro
 let aba = 'ranking'
 let _infracTarget = null  // { id, nome }
+let _editTarget = null    // { id } — lançamento sendo editado pelo Master
+let _lancarTargetId = null // id do profissional selecionado pelo Master na aba Lançar
 
 const hoje = new Date()
 let _y = hoje.getFullYear(), _m = hoje.getMonth() + 1
@@ -288,10 +315,13 @@ const HT = {
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <div class="rank-valor ${l.infracao?'riscado':''}">${fmt(l.valor)}</div>
-            ${isMaster ? (!l.infracao
-              ? `<button class="infrac-btn" onclick="HT.abrirInfracao(${l.id},'${nome.replace(/'/g,"\\'")}')">⚠️</button>`
-              : `<button class="remover-infrac-btn" onclick="HT.removerInfracao(${l.id})">↩</button>`
-            ) : ''}
+            ${isMaster ? `
+              <button class="edit-btn" onclick="HT.abrirEdicao(${l.id},${l.valor},'${l.data}','${(l.observacao||'').replace(/'/g,"\\'")}','${nome.replace(/'/g,"\\'")}')">✏️</button>
+              ${!l.infracao
+                ? `<button class="infrac-btn" onclick="HT.abrirInfracao(${l.id},'${nome.replace(/'/g,"\\'")}')">⚠️</button>`
+                : `<button class="remover-infrac-btn" onclick="HT.removerInfracao(${l.id})">↩</button>`
+              }
+            ` : ''}
           </div>
         </div>`
       }).join('')}
@@ -300,7 +330,7 @@ const HT = {
 
   // ── LANÇAR ───────────────────────────────────────────
   async renderLancar(el){
-    if(!meuBarbeiro){
+    if(!meuBarbeiro && !isMaster){
       el.innerHTML=`<div class="card"><div class="empty">
         <div style="font-size:36px;margin-bottom:10px">🏆</div>
         <div style="font-weight:700;margin-bottom:8px">Cadastre-se na Copa Gorilaz primeiro</div>
@@ -309,15 +339,39 @@ const HT = {
       </div></div>`
       return
     }
+
+    // Master pode lançar em nome de qualquer profissional cadastrado
+    let barbeiros = []
+    if(isMaster){
+      const { data } = await db.from('copa_barbeiros').select('id,nome,barbearia').order('nome')
+      barbeiros = data || []
+      if(_lancarTargetId==null) _lancarTargetId = meuBarbeiro?.id ?? (barbeiros[0]?.id ?? null)
+    } else {
+      _lancarTargetId = meuBarbeiro.id
+    }
+
+    if(!_lancarTargetId){
+      el.innerHTML = '<div class="empty">Nenhum profissional cadastrado na Copa Gorilaz ainda.</div>'
+      return
+    }
+
+    const targetNome = barbeiros.find(b=>b.id===_lancarTargetId)?.nome || meuBarbeiro?.nome || ''
     const ref = mesRef()
     const { data: meus } = await db.from('ht_lancamentos')
-      .select('*').eq('copa_barbeiro_id', meuBarbeiro.id)
+      .select('*').eq('copa_barbeiro_id', _lancarTargetId)
       .gte('data', ref+'-01').lte('data', ref+'-'+new Date(_y,_m,0).getDate())
       .order('data',{ascending:false})
 
     el.innerHTML = `
       <div class="card">
         <div class="card-title">🎫 Registrar High Ticket</div>
+        ${isMaster ? `
+          <div class="field"><label>👤 Lançar para</label>
+            <select id="ht-profissional" onchange="HT.trocarProfissionalLancar(this.value)">
+              ${barbeiros.map(b=>`<option value="${b.id}" ${_lancarTargetId===b.id?'selected':''}>${b.nome}${meuBarbeiro&&b.id===meuBarbeiro.id?' (você)':''} · ${b.barbearia}</option>`).join('')}
+            </select>
+          </div>
+        ` : ''}
         <div class="form-grid">
           <div class="field"><label>💰 Valor (R$)</label>
             <input type="number" id="ht-valor" step="0.01" min="0" placeholder="0,00"></div>
@@ -330,21 +384,28 @@ const HT = {
       </div>
 
       ${meus?.length ? `<div class="card">
-        <div class="card-title">📋 Meus lançamentos — ${mesLabel()}</div>
+        <div class="card-title">📋 Lançamentos de ${targetNome} — ${mesLabel()}</div>
         ${meus.map(l=>`
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b1)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--b1)">
             <div>
               <div style="font-size:13px;font-weight:600 ${l.infracao?';text-decoration:line-through;color:var(--t2)':''}">${fmt(l.valor)}</div>
               <div style="font-size:11px;color:var(--t2)">${fmtDate(l.data)}${l.observacao?' · '+l.observacao:''}</div>
               ${l.infracao?`<div style="font-size:10px;color:var(--rd)">⚠️ ${l.infracao_motivo||'Infração'}</div>`:''}
             </div>
+            ${isMaster ? `<button class="edit-btn" onclick="HT.abrirEdicao(${l.id},${l.valor},'${l.data}','${(l.observacao||'').replace(/'/g,"\\'")}','${targetNome.replace(/'/g,"\\'")}')">✏️</button>` : ''}
           </div>`).join('')}
       </div>` : ''}
     `
   },
 
+  trocarProfissionalLancar(val){
+    _lancarTargetId = Number(val)
+    this.render()
+  },
+
   async salvar(){
-    if(!meuBarbeiro){ toast('Cadastre-se na Copa Gorilaz primeiro.','err'); return }
+    const targetId = isMaster ? _lancarTargetId : meuBarbeiro?.id
+    if(!targetId){ toast('Selecione um profissional.','err'); return }
     const valor = parseFloat(document.getElementById('ht-valor')?.value)
     const data  = document.getElementById('ht-data')?.value
     if(!valor||valor<=0){ toast('Informe um valor válido.','err'); return }
@@ -352,7 +413,7 @@ const HT = {
     const btn = document.getElementById('btn-ht-salvar')
     btn.disabled=true; btn.innerHTML='<div class="spin"></div> Salvando...'
     const { error } = await db.from('ht_lancamentos').insert({
-      copa_barbeiro_id: meuBarbeiro.id,
+      copa_barbeiro_id: targetId,
       valor,
       data,
       mes_ref: `${data.slice(0,7)}`,
@@ -363,6 +424,40 @@ const HT = {
     toast('High Ticket registrado! ✓')
     document.getElementById('ht-valor').value=''
     document.getElementById('ht-obs').value=''
+    await this.render()
+  },
+
+  // ── EDITAR LANÇAMENTO (MASTER) ───────────────────────
+  abrirEdicao(id, valor, data, observacao, nome=''){
+    if(!isMaster){ toast('Acesso restrito.','err'); return }
+    _editTarget = { id }
+    document.getElementById('modal-editar-info').textContent = nome ? `Lançamento de: ${nome}` : ''
+    document.getElementById('edit-ht-valor').value = valor
+    document.getElementById('edit-ht-data').value  = data
+    document.getElementById('edit-ht-obs').value   = observacao || ''
+    document.getElementById('modal-editar-ht').classList.remove('hidden')
+  },
+  fecharModalEdicao(){
+    document.getElementById('modal-editar-ht').classList.add('hidden')
+    _editTarget = null
+  },
+  async salvarEdicao(){
+    if(!isMaster || !_editTarget){ return }
+    const valor = parseFloat(document.getElementById('edit-ht-valor')?.value)
+    const data  = document.getElementById('edit-ht-data')?.value
+    if(!valor||valor<=0){ toast('Informe um valor válido.','err'); return }
+    if(!data){ toast('Informe a data.','err'); return }
+    const btn = document.getElementById('btn-salvar-edicao')
+    btn.disabled=true; btn.innerHTML='<div class="spin" style="border-top-color:#000"></div>'
+    const { error } = await db.from('ht_lancamentos').update({
+      valor, data,
+      mes_ref: data.slice(0,7),
+      observacao: document.getElementById('edit-ht-obs')?.value?.trim()||null
+    }).eq('id', _editTarget.id)
+    btn.disabled=false; btn.innerHTML='💾 Salvar alterações'
+    if(error){ toast('Erro: '+error.message,'err'); return }
+    toast('Lançamento atualizado! ✓')
+    this.fecharModalEdicao()
     await this.render()
   },
 
@@ -579,7 +674,7 @@ async function init(){
   } catch(_){}
 
   // ESC fecha modal
-  document.addEventListener('keydown', e=>{ if(e.key==='Escape') HT.fecharModal() })
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ HT.fecharModal(); HT.fecharModalEdicao() } })
 
   await HT.render()
 }
