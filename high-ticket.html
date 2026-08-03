@@ -450,8 +450,9 @@ const HT = {
     if(!isMaster){ toast('Acesso restrito.','err'); return }
     const ok = confirm(`Excluir este High Ticket${nome ? ' de '+nome : ''}? Essa ação não pode ser desfeita.`)
     if(!ok) return
-    const { error } = await db.from('ht_lancamentos').delete().eq('id', id)
+    const { data, error } = await db.from('ht_lancamentos').delete().eq('id', id).select()
     if(error){ toast('Erro: '+error.message,'err'); return }
+    if(!data?.length){ toast('Não foi excluído — provável bloqueio de permissão (RLS) no Supabase.','err'); return }
     toast('Lançamento excluído.')
     await this.render()
   },
