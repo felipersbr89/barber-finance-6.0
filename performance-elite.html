@@ -78,6 +78,9 @@
     .meta-card-premiacao{font-size:10px;color:var(--gold);margin-top:4px}
     .bar-wrap{height:4px;background:var(--b1);border-radius:2px;overflow:hidden;margin-top:8px}
     .bar-fill{height:100%;border-radius:2px;transition:width .6s}
+    .gauge-msg{background:var(--s2);border:1px solid var(--b2);border-radius:999px;padding:10px 18px;font-size:12px;color:var(--t2);text-align:center;max-width:320px;margin:2px auto 0}
+    .section-divider{height:1px;background:var(--b1);margin:22px 0}
+    .donut-title{font-family:var(--fd);font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;text-align:center}
     /* Lançamento */
     .lanc-box{background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:16px;margin-bottom:14px}
     .lanc-title{font-size:13px;font-weight:700;margin-bottom:12px}
@@ -207,30 +210,74 @@ function calcular(av, ass, pr) {
   }
 }
 
-// ── Renderizar um card de meta ──
-function metaCard(icon, nome, sub, valorMeta, realizado, cor, corBar, diasR, premiacao) {
-  const p      = pct(realizado, valorMeta)
-  const ok     = realizado >= valorMeta
-  const faltaR = Math.max(0, valorMeta - realizado)
-  const porDia = diasR > 0 && faltaR > 0 ? +(faltaR / diasR).toFixed(2) : 0
-  // Comissão que o profissional vai ganhar ao atingir ESTA meta (= o valor da meta)
-  // Já está embutido no cálculo: a meta É o faturamento da cadeira alvo
-  const faltaPct = p < 100 ? +(100 - p).toFixed(1) : 0
-  return `<div class="meta-card ${ok ? 'atingida' : ''}">
-    <div class="meta-card-icon">${icon}</div>
-    <div class="meta-card-nome">${nome}</div>
-    <div class="meta-card-sub">${sub}</div>
-    <div class="meta-card-val" style="color:${cor}">${fmt(valorMeta)}</div>
-    <div class="meta-card-pct" style="color:${ok?'var(--gr)':cor}">${p}%${ok?' ✓':''}</div>
-    ${!ok ? `
-      <div class="meta-card-falta">Faltam ${faltaPct}% · ${fmt(faltaR)}</div>
-      ${porDia > 0 ? `<div class="meta-card-pordia">⚡ ${fmt(porDia)}/dia</div>` : ''}
-    ` : ''}
-    <div class="meta-card-comissao" style="color:${cor}">
-      Cadeira alvo: ${fmt(valorMeta)}
+// ── Meta atual (próximo alvo não atingido) ──
+function metaAtual(realizado, m) {
+  if (realizado < m.meta)      return { nome:'Meta',       valor:m.meta,      cor:'#C6FF00' }
+  if (realizado < m.metaTurbo) return { nome:'Meta Turbo', valor:m.metaTurbo, cor:'#fb923c' }
+  if (realizado < m.superMeta) return { nome:'Super Meta', valor:m.superMeta, cor:'#60a5fa' }
+  return { nome:'Super Meta', valor:m.superMeta, cor:'#60a5fa', done:true }
+}
+
+function mensagemMotivacional(realizado, m) {
+  if (realizado >= m.superMeta) return '🚀 Incrível! Você bateu a Super Meta este mês!'
+  if (realizado >= m.metaTurbo) return `🔥 Meta Turbo garantida! Faltam ${fmt(m.superMeta - realizado)} pra Super Meta.`
+  if (realizado >= m.meta)      return `✅ Meta batida! Faltam ${fmt(m.metaTurbo - realizado)} pra Meta Turbo.`
+  return `Continue assim! Faltam ${fmt(m.meta - realizado)} pra bater a Meta.`
+}
+
+// ── Gauge em arco (ticks), inspirado no design de referência ──
+function gaugeSVG(pctVal, color, size=260) {
+  const p       = Math.max(0, Math.min(100, pctVal))
+  const display = pctVal > 999 ? 999 : Math.round(pctVal)
+  const ticks   = 28
+  const filled  = Math.round((p/100) * ticks)
+  const cx = size/2, cy = size/2
+  const rOuter = size/2 - 16
+  const rInner = rOuter - 20
+  let marks = ''
+  for (let i=0; i<ticks; i++) {
+    const angle = Math.PI - (i/(ticks-1)) * Math.PI
+    const x1 = cx + rInner*Math.cos(angle), y1 = cy - rInner*Math.sin(angle)
+    const x2 = cx + rOuter*Math.cos(angle), y2 = cy - rOuter*Math.sin(angle)
+    const on = i < filled
+    marks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${on?color:'rgba(255,255,255,.12)'}" stroke-width="5" stroke-linecap="round"/>`
+  }
+  const h = size/2 + 78
+  return `<svg viewBox="0 0 ${size} ${h}" style="width:100%;max-width:280px;display:block;margin:0 auto">
+    ${marks}
+    <text x="${cx}" y="${cy+42}" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="38" font-weight="700" fill="#f4f4f4">${display}%</text>
+    <text x="${cx}" y="${cy+65}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="12" fill="#a0a0a0">Progresso da ${_gaugeLabel}</text>
+  </svg>`
+}
+let _gaugeLabel = 'Meta'
+
+// ── Anel donut com valor central ──
+function donutSVG(pctVal, color, centerBig, centerSmall, size=190, strokeW=14) {
+  const p = Math.max(0, Math.min(100, pctVal))
+  const r = size/2 - strokeW/2 - 4
+  const c = 2*Math.PI*r
+  const off = c * (1 - p/100)
+  const cx = size/2, cy = size/2
+  return `<svg viewBox="0 0 ${size} ${size}" style="width:100%;max-width:190px;display:block;margin:0 auto">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="${strokeW}"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${strokeW}" stroke-linecap="round"
+      stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy-2}" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="22" font-weight="700" fill="#f4f4f4">${centerBig}</text>
+    <text x="${cx}" y="${cy+19}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="#a0a0a0">${centerSmall}</text>
+  </svg>`
+}
+
+// ── Linha de meta (badge % + nome + valor alvo), inspirado no design de referência ──
+function tierRow(icon, nome, pctVal, valorMeta, premiacao, corDim, corTxt) {
+  const disp = pctVal > 999 ? 999 : Math.round(pctVal)
+  const ok   = pctVal >= 100
+  return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--b1)">
+    <div style="background:${corDim};color:${corTxt};font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;border-radius:8px;padding:6px 10px;min-width:50px;text-align:center;flex-shrink:0">${disp}%</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:600">${icon} ${nome}${ok?' <span style="color:var(--gr)">✓</span>':''}</div>
+      ${premiacao ? `<div style="font-size:10px;color:var(--t2);margin-top:2px">🏅 ${premiacao}</div>` : ''}
     </div>
-    ${premiacao ? `<div class="meta-card-premiacao">🏅 ${premiacao}</div>` : ''}
-    <div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(p,100)}%;background:${corBar}"></div></div>
+    <div style="font-size:13px;font-weight:600;text-decoration:underline;text-decoration-color:var(--b2);text-underline-offset:3px;flex-shrink:0">${fmt(valorMeta)}</div>
   </div>`
 }
 
@@ -293,10 +340,16 @@ const Perf = {
 
     const m = calcular(media.media_avulso, media.media_assinatura, media.media_produtos)
     const totalAv  = (reals||[]).reduce((s,r) => s + (+r.avulso||0), 0)
-    const totalAss = (reals||[]).reduce((s,r) => s + (+r.assinatura||0), 0)
     const totalPr  = (reals||[]).reduce((s,r) => s + (+r.produtos||0), 0)
-    const totalCom = +(totalAv + totalAss + totalPr).toFixed(2)
-    const dr = diasRest()
+    const assMedia = +(media.media_assinatura||0)
+    const totalCom = +(totalAv + totalPr + assMedia).toFixed(2)
+
+    const pctMeta  = pct(totalCom, m.meta)
+    const pctTurbo = pct(totalCom, m.metaTurbo)
+    const pctSuper = pct(totalCom, m.superMeta)
+    const atual    = metaAtual(totalCom, m)
+    const pctAtual = pct(totalCom, atual.valor)
+    _gaugeLabel    = atual.nome
 
     el.innerHTML = `
       <div class="card ${vid?'vigente':''}">
@@ -304,22 +357,23 @@ const Perf = {
           📊 ${mesLabel()}
           ${vid ? '<span class="badge badge-vigente">● Vigente</span>' : ''}
         </div>
-        <div class="real-hero">
-          <div class="real-val">${fmt(totalCom)}</div>
-          <div class="real-label">Faturamento da cadeira realizado</div>
-          <div class="real-breakdown">
-            <div>Avulso bruto: <span>${fmt(totalAv)}</span></div>
-            <div>Assinatura bruta: <span>${fmt(totalAss)}</span></div>
-            <div>Produtos: <span>${fmt(totalPr)}</span></div>
-          </div>
+
+        ${gaugeSVG(pctAtual, atual.cor)}
+        <div class="gauge-msg">${mensagemMotivacional(totalCom, m)}</div>
+
+        <div class="section-divider"></div>
+
+        <div class="donut-title">💰 Faturamento realizado no mês</div>
+        ${donutSVG(pctMeta, '#C6FF00', fmt(totalCom).replace('R$ ',''), 'R$ Realizado')}
+
+        <div style="margin-top:18px">
+          ${tierRow('🎯','Meta',       pctMeta,  m.meta,      media.premiacao_meta,       'var(--ac-dim)', 'var(--ac)')}
+          ${tierRow('🔥','Meta Turbo', pctTurbo, m.metaTurbo, media.premiacao_meta_turbo, 'var(--or-dim)', 'var(--or)')}
+          ${tierRow('🚀','Super Meta', pctSuper, m.superMeta, media.premiacao_super_meta, 'var(--bl-dim)', 'var(--bl)')}
         </div>
-        <div class="metas-grid">
-          ${metaCard('🎯','Meta','Média +5%',     m.meta,      totalCom, 'var(--ac)', '#C6FF00', dr, media.premiacao_meta)}
-          ${metaCard('🔥','Meta Turbo','Média +10%', m.metaTurbo, totalCom, 'var(--or)', '#fb923c', dr, media.premiacao_meta_turbo)}
-          ${metaCard('🚀','Super Meta','Média +15%', m.superMeta, totalCom, 'var(--bl)', '#60a5fa', dr, media.premiacao_super_meta)}
-        </div>
-        <div style="font-size:11px;color:var(--t3);line-height:1.8">
-          Base (últimos 6 meses): Avulso ${fmt(media.media_avulso)}
+
+        <div style="font-size:11px;color:var(--t3);line-height:1.8;margin-top:14px">
+          Base (últimos 6 meses): Serviços ${fmt(media.media_avulso)}
           · Assinatura ${fmt(media.media_assinatura)}
           · Produtos ${fmt(media.media_produtos)}
           · <strong style="color:var(--t2)">Cadeira: ${fmt(m.cadeira)}</strong>
@@ -329,7 +383,6 @@ const Perf = {
       ${vid ? this._lancamento(reals||[]) : ''}
       ${(reals||[]).length ? this._historico(reals) : ''}
     `
-    if (vid) { /* onclick já via HTML */ }
   },
 
   _lancamento(reals) {
@@ -339,11 +392,9 @@ const Perf = {
       <div class="lanc-title">📝 Lançamento de hoje
         ${reg ? '<span class="badge" style="background:var(--gr-dim);color:var(--gr);border:1px solid var(--gr-bdr)">✓ Já lançado</span>' : ''}
       </div>
-      <div class="lanc-grid">
-        <div class="field"><label>💈 Avulso bruto</label>
+      <div class="lanc-grid" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label>✂️ Serviços realizados</label>
           <input type="number" id="l-av" step="0.01" min="0" value="${reg?.avulso||0}"></div>
-        <div class="field"><label>📋 Assinatura bruta</label>
-          <input type="number" id="l-ass" step="0.01" min="0" value="${reg?.assinatura||0}"></div>
         <div class="field"><label>📦 Produtos</label>
           <input type="number" id="l-pr" step="0.01" min="0" value="${reg?.produtos||0}"></div>
       </div>
@@ -355,21 +406,20 @@ const Perf = {
 
   _historico(reals) {
     const rows = [...reals].reverse().map(r => {
-      const cadeira = +((+r.avulso) + (+r.assinatura) + (+r.produtos)).toFixed(2)
+      const total = +((+r.avulso) + (+r.produtos)).toFixed(2)
       const d = new Date(r.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})
       return `<tr>
         <td>${d}</td>
         <td>${fmt(r.avulso)}</td>
-        <td>${fmt(r.assinatura)}</td>
         <td>${fmt(r.produtos)}</td>
-        <td style="font-weight:700">${fmt(cadeira)}</td>
+        <td style="font-weight:700">${fmt(total)}</td>
       </tr>`
     }).join('')
     return `<div class="card">
       <div class="card-title">📋 Histórico do mês</div>
       <div style="overflow-x:auto">
         <table class="hist-table">
-          <thead><tr><th>Data</th><th>Avulso</th><th>Assinatura</th><th>Produtos</th><th>Cadeira</th></tr></thead>
+          <thead><tr><th>Data</th><th>Serviços</th><th>Produtos</th><th>Total</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
@@ -387,7 +437,7 @@ const Perf = {
       user_id: me?.id || null,
       mes_ref: ref, data: hj,
       avulso:    parseFloat(document.getElementById('l-av')?.value)  || 0,
-      assinatura:parseFloat(document.getElementById('l-ass')?.value) || 0,
+      assinatura: 0,
       produtos:  parseFloat(document.getElementById('l-pr')?.value)  || 0,
       updated_at: new Date().toISOString()
     }, { onConflict: 'copa_barbeiro_id,data' })
@@ -413,7 +463,7 @@ const Perf = {
     // Mapas
     const mediaMap = {}; (medias||[]).forEach(m => mediaMap[m.copa_barbeiro_id] = m)
     const realMap  = {}; (reals||[]).forEach(r => {
-      realMap[r.copa_barbeiro_id] = (realMap[r.copa_barbeiro_id]||0) + (+r.avulso||0) + (+r.assinatura||0) + (+r.produtos||0)
+      realMap[r.copa_barbeiro_id] = (realMap[r.copa_barbeiro_id]||0) + (+r.avulso||0) + (+r.produtos||0)
     })
 
     // Avatar de profiles
@@ -429,7 +479,7 @@ const Perf = {
       .map(b => {
         const med = mediaMap[b.id]
         const m   = calcular(med.media_avulso, med.media_assinatura, med.media_produtos)
-        const real = +(realMap[b.id]||0).toFixed(2)
+        const real = +((realMap[b.id]||0) + (+med.media_assinatura||0)).toFixed(2)
         return { ...b, metas:m, real, pct: pct(real, m.meta) }
       })
       .sort((a,b) => b.pct - a.pct)
