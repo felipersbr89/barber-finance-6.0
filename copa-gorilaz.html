@@ -205,6 +205,12 @@
     .own-row{border-color:var(--ac-bdr)!important;background:var(--ac-dim)}
     .loading-state{display:flex;align-items:center;justify-content:center;padding:36px;gap:10px;color:var(--t2)}
 
+    /* USUÁRIOS (master) */
+    .master-tag{background:var(--ac-dim);color:var(--ac);border:1px solid var(--ac-bdr);font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;display:inline-flex;align-items:center;gap:3px}
+    .usuarios-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+    .btn-danger{background:var(--rd-dim);color:var(--rd);border:1px solid var(--rd-bdr)}
+    .btn-danger:hover{background:var(--rd);color:#fff}
+
     /* TOAST */
     .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s2);color:var(--tx);padding:10px 22px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;border:1px solid var(--b2);white-space:nowrap}
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -219,7 +225,7 @@
 <div class="hero">
   <a href="dashboard.html" class="hero-logo" aria-label="Voltar ao Dashboard principal">
     <div class="hero-logo-mark" style="overflow:hidden">
-      <img src="data:image/png;base64,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" alt="Gorilaz" style="width:100%;height:100%;object-fit:cover;border-radius:7px;display:block">
+      <img src="icons/android-chrome-192x192.png" alt="Gorilaz" style="width:100%;height:100%;object-fit:cover;border-radius:7px;display:block">
     </div>
     <div>
       <div class="hero-logo-text">GORILAZ</div>
@@ -243,6 +249,7 @@
     <button class="tab active" id="tab-rank" onclick="Copa.setTab('rank')">🏆 Ranking</button>
     <button class="tab" id="tab-meu" onclick="Copa.setTab('meu')">⚡ Meu Painel</button>
     <button class="tab" id="tab-regras" onclick="Copa.setTab('regras')">📋 Regras</button>
+    <button class="tab" id="tab-usuarios" onclick="Copa.setTab('usuarios')" style="display:none">👑 Usuários</button>
   </div>
 
   <!-- RANKING -->
@@ -265,13 +272,6 @@
         <button onclick="Copa.filtrarRank('todos',this)">Todas</button>
       </div>
     </div>
-
-    <div style="background:rgba(251,146,60,.10);border:1px solid rgba(251,146,60,.22);border-radius:var(--r);padding:12px 14px;font-size:11px;color:var(--or);line-height:1.6;margin-bottom:14px">
-      ⚖️ <strong>Critério de desempate</strong> — Em caso de empate na pontuação, a definição segue esta ordem:
-      1º mais planos vendidos no mês · 2º maior volume bruto de serviços extras vendidos no mês · 3º maior ticket médio geral (avulsos e assinantes) no mês vigente.
-      Esses critérios são apurados manualmente, fora do sistema.
-    </div>
-
     <div id="rank-list"><div class="loading-state"><div class="spin"></div> Carregando...</div></div>
   </div>
 
@@ -551,6 +551,16 @@
 
     </div>
   </div><!-- /panel-regras -->
+
+  <!-- USUÁRIOS (apenas Master) -->
+  <div class="panel" id="panel-usuarios">
+    <div style="max-width:700px;margin:0 auto">
+      <div style="background:var(--or-dim);border:1px solid var(--or-bdr);border-radius:var(--r);padding:12px 14px;font-size:12px;color:var(--or);line-height:1.5;margin-bottom:16px">
+        👑 <strong>Área restrita.</strong> Promova ou remova o status de Master e exclua usuários da Copa. Excluir um usuário apaga também todo o histórico de lançamentos e ajustes dele — ação permanente.
+      </div>
+      <div id="usuarios-list"><div class="loading-state"><div class="spin"></div> Carregando...</div></div>
+    </div>
+  </div><!-- /panel-usuarios -->
 </div>
 
 <script>
@@ -592,9 +602,14 @@ let rankFiltro = 'gorilaz'
 let cnts       = { planos:0, extras:0, produtos:0, feed:0 }
 
 // Identificação Master (sessão Supabase Auth)
-const COPA_MASTERS = new Set(['felipersbr@gmail.com'])
+// COPA_MASTER_FIXO é uma trava de segurança: esse e-mail é SEMPRE master,
+// mesmo que a flag is_master dele no banco seja removida por engano.
+// Qualquer outro usuário vira/deixa de ser master através da coluna
+// profiles.is_master, gerenciável pela aba "👑 Usuários".
+const COPA_MASTER_FIXO = 'felipersbr@gmail.com'
 let copaIsMaster   = false
 let copaUserEmail  = ''
+let copaUserId     = null
 // Estado ajuste modal
 let _ajuste = { tipo:null, pid:null, nome:'', data:'', regra:null }
 let rankNomeMap = {}  // copa_barbeiros.id -> nome (evita escapar aspas em onclick)
@@ -637,6 +652,7 @@ const Copa = {
     if (tab==='rank') { this._atualizarSeletorMes(); this.carregarRanking() }
     if (tab==='meu' && barbeiro) this.atualizarKpisMes()
     if (tab==='regras') { /* estático */ }
+    if (tab==='usuarios') { this.carregarUsuarios() }
   },
 
   // ── CADASTRO ──
@@ -696,15 +712,11 @@ const Copa = {
     document.getElementById('estado-cadastro').style.display='none'
     document.getElementById('estado-painel').style.display=''
     document.getElementById('painel-nome').textContent = barbeiro.nome
-    // Verificar Master via Auth
-    db.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user?.email) {
-        copaUserEmail  = session.user.email.toLowerCase().trim()
-        copaIsMaster   = COPA_MASTERS.has(copaUserEmail)
-      }
-    }).catch(()=>{})
     document.getElementById('painel-barb').textContent = '✂️ '+barbeiro.barbearia
     document.getElementById('lanc-data').value = DATA_HOJE
+
+    // Verificar Master via Auth (aguardado — libera a aba "Usuários" a tempo)
+    await this._verificarMaster()
 
     // Resolver user_id e avatar — garante que barbeiros existentes sejam linkados
     await this._resolverUserIdEAvatar()
@@ -712,6 +724,30 @@ const Copa = {
     await this.onDataChange()
     await this.atualizarKpisMes()
     await this.carregarHistorico()
+  },
+
+  // Verifica se o usuário logado é Master: e-mail fixo (trava de segurança)
+  // OU flag profiles.is_master=true no banco. Mostra/esconde a aba "Usuários".
+  async _verificarMaster() {
+    try {
+      const { data: { session } } = await db.auth.getSession()
+      if (!session?.user?.email) return
+      copaUserEmail = session.user.email.toLowerCase().trim()
+      copaUserId    = session.user.id
+
+      if (copaUserEmail === COPA_MASTER_FIXO) {
+        copaIsMaster = true
+      } else {
+        const { data: prof } = await db.from('profiles')
+          .select('is_master').eq('user_id', copaUserId).maybeSingle()
+        copaIsMaster = !!prof?.is_master
+      }
+
+      const tabUsuarios = document.getElementById('tab-usuarios')
+      if (tabUsuarios) tabUsuarios.style.display = copaIsMaster ? '' : 'none'
+    } catch(e) {
+      console.warn('[Copa] _verificarMaster:', e.message)
+    }
   },
 
   // Busca sessão Supabase, atualiza user_id em copa_barbeiros se precisar,
@@ -1103,13 +1139,12 @@ const Copa = {
 
     // 4. Agrupa pontos
     const totais = {}, det = {}
-    parts.forEach(p=>{ totais[p.id]=0; det[p.id]={planos:0,extras:0,produtos:0,feed:0} })
+    parts.forEach(p=>{ totais[p.id]=0; det[p.id]={planos:0,extras:0,produtos:0} })
     lancs.forEach(l=>{
       totais[l.participante_id]=(totais[l.participante_id]||0)+l.pontos
       det[l.participante_id].planos  =(det[l.participante_id].planos||0)+l.planos
       det[l.participante_id].extras  =(det[l.participante_id].extras||0)+l.extras
       det[l.participante_id].produtos=(det[l.participante_id].produtos||0)+l.produtos
-      det[l.participante_id].feed    =(det[l.participante_id].feed||0)+(l.feed||0)
     })
 
     const rankeados = parts
@@ -1145,7 +1180,7 @@ const Copa = {
           <div class="rank-info">
             <div class="rank-name">${r.nome}${isOwn?' <span style="font-size:10px;color:var(--ac)">(você)</span>':''}</div>
             <div class="rank-barb">✂️ ${r.barbearia}</div>
-            <div class="rank-detail">💎${r.planos} planos · ✂️${r.extras} serviços · 🛍️${r.produtos} produtos · 📱${r.feed||0} feed/reels</div>
+            <div class="rank-detail">💎${r.planos} planos · ✂️${r.extras} serviços · 🛍️${r.produtos} produtos</div>
             <div class="rank-actions">
               <button class="rank-icon-btn report" onclick="Copa.abrirRelatorio(${r.id})" title="Relatório de ajustes">📄</button>
               ${copaIsMaster ? `
@@ -1315,6 +1350,86 @@ const Copa = {
 
   fecharRelatorio() {
     document.getElementById('modal-relatorio').classList.add('hidden')
+  },
+
+  // ── USUÁRIOS (apenas Master) ──────────────────────────
+
+  async carregarUsuarios() {
+    if (!copaIsMaster) return
+    const el = document.getElementById('usuarios-list')
+    el.innerHTML = '<div class="loading-state"><div class="spin"></div> Carregando...</div>'
+
+    const { data: barbeiros, error } = await db.from('copa_barbeiros')
+      .select('id,nome,barbearia,user_id')
+      .order('nome')
+
+    if (error) { el.innerHTML = '<div class="rank-empty">Erro ao carregar usuários.</div>'; return }
+    if (!barbeiros?.length) { el.innerHTML = '<div class="rank-empty">Nenhum usuário cadastrado.</div>'; return }
+
+    // Buscar is_master de profiles para quem já tem conta vinculada (user_id)
+    const uids = [...new Set(barbeiros.filter(b=>b.user_id).map(b=>b.user_id))]
+    const masterMap = {}
+    if (uids.length) {
+      const { data: profs } = await db.from('profiles').select('user_id,is_master').in('user_id', uids)
+      ;(profs||[]).forEach(p => { masterMap[p.user_id] = !!p.is_master })
+    }
+
+    el.innerHTML = barbeiros.map(b => {
+      const isMe      = copaUserId && b.user_id === copaUserId
+      const isMasterB = b.user_id ? !!masterMap[b.user_id] : false
+      const ini       = b.nome.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase()
+      const nomeSeguro = b.nome.replace(/'/g,"\\'")
+      return `
+        <div class="rank-card">
+          <div class="rank-avatar">${ini}</div>
+          <div class="rank-info">
+            <div class="rank-name">${b.nome}${isMe?' <span style="font-size:10px;color:var(--ac)">(você)</span>':''}</div>
+            <div class="rank-barb">✂️ ${b.barbearia}</div>
+            <div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">
+              ${isMasterB ? '<span class="master-tag">👑 Master</span>' : ''}
+              ${!b.user_id ? '<span class="rank-detail" style="margin-top:0">Sem conta vinculada</span>' : ''}
+            </div>
+          </div>
+          <div class="usuarios-actions">
+            ${b.user_id && !isMe ? `
+              <button class="btn btn-ghost btn-sm" onclick="Copa.toggleMaster('${b.user_id}',${isMasterB})">${isMasterB?'Remover Master':'Tornar Master'}</button>
+            ` : ''}
+            ${!isMe ? `<button class="btn btn-danger btn-sm" onclick="Copa.excluirUsuario(${b.id},'${nomeSeguro}')">🗑️ Excluir</button>` : ''}
+          </div>
+        </div>`
+    }).join('')
+  },
+
+  async toggleMaster(userId, estaMaster) {
+    if (!copaIsMaster) { toast('Acesso restrito ao Master.','err'); return }
+    const novoStatus = !estaMaster
+    const { error } = await db.from('profiles')
+      .update({ is_master: novoStatus })
+      .eq('user_id', userId)
+    if (error) { toast('Erro: '+error.message,'err'); return }
+    toast(novoStatus ? 'Usuário promovido a Master! 👑' : 'Status de Master removido.', 'ok')
+    await this.carregarUsuarios()
+  },
+
+  async excluirUsuario(barbeiroId, nome) {
+    if (!copaIsMaster) { toast('Acesso restrito ao Master.','err'); return }
+    const ok = confirm(`Excluir ${nome}?\n\nIsso apaga permanentemente o cadastro e todo o histórico de lançamentos e ajustes dele(a). Essa ação não pode ser desfeita.`)
+    if (!ok) return
+
+    // Apaga primeiro os registros dependentes (evita erro de chave estrangeira
+    // caso o banco não tenha ON DELETE CASCADE configurado)
+    const { error: e1 } = await db.from('copa_ajustes').delete().eq('participante_id', barbeiroId)
+    if (e1) { toast('Erro ao apagar ajustes: '+e1.message,'err'); return }
+
+    const { error: e2 } = await db.from('copa_lancamentos').delete().eq('participante_id', barbeiroId)
+    if (e2) { toast('Erro ao apagar lançamentos: '+e2.message,'err'); return }
+
+    const { error: e3 } = await db.from('copa_barbeiros').delete().eq('id', barbeiroId)
+    if (e3) { toast('Erro ao excluir usuário: '+e3.message,'err'); return }
+
+    toast(`${nome} removido da Copa.`, 'ok')
+    await this.carregarUsuarios()
+    await this.carregarRanking()
   },
 
   sair() {
